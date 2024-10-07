@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		0BBFA01A2CB4A044009CD974 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 0BBFA0192CB4A044009CD974 /* App */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		0BB6F09E2CB496CA003C34A1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -24,6 +28,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0B4109EE2CB49D71004B4F37 /* lib */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = lib; sourceTree = "<group>"; };
 		0BB6F08D2CB496C9003C34A1 /* topaz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = topaz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BB6F09D2CB496CA003C34A1 /* topazTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = topazTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BB6F0A72CB496CA003C34A1 /* topazUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = topazUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -52,6 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0BBFA01A2CB4A044009CD974 /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +85,8 @@
 				0BB6F0A02CB496CA003C34A1 /* TopazTests */,
 				0BB6F0AA2CB496CA003C34A1 /* TopazUITests */,
 				0BB6F08E2CB496C9003C34A1 /* Products */,
+				0B4109EE2CB49D71004B4F37 /* lib */,
+				0BBFA0182CB4A044009CD974 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -90,6 +98,13 @@
 				0BB6F0A72CB496CA003C34A1 /* topazUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		0BBFA0182CB4A044009CD974 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +127,7 @@
 			);
 			name = topaz;
 			packageProductDependencies = (
+				0BBFA0192CB4A044009CD974 /* App */,
 			);
 			productName = topaz;
 			productReference = 0BB6F08D2CB496C9003C34A1 /* topaz.app */;
@@ -564,6 +580,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0BBFA0192CB4A044009CD974 /* App */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = App;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0BB6F0852CB496C9003C34A1 /* Project object */;
 }
