@@ -20,8 +20,12 @@ public struct WebPageView: UIViewRepresentable {
         context.coordinator.update(webView: uiView, model: model)
     }
 
+    public static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+        coordinator.deinitialize(webView: uiView)
+    }
+
     public func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator()
     }
 }
 
