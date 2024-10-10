@@ -11,6 +11,7 @@ let package = Package(
     ],
     products: [
         .library(name: "App", targets: ["App"]),
+        .library(name: "WebView", targets: ["WebView"]),
     ],
     dependencies: [
         // external dependencies go here
@@ -19,9 +20,10 @@ let package = Package(
         .target(
             name: "App",
             dependencies: [
-                // Sub modules go here
+                "WebView",
             ]
         ),
+        .target(name: "WebView"),
         .testTarget(
             name: "AppTests",
             dependencies: ["App"]
