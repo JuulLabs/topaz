@@ -11,6 +11,8 @@ let package = Package(
     ],
     products: [
         .library(name: "App", targets: ["App"]),
+        .library(name: "Bluetooth", targets: ["Bluetooth"]),
+        .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
     dependencies: [
@@ -23,10 +25,30 @@ let package = Package(
                 "WebView",
             ]
         ),
-        .target(name: "WebView"),
         .testTarget(
             name: "AppTests",
             dependencies: ["App"]
+        ),
+
+        .target(
+            name: "Bluetooth"
+        ),
+        .testTarget(
+            name: "BluetoothTests",
+            dependencies: ["Bluetooth"]
+        ),
+
+        .target(
+            name: "BluetoothClient",
+            dependencies: ["Bluetooth"]
+        ),
+        .testTarget(
+            name: "BluetoothClientTests",
+            dependencies: ["BluetoothClient"]
+        ),
+
+        .target(
+            name: "WebView"
         ),
     ]
 )
