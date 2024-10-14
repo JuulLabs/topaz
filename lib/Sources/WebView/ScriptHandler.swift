@@ -1,10 +1,14 @@
 import Foundation
 import WebKit
 
+/**
+ Container for satisfying WKScriptMessageHandlerWithReply delegate plumbing.
+ */
 class ScriptHandler: NSObject {
+    // Name is referenced in Javascript as `window.webkit.messageHandlers.<name>`
     let name: String
 
-    var process: (_ request: ScriptMessageRequest) -> Void = { _ in fatalError() }
+    var process: (_ request: ScriptMessageRequest) async -> Void = { _ in fatalError() }
     var processForReply: (_ request: ScriptMessageRequest) async -> ScriptMessageResponse = { _ in fatalError() }
 
     init(name: String) {
@@ -15,7 +19,9 @@ class ScriptHandler: NSObject {
 extension ScriptHandler: WKScriptMessageHandler {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let request = message.toRequest() else { return }
-        process(request)
+        Task {
+            await process(request)
+        }
     }
 }
 

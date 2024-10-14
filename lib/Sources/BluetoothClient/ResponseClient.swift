@@ -12,7 +12,6 @@ public struct ResponseClient: Sendable {
 extension ResponseClient {
     public static let testValue = ResponseClient(
         events: AsyncStream { _ in
-            fatalError("Not implemented")
         }
     )
 }

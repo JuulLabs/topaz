@@ -48,7 +48,14 @@ let package = Package(
         ),
 
         .target(
-            name: "WebView"
+            name: "WebView",
+            dependencies: [
+                "Bluetooth",
+                "BluetoothClient",
+            ],
+            resources: [
+                .copy("Resources/BluetoothPolyfill.js")
+            ]
         ),
     ]
 )

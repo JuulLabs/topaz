@@ -1,7 +1,7 @@
 
 public struct BluetoothClient: Sendable {
-    public let request: RequestClient
-    public let response: ResponseClient
+    public var request: RequestClient
+    public var response: ResponseClient
 
     public init(
         request: RequestClient,

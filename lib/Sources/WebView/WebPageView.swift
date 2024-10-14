@@ -29,7 +29,18 @@ public struct WebPageView: UIViewRepresentable {
     }
 }
 
+private struct IsPreviewKey: EnvironmentKey {
+    static let defaultValue = false
+}
+
+extension EnvironmentValues {
+    var isPreview: Bool {
+        get { self[IsPreviewKey.self] }
+        set { self[IsPreviewKey.self] = newValue }
+    }
+}
+
 #Preview {
-    let url = URL.init(string: "https://perchance.org/cat-img-gen")!
+    let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/availability.html")!
     WebPageView(model: WebPageModel(url: url))
 }
