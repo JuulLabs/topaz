@@ -19,6 +19,8 @@ class ScriptHandler: NSObject {
 extension ScriptHandler: WKScriptMessageHandler {
     public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         guard let request = message.toRequest() else { return }
+        // TODO: structured tasks are order indeterminate
+        // Instead we should have the actor queue the work in the order of arrival
         Task {
             await process(request)
         }

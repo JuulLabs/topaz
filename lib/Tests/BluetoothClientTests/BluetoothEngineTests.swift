@@ -29,7 +29,7 @@ struct BluetoothEngineTests {
         SystemState.unauthorized,
         SystemState.poweredOff,
     ])
-    func process_getAvailability_returnFalse(state: SystemState) async throws {
+    func process_getAvailability_returnsFalse(state: SystemState) async throws {
         let node = WebNode(id: 0, sendEvent: { _ in })
         var client = BluetoothClient(request: .testValue, response: .testValue)
         client.request.enable = { state }
