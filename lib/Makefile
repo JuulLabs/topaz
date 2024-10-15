@@ -39,8 +39,9 @@ $(SIM_ID_CACHE): $(SCRATCH_PATH)
 		| head -1 \
 		| sed -e s'/^.*id:\([^,]*\).*,.*$$/\1/' > $@
 
-# Extract test targets from the Package file - kinda dumb but works:
-TEST_MODULES := $(shell cat Package.swift | grep 'name:.*Tests"' | cut -d\" -f 2)
+# Extracts the test targets by grokking the folders from within Tests directory:
+TEST_FOLDERS := $(wildcard Tests/*)
+TEST_MODULES := $(patsubst Tests/%,%,$(TEST_FOLDERS))
 
 test: $(TEST_MODULES)
 
