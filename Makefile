@@ -1,4 +1,4 @@
-.PHONY: build test clean sim-build sim-test _xcode_build
+.PHONY: build test lint lint-fix clean sim-build sim-test _xcode_build
 
 XCODE_PROJECT := topaz.xcodeproj
 XCODE_TARGET := topaz
