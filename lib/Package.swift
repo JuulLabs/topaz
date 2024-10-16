@@ -45,7 +45,6 @@ let package = Package(
             dependencies: [
                 "Bluetooth",
                 "Helpers",
-                .product(name: "Semaphore", package: "Semaphore"),
             ]
         ),
         .testTarget(
