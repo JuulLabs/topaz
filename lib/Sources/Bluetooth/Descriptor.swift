@@ -11,6 +11,12 @@ public struct Descriptor: Equatable, Sendable {
         case number(NSNumber)
         case string(String)
         case data(Data)
+        case none
+    }
+
+    public init(uuid: UUID, value: Value) {
+        self.uuid = uuid
+        self.value = value
     }
 }
 

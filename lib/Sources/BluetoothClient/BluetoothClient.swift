@@ -11,3 +11,7 @@ public struct BluetoothClient: Sendable {
         self.response = response
     }
 }
+
+extension BluetoothClient {
+    public static let testValue = BluetoothClient(request: .testValue, response: .testValue)
+}

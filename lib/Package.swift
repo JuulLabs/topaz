@@ -13,10 +13,12 @@ let package = Package(
         .library(name: "App", targets: ["App"]),
         .library(name: "Bluetooth", targets: ["Bluetooth"]),
         .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
+        .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
+        .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
     dependencies: [
-        // external dependencies go here
+        .package(url: "https://github.com/groue/Semaphore.git", from: "0.1.0")
     ],
     targets: [
         .target(
@@ -40,11 +42,34 @@ let package = Package(
 
         .target(
             name: "BluetoothClient",
-            dependencies: ["Bluetooth"]
+            dependencies: [
+                "Bluetooth",
+                "Helpers",
+                .product(name: "Semaphore", package: "Semaphore"),
+            ]
         ),
         .testTarget(
             name: "BluetoothClientTests",
             dependencies: ["BluetoothClient"]
+        ),
+
+        .target(
+            name: "BluetoothNative",
+            dependencies: [
+                "BluetoothClient",
+                "Helpers",
+            ]
+        ),
+        .testTarget(
+            name: "BluetoothNativeTests",
+            dependencies: ["BluetoothNative"]
+        ),
+
+        .target(
+            name: "Helpers",
+            dependencies: [
+                .product(name: "Semaphore", package: "Semaphore"),
+            ]
         ),
 
         .target(
