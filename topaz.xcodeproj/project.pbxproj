@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B201D952CC0387700C3C24C /* BluetoothNative in Frameworks */ = {isa = PBXBuildFile; productRef = 0B201D942CC0387700C3C24C /* BluetoothNative */; };
 		0BBFA01A2CB4A044009CD974 /* App in Frameworks */ = {isa = PBXBuildFile; productRef = 0BBFA0192CB4A044009CD974 /* App */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B201D952CC0387700C3C24C /* BluetoothNative in Frameworks */,
 				0BBFA01A2CB4A044009CD974 /* App in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -128,6 +130,7 @@
 			name = topaz;
 			packageProductDependencies = (
 				0BBFA0192CB4A044009CD974 /* App */,
+				0B201D942CC0387700C3C24C /* BluetoothNative */,
 			);
 			productName = topaz;
 			productReference = 0BB6F08D2CB496C9003C34A1 /* topaz.app */;
@@ -417,6 +420,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Topaz;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Allow web pages opened in Topaz to find and connect to your Bluetooth devices.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -449,6 +453,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Topaz;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Allow web pages opened in Topaz to find and connect to your Bluetooth devices.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -582,6 +587,10 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0B201D942CC0387700C3C24C /* BluetoothNative */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = BluetoothNative;
+		};
 		0BBFA0192CB4A044009CD974 /* App */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = App;
