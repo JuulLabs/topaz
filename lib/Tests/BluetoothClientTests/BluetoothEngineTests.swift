@@ -4,17 +4,27 @@ import Bluetooth
 
 struct BluetoothEngineTests {
 
+    private let zeroNode = WebNode(id: 0, sendEvent: { _ in })
+
+    func withClient(
+        inject: (_ request: inout RequestClient, _ response: inout ResponseClient) -> Void
+    ) -> BluetoothEngine {
+        var request = RequestClient.testValue
+        var response = ResponseClient.testValue
+        inject(&request, &response)
+        let client = BluetoothClient(request: request, response: response)
+        return BluetoothEngine(client: client)
+    }
+
     @Test(arguments: [
         SystemState.resetting,
         SystemState.poweredOn,
     ])
     func process_getAvailability_returnsTrue(state: SystemState) async throws {
-        let node = WebNode(id: 0, sendEvent: { _ in })
-        var client = BluetoothClient(request: .testValue, response: .testValue)
-        client.request.enable = { state }
-
-        let sut = BluetoothEngine(client: client)
-        let response = await sut.process(request: .getAvailability, for: node)
+        let sut = withClient { request, _ in
+            request.enable = { state }
+        }
+        let response = await sut.process(request: .getAvailability, for: zeroNode)
 
         guard case let .availability(isAvailable) = response else {
             Issue.record("Unexpected response: \(response)")
@@ -30,12 +40,10 @@ struct BluetoothEngineTests {
         SystemState.poweredOff,
     ])
     func process_getAvailability_returnsFalse(state: SystemState) async throws {
-        let node = WebNode(id: 0, sendEvent: { _ in })
-        var client = BluetoothClient(request: .testValue, response: .testValue)
-        client.request.enable = { state }
-
-        let sut = BluetoothEngine(client: client)
-        let response = await sut.process(request: .getAvailability, for: node)
+        let sut = withClient { request, _ in
+            request.enable = { state }
+        }
+        let response = await sut.process(request: .getAvailability, for: zeroNode)
 
         guard case let .availability(isAvailable) = response else {
             Issue.record("Unexpected response: \(response)")
