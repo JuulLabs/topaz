@@ -1,5 +1,6 @@
 import Bluetooth
 import Helpers
+import JsMessage
 
 /**
  Main engine - keeps state, replays web API onto native API
@@ -7,12 +8,11 @@ import Helpers
  TODO: may need to go into it's own module
  TODO: lock this actor to the system Bluetooth DispatchQueue serial queue
  */
-public actor BluetoothEngine {
+public actor BluetoothEngine: JsMessageProcessor {
 
     let client: BluetoothClient
 
     private var isEnabled: Bool = false
-
     private var systemState = DeferredValue<SystemState>()
 
     public init(
@@ -24,6 +24,9 @@ public actor BluetoothEngine {
                 switch event {
                 case let .systemState(state):
                     await systemState.setValue(state)
+                case let .disconnected(peripheral, _):
+                    // TODO: deal with error case
+                    await sendEvent(.disconnected(peripheral.identifier))
                 default:
                     break
                 }
@@ -31,11 +34,27 @@ public actor BluetoothEngine {
         }
     }
 
-    public func perform(action: WebBluetoothRequest, for node: WebNode) {
-        fatalError("Not implemented")
+
+    // MARK: - JsMessageProcessor
+    public let handlerName: String = "bluetooth"
+    private var context: JsContext?
+
+    public func didAttach(to context: JsContext) async {
+        self.context = context
     }
 
-    public func process(request: WebBluetoothRequest, for node: WebNode) async -> WebBluetoothResponse {
+    private func sendEvent(_ event: WebBluetoothEvent) async {
+        await context?.sendEvent(event.toJsEvent())
+    }
+
+    public func process(request: JsMessageRequest) async -> JsMessageResponse {
+        guard let request = WebBluetoothRequest.decode(from: request) else {
+            return .error("Bad request")
+        }
+        return await self.process(request: request).encode()
+    }
+
+    func process(request: WebBluetoothRequest) async -> WebBluetoothResponse {
         ensureEnabled()
         switch request {
         case .getAvailability:
@@ -46,6 +65,9 @@ public actor BluetoothEngine {
         }
         fatalError("remove me: case should be exhaustive")
     }
+
+
+    // MARK: - Private helpers
 
     private func ensureEnabled() {
         if !isEnabled {

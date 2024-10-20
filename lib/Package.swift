@@ -14,6 +14,7 @@ let package = Package(
         .library(name: "Bluetooth", targets: ["Bluetooth"]),
         .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
+        .library(name: "JsMessage", targets: ["JsMessage"]),
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
@@ -45,6 +46,7 @@ let package = Package(
             dependencies: [
                 "Bluetooth",
                 "Helpers",
+                "JsMessage",
             ]
         ),
         .testTarget(
@@ -65,6 +67,12 @@ let package = Package(
         ),
 
         .target(
+            name: "JsMessage",
+            dependencies: [
+            ]
+        ),
+
+        .target(
             name: "Helpers",
             dependencies: [
                 .product(name: "Semaphore", package: "Semaphore"),
@@ -76,6 +84,7 @@ let package = Package(
             dependencies: [
                 "Bluetooth",
                 "BluetoothClient",
+                "JsMessage",
             ],
             resources: [
                 .copy("Resources/Generated/BluetoothPolyfill.js")

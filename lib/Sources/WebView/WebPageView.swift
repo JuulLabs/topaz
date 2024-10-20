@@ -2,9 +2,9 @@ import BluetoothClient
 import SwiftUI
 import WebKit
 
+import JsMessage
 
 public struct WebPageView: UIViewRepresentable {
-    @Environment(\.bluetoothClient) var bluetoothClient
 
     private let model: WebPageModel
 
@@ -13,10 +13,9 @@ public struct WebPageView: UIViewRepresentable {
     }
 
     public func makeUIView(context: Context) -> WKWebView {
-        let engine = BluetoothEngine(client: bluetoothClient)
         let webView = WKWebView.init()
         webView.allowsBackForwardNavigationGestures = true
-        context.coordinator.initialize(webView: webView, model: model, engine: engine)
+        context.coordinator.initialize(webView: webView, model: model)
         return webView
     }
 
@@ -35,11 +34,13 @@ public struct WebPageView: UIViewRepresentable {
 
 #Preview {
     let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/availability.html")!
-    WebPageView(model: WebPageModel(url: url))
-        .environment(
-            \.bluetoothClient,
-             .mockClient(
-                systemState: { .poweredOn }
-             )
+    let bluetoothEngine = BluetoothEngine(client: .mockClient(
+        systemState: { .poweredOn }
+    ))
+    WebPageView(
+        model: WebPageModel(
+            url: url,
+            messageProcessors: [bluetoothEngine]
         )
-}
+    )
+ }

@@ -1,29 +1,40 @@
 import Foundation
+import JsMessage
 import WebKit
 
 /**
  Container for satisfying WKScriptMessageHandlerWithReply delegate plumbing.
  */
+@MainActor
 class ScriptHandler: NSObject {
-    // Name is referenced in Javascript as `window.webkit.messageHandlers.<name>`
-    let name: String
+    let context: JsContext
 
-    var process: (_ request: ScriptMessageRequest) async -> Void = { _ in fatalError() }
-    var processForReply: (_ request: ScriptMessageRequest) async -> ScriptMessageResponse = { _ in fatalError() }
+    private var processors: [String: JsMessageProcessor] = [:]
+    private var alreadyAttached: Set<String> = []
 
-    init(name: String) {
-        self.name = name
+    init(context: JsContext) {
+        self.context = context
     }
-}
 
-extension ScriptHandler: WKScriptMessageHandler {
-    public func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let request = message.toRequest() else { return }
-        // TODO: structured tasks are order indeterminate
-        // Instead we should have the actor queue the work in the order of arrival
-        Task {
-            await process(request)
+    var allProcessors: Dictionary<String, any JsMessageProcessor>.Values {
+        processors.values
+    }
+
+    func attach(processor: JsMessageProcessor) {
+        processors[processor.handlerName] = processor
+    }
+
+    // TODO: detach processors when webview goes out of scope
+
+    func getProcessor(named name: String) async -> JsMessageProcessor? {
+        guard let processor = processors[name] else {
+            return nil
         }
+        if !alreadyAttached.contains(name) {
+            alreadyAttached.insert(name)
+            await processor.didAttach(to: context)
+        }
+        return processor
     }
 }
 
@@ -32,7 +43,10 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
         guard let request = message.toRequest() else {
             return (nil, "Unrecognized message")
         }
-        return switch await processForReply(request) {
+        guard let processor = await getProcessor(named: request.handlerName) else {
+            return (nil, "Handler not found for \(request.handlerName)")
+        }
+        return switch await processor.process(request: request) {
         case let .body(value):
             (value.jsValue, nil)
         case let .error(reason):
@@ -42,8 +56,8 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
 }
 
 extension WKScriptMessage {
-    func toRequest() -> ScriptMessageRequest? {
+    func toRequest() -> JsMessageRequest? {
         guard let dictionary = JsType.bridgeOrNull(body)?.dictionary else { return .none }
-        return ScriptMessageRequest(name: name, body: dictionary)
+        return JsMessageRequest(handlerName: name, body: dictionary)
     }
 }

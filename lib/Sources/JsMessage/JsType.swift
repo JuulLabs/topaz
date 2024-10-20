@@ -3,7 +3,7 @@ import Foundation
 /*
  Interprets an erased Any originating from Javascript back into a native swift type.
  */
-enum JsType: Sendable {
+public enum JsType: Sendable {
     case number(NSNumber)
     case string(String)
     case date(Date)
@@ -14,7 +14,7 @@ enum JsType: Sendable {
 
 extension JsType {
     // TODO: can we support undefined aka Never?
-    static func canBridge(_ jsValue: Any) -> Bool {
+    public static func canBridge(_ jsValue: Any) -> Bool {
         switch jsValue {
         case is NSNumber:
             true
@@ -33,7 +33,7 @@ extension JsType {
         }
     }
 
-    static func bridge(_ jsValue: Any) -> JsType {
+    public static func bridge(_ jsValue: Any) -> JsType {
         switch jsValue {
         case let number as NSNumber:
             .number(number)
@@ -59,33 +59,33 @@ extension JsType {
         }
     }
 
-    static func bridgeOrNull(_ jsValue: Any) -> JsType? {
+    public static func bridgeOrNull(_ jsValue: Any) -> JsType? {
         canBridge(jsValue) ? bridge(jsValue) : .none
     }
 }
 
 extension JsType {
-    var number: NSNumber? {
+    public var number: NSNumber? {
         guard case let .number(value) = self else { return .none }
         return value
     }
 
-    var string: String? {
+    public var string: String? {
         guard case let .string(value) = self else { return .none }
         return value
     }
 
-    var date: Date? {
+    public var date: Date? {
         guard case let .date(value) = self else { return .none }
         return value
     }
 
-    var array: [JsType]? {
+    public var array: Array<JsType>? {
         guard case let .array(value) = self else { return .none }
         return value
     }
 
-    var dictionary: [String: JsType]? {
+    public var dictionary: Dictionary<String, JsType>? {
         guard case let .dictionary(value) = self else { return .none }
         return value
     }
