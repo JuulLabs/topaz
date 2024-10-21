@@ -1,0 +1,7 @@
+// This is just to satisfy rollup - do not specify any files to build
+{
+  "compilerOptions": {
+    "target": "es2017",
+    "removeComments": true,
+  },
+}

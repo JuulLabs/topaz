@@ -48,7 +48,10 @@ let package = Package(
         ),
 
         .target(
-            name: "WebView"
+            name: "WebView",
+            resources: [
+                .copy("Resources/Generated/BluetoothPolyfill.js")
+            ]
         ),
     ]
 )
