@@ -11,5 +11,7 @@ jobs:
       - uses: actions/checkout@v3
       - run: make -C lib build
       - run: make -C lib test
-      - run: swiftlint lint --strict
-
+      # TODO: add --strict flag to swiftlint once we have the versioning sorted out
+      - run: |
+          swiftlint --version
+          swiftlint lint --reporter markdown >> $GITHUB_STEP_SUMMARY

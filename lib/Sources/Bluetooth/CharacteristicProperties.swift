@@ -2,7 +2,7 @@
 /**
  Shadows CBCharacteristicProperties
  */
-public struct CharacteristicProperties : OptionSet, Equatable, Sendable {
+public struct CharacteristicProperties: OptionSet, Equatable, Sendable {
 
     public let rawValue: UInt
 

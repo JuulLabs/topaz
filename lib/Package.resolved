@@ -1,0 +1,15 @@
+{
+  "originHash" : "2254165b5e19b667bbec89a52ac04aeeabb23f2e163581bf0c1c367170d99492",
+  "pins" : [
+    {
+      "identity" : "semaphore",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/Semaphore.git",
+      "state" : {
+        "revision" : "2543679282aa6f6c8ecf2138acd613ed20790bc2",
+        "version" : "0.1.0"
+      }
+    }
+  ],
+  "version" : 3
+}

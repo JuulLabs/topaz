@@ -2,6 +2,7 @@
 
 XCODE_DEV_ROOT := $(shell xcode-select -p)
 XCODE_PROJECT := ../topaz.xcodeproj
+XCODE_OPTIONS := -skipPackagePluginValidation -skipMacroValidation
 
 SWIFT_TARGET := App
 
@@ -48,10 +49,10 @@ test: $(TEST_MODULES)
 # Instead of `swift test`, run each target. Still waaaaay faster than the main app test
 %Tests: $(SIM_ID_CACHE)
 	xcodebuild \
-                -project $(XCODE_PROJECT) \
-                -sdk iphoneos \
-                -scheme $@ \
-                -destination "platform=iOS Simulator,id=$(shell cat $(SIM_ID_CACHE))" \
-                test \
-                CODE_SIGNING_ALLOWED='NO'
-
+		-project $(XCODE_PROJECT) \
+		-sdk iphoneos \
+		-scheme $@ \
+		-destination "platform=iOS Simulator,id=$(shell cat $(SIM_ID_CACHE))" \
+		test \
+		$(XCODE_OPTIONS) \
+		CODE_SIGNING_ALLOWED='NO'

@@ -1,5 +1,6 @@
-import SwiftUI
 import App
+import BluetoothNative
+import SwiftUI
 
 @main
 struct TopazMain: App {
@@ -7,5 +8,6 @@ struct TopazMain: App {
         WindowGroup {
             AppContentView()
         }
+        .environment(\.bluetoothClient, .liveValue)
     }
 }

@@ -2,6 +2,7 @@ import Foundation
 
 public struct Advertisement: Equatable, Sendable {
     public let peripheralId: UUID
+    public let peripheralName: String?
     public let rssi: Int
     public let isConnectable: Bool?
     public let localName: String?
@@ -14,6 +15,7 @@ public struct Advertisement: Equatable, Sendable {
 
     public init(
         peripheralId: UUID,
+        peripheralName: String?,
         rssi: Int,
         isConnectable: Bool?,
         localName: String?,
@@ -25,6 +27,7 @@ public struct Advertisement: Equatable, Sendable {
         txPowerLevel: Int?
     ) {
         self.peripheralId = peripheralId
+        self.peripheralName = peripheralName
         self.rssi = rssi
         self.isConnectable = isConnectable
         self.localName = localName

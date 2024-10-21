@@ -11,7 +11,7 @@ public struct ManufacturerData: Equatable, Sendable {
 }
 
 extension ManufacturerData {
-    static func parse(from rawData: Data) -> Self? {
+    public static func parse(from rawData: Data) -> Self? {
         guard rawData.count >= 2 else { return nil }
         let code = rawData.withUnsafeBytes { bytes in
             UInt16(littleEndian: bytes.load(as: UInt16.self))

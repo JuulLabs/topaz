@@ -1,9 +1,9 @@
 import Foundation
 
 public struct ServiceData: Equatable, Sendable {
-    private let rawData: [UUID:Data]
+    private let rawData: [UUID: Data]
 
-    public init(_ rawData: [UUID:Data]) {
+    public init(_ rawData: [UUID: Data]) {
         self.rawData = rawData
     }
 

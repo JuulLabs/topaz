@@ -1,7 +1,7 @@
 
 public struct BluetoothClient: Sendable {
-    public let request: RequestClient
-    public let response: ResponseClient
+    public var request: RequestClient
+    public var response: ResponseClient
 
     public init(
         request: RequestClient,
@@ -10,4 +10,8 @@ public struct BluetoothClient: Sendable {
         self.request = request
         self.response = response
     }
+}
+
+extension BluetoothClient {
+    public static let testValue = BluetoothClient(request: .testValue, response: .testValue)
 }
