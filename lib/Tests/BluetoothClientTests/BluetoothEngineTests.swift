@@ -6,7 +6,7 @@ struct BluetoothEngineTests {
 
     private let zeroNode = WebNode(id: 0, sendEvent: { _ in })
 
-    func withClient(
+    private func withClient(
         inject: (_ request: inout RequestClient, _ response: inout ResponseClient) -> Void
     ) -> BluetoothEngine {
         var request = RequestClient.testValue
@@ -21,8 +21,11 @@ struct BluetoothEngineTests {
         SystemState.poweredOn,
     ])
     func process_getAvailability_returnsTrue(state: SystemState) async throws {
-        let sut = withClient { request, _ in
-            request.enable = { state }
+        let sut = withClient { request, response in
+            request.enable = { }
+            response.events = AsyncStream { continuation in
+                continuation.yield(.systemState(state))
+            }
         }
         let response = await sut.process(request: .getAvailability, for: zeroNode)
 
@@ -40,8 +43,11 @@ struct BluetoothEngineTests {
         SystemState.poweredOff,
     ])
     func process_getAvailability_returnsFalse(state: SystemState) async throws {
-        let sut = withClient { request, _ in
-            request.enable = { state }
+        let sut = withClient { request, response in
+            request.enable = { }
+            response.events = AsyncStream { continuation in
+                continuation.yield(.systemState(state))
+            }
         }
         let response = await sut.process(request: .getAvailability, for: zeroNode)
 
