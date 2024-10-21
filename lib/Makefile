@@ -53,6 +53,6 @@ test: $(TEST_MODULES)
 		-sdk iphoneos \
 		-scheme $@ \
 		-destination "platform=iOS Simulator,id=$(shell cat $(SIM_ID_CACHE))" \
- 		test \
+		test \
 		$(XCODE_OPTIONS) \
 		CODE_SIGNING_ALLOWED='NO'
