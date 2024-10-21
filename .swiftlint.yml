@@ -1,0 +1,11 @@
+disabled_rules:
+  - line_length
+  - todo
+  - identifier_name
+
+trailing_comma:
+  mandatory_comma: true
+
+cyclomatic_complexity:
+  ignores_case_statements: true
+

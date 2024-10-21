@@ -1,0 +1,15 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [self-hosted, macOS, ConX]
+    steps:
+      - uses: actions/checkout@v3
+      - run: make -C lib build
+      - run: make -C lib test
+      - run: swiftlint lint --strict
+
