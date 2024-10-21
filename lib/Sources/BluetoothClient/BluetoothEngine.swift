@@ -1,4 +1,5 @@
 import Bluetooth
+import Helpers
 
 /**
  Main engine - keeps state, replays web API onto native API
@@ -8,14 +9,26 @@ import Bluetooth
  */
 public actor BluetoothEngine {
 
-    let client: BluetoothClient // TODO: from dependencies
+    let client: BluetoothClient
 
-    private lazy var initialSystemState: SystemState = client.request.enable()
+    private var isEnabled: Bool = false
+
+    private var systemState = DeferredValue<SystemState>()
 
     public init(
         client: BluetoothClient? = nil
     ) {
-        self.client = client ?? .poweredOnMock
+        self.client = client ?? .testValue
+        Task {
+            for await event in self.client.response.events {
+                switch event {
+                case let .systemState(state):
+                    await systemState.setValue(state)
+                default:
+                    break
+                }
+            }
+        }
     }
 
     public func perform(action: WebBluetoothRequest, for node: WebNode) {
@@ -23,33 +36,31 @@ public actor BluetoothEngine {
     }
 
     public func process(request: WebBluetoothRequest, for node: WebNode) async -> WebBluetoothResponse {
+        ensureEnabled()
         switch request {
         case .getAvailability:
-            .availability(isAvailable())
+            let state = await systemState.getValue()
+            return .availability(isAvailable(state: state))
         default:
-            fatalError("remove me: case should be exhaustive")
+            break
+        }
+        fatalError("remove me: case should be exhaustive")
+    }
+
+    private func ensureEnabled() {
+        if !isEnabled {
+            isEnabled = true
+            client.request.enable()
         }
     }
 
-    private func isAvailable() -> Bool {
-        switch initialSystemState {
+    private func isAvailable(state: SystemState?) -> Bool {
+        guard let state else { return false }
+        return switch state {
         case .unknown, .unsupported, .unauthorized, .poweredOff:
             false
         case .resetting, .poweredOn:
             true
         }
     }
-}
-
-// Hack just to get things rolling
-extension BluetoothClient {
-    nonisolated(unsafe) static var poweredOnMock: Self = {
-        var requestClient = RequestClient.testValue
-        requestClient.enable = { .poweredOn }
-        var responseClient = ResponseClient.testValue
-        responseClient.events = AsyncStream<DelegateEvent> { continuation in
-            continuation.yield(.systemState(.poweredOn))
-        }
-        return BluetoothClient(request: requestClient, response: responseClient)
-    }()
 }

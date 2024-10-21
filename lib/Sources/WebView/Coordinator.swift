@@ -4,11 +4,10 @@ import WebKit
 
 @MainActor
 public class Coordinator: NSObject {
-    let engine = BluetoothEngine() // TODO: from dependencies
 
     override init() {}
 
-    func initialize(webView: WKWebView, model: WebPageModel) {
+    func initialize(webView: WKWebView, model: WebPageModel, engine: BluetoothEngine) {
         webView.customUserAgent = model.customUserAgent
         webView.navigationDelegate = self
 

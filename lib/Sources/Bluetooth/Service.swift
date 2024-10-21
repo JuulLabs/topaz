@@ -4,7 +4,11 @@ import Foundation
  Shadows CBService
  */
 public struct Service: Equatable, Sendable {
-    let uuid: UUID
-    let isPrimary: Bool
-    let includedServices: [Service]
+    public let uuid: UUID
+    public let isPrimary: Bool
+
+    public init(uuid: UUID, isPrimary: Bool) {
+        self.uuid = uuid
+        self.isPrimary = isPrimary
+    }
 }
