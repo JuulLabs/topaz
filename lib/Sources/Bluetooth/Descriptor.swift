@@ -19,4 +19,3 @@ public struct Descriptor: Equatable, Sendable {
         self.value = value
     }
 }
-

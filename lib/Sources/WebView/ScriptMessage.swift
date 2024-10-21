@@ -5,7 +5,7 @@ import Foundation
  */
 struct ScriptMessageRequest: Sendable {
     let name: String
-    let body: Dictionary<String, JsType>
+    let body: [String: JsType]
 }
 
 /**

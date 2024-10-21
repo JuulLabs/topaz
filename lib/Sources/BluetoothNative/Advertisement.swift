@@ -2,7 +2,7 @@ import Bluetooth
 import CoreBluetooth
 
 extension Advertisement {
-    init(peripheral: CBPeripheral, rssi: NSNumber, data: [String : Any]) {
+    init(peripheral: CBPeripheral, rssi: NSNumber, data: [String: Any]) {
         self.init(
             peripheralId: peripheral.identifier,
             peripheralName: peripheral.name,
@@ -19,11 +19,11 @@ extension Advertisement {
     }
 }
 
-private func uuids(from dict: [String:Any], for key: String) -> [UUID] {
+private func uuids(from dict: [String: Any], for key: String) -> [UUID] {
     (dict[key] as? [CBUUID])?.compactMap(cbToUuid) ?? []
 }
 
-private func extractServiceData(from dict: [String:Any]) -> [UUID:Data] {
+private func extractServiceData(from dict: [String: Any]) -> [UUID: Data] {
     (dict[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data])?.reduce(into: [:]) { result, pair in
         guard let key = cbToUuid(pair.key) else { return }
         result[key] = pair.value

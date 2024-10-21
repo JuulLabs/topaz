@@ -4,7 +4,7 @@ public struct Filter: Sendable {
     public let services: [UUID]
 
     // TODO: filter options
-    public var options: [String : Any]? {
+    public var options: [String: Any]? {
         nil
     }
 

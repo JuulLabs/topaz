@@ -21,7 +21,7 @@ public class Coordinator: NSObject {
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
         webView.configuration.userContentController.removeAllUserScripts()
     }
-    
+
     func update(webView: WKWebView, model: WebPageModel) {
         // TODO: load when observed model url changes only
         webView.load(URLRequest(url: model.url))
@@ -96,7 +96,7 @@ extension WebBluetoothResponse {
     func toScriptResponse() -> ScriptMessageResponse {
         switch self {
         case let .availability(isAvailable):
-            .body(["isAvailable":isAvailable])
+            .body(["isAvailable": isAvailable])
         default:
             fatalError("remove me: case should be exhaustive")
         }

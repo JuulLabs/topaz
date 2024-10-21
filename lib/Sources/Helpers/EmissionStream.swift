@@ -4,7 +4,7 @@ import Foundation
  A wrapper around `AsyncStream` with lazy access to the continuation.
  */
 public struct EmissionStream<T: Sendable>: Sendable {
-    private var continuation: AsyncStream<T>.Continuation? = nil
+    private var continuation: AsyncStream<T>.Continuation?
     public private(set) var stream: AsyncStream<T> = AsyncStream { _ in }
 
     public init(_ initialValue: T? = nil) {

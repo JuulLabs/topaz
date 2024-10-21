@@ -1,7 +1,9 @@
 disabled_rules:
+  - identifier_name
+  - leading_whitespace
   - line_length
   - todo
-  - identifier_name
+  - vertical_whitespace
 
 trailing_comma:
   mandatory_comma: true
@@ -9,3 +11,6 @@ trailing_comma:
 cyclomatic_complexity:
   ignores_case_statements: true
 
+excluded:
+  - "**/.build"
+  - "**/build"

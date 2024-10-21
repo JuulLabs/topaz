@@ -15,7 +15,7 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         handleEvent(.systemState(central.state.toSystemState()))
     }
 
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
+    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         let advertisement = Advertisement(peripheral: peripheral, rssi: RSSI, data: advertisementData)
         handleEvent(.advertisement(peripheral.eraseToAnyPeripheral(), advertisement))
     }

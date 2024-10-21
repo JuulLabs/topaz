@@ -12,7 +12,7 @@ public struct WebPageView: UIViewRepresentable {
         self.model = model
     }
 
-    public func makeUIView(context: Context) -> WKWebView  {
+    public func makeUIView(context: Context) -> WKWebView {
         let engine = BluetoothEngine(client: bluetoothClient)
         let webView = WKWebView.init()
         webView.allowsBackForwardNavigationGestures = true

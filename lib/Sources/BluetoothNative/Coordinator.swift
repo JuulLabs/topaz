@@ -45,8 +45,8 @@ class Coordinator: @unchecked Sendable {
                 // TODO: warning or error for accidental re-enable here
                 return
             }
-            let options: [String:Any] = [
-                CBCentralManagerOptionShowPowerAlertKey: NSNumber(booleanLiteral: false)
+            let options: [String: Any] = [
+                CBCentralManagerOptionShowPowerAlertKey: false as NSNumber
             ]
             manager = CBCentralManager(delegate: delegate, queue: queue, options: options)
         }

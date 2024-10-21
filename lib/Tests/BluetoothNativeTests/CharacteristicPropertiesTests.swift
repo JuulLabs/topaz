@@ -13,7 +13,7 @@ struct CharacteristicPropertiesTests {
         (CBCharacteristicProperties.indicate, CharacteristicProperties.indicate),
         (CBCharacteristicProperties.authenticatedSignedWrites, CharacteristicProperties.authenticatedSignedWrites),
         (CBCharacteristicProperties.extendedProperties, CharacteristicProperties.extendedProperties),
-        (CBCharacteristicProperties.notifyEncryptionRequired,CharacteristicProperties.notifyEncryptionRequired),
+        (CBCharacteristicProperties.notifyEncryptionRequired, CharacteristicProperties.notifyEncryptionRequired),
         (CBCharacteristicProperties.indicateEncryptionRequired, CharacteristicProperties.indicateEncryptionRequired),
     ])
     func init_usingCoreBluetoothRawValue_matchesCorrespondingElement(

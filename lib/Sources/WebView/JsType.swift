@@ -8,7 +8,7 @@ enum JsType: Sendable {
     case string(String)
     case date(Date)
     case array(Array<JsType>)
-    case dictionary(Dictionary<String,JsType>)
+    case dictionary(Dictionary<String, JsType>)
     case null
 }
 
@@ -80,12 +80,12 @@ extension JsType {
         return value
     }
 
-    var array: Array<JsType>? {
+    var array: [JsType]? {
         guard case let .array(value) = self else { return .none }
         return value
     }
 
-    var dictionary: Dictionary<String, JsType>? {
+    var dictionary: [String: JsType]? {
         guard case let .dictionary(value) = self else { return .none }
         return value
     }
