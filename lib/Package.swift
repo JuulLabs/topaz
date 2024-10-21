@@ -7,7 +7,7 @@ let package = Package(
     name: "App",
     platforms: [
         .iOS(.v17),
-        .macOS(.v13),
+        .macOS(.v14),
     ],
     products: [
         .library(name: "App", targets: ["App"]),
@@ -78,7 +78,7 @@ let package = Package(
                 "BluetoothClient",
             ],
             resources: [
-                .copy("Resources/BluetoothPolyfill.js")
+                .copy("Resources/Generated/BluetoothPolyfill.js")
             ]
         ),
     ]
