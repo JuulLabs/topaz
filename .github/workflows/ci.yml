@@ -11,5 +11,6 @@ jobs:
       - uses: actions/checkout@v3
       - run: make -C lib build
       - run: make -C lib test
-      - run: swiftlint lint --strict
-
+      - run: |
+          swiftlint --version
+          swiftlint lint --strict --reporter markdown >> $GITHUB_STEP_SUMMARY
