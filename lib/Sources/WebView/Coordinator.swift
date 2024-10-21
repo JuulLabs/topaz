@@ -12,10 +12,7 @@ public class Coordinator: NSObject {
         webView.customUserAgent = model.customUserAgent
         webView.navigationDelegate = self
 
-        let context = JsContext(id: model.contextId) { _ in
-            // TODO: wire up Js out-of-band event injection here
-            // probably something like `evaluateJavascript(blah)`
-        }
+        let context = JsContext(id: model.contextId)
         let scriptHandler = ScriptHandler(context: context)
         model.messageProcessors.forEach( { processor in
             scriptHandler.attach(processor: processor)
