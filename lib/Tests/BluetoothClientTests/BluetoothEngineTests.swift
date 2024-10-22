@@ -4,8 +4,6 @@ import Bluetooth
 
 struct BluetoothEngineTests {
 
-    private let zeroNode = WebNode(id: 0, sendEvent: { _ in })
-
     private func withClient(
         inject: (_ request: inout RequestClient, _ response: inout ResponseClient) -> Void
     ) -> BluetoothEngine {
@@ -27,7 +25,7 @@ struct BluetoothEngineTests {
                 continuation.yield(.systemState(state))
             }
         }
-        let response = await sut.process(request: .getAvailability, for: zeroNode)
+        let response = await sut.process(request: .getAvailability)
 
         guard case let .availability(isAvailable) = response else {
             Issue.record("Unexpected response: \(response)")
@@ -49,7 +47,7 @@ struct BluetoothEngineTests {
                 continuation.yield(.systemState(state))
             }
         }
-        let response = await sut.process(request: .getAvailability, for: zeroNode)
+        let response = await sut.process(request: .getAvailability)
 
         guard case let .availability(isAvailable) = response else {
             Issue.record("Unexpected response: \(response)")

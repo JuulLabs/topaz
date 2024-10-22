@@ -8,7 +8,7 @@ public struct Filter: Sendable {
         nil
     }
 
-    init(services: [UUID]) {
+    public init(services: [UUID]) {
         self.services = services
     }
 }

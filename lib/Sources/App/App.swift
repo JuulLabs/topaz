@@ -1,7 +1,10 @@
+import BluetoothClient
+import JsMessage
 import SwiftUI
 import WebView
 
 public struct AppContentView: View {
+    @Environment(\.jsMessageProcessors) var messageProcessors
 
     public init () {}
 
@@ -14,18 +17,19 @@ public struct AppContentView: View {
                 .font(.title)
                 .padding()
             WebPageView(
-                model: WebPageModel(url: url)
+                model: WebPageModel(
+                    url: url,
+                    messageProcessors: messageProcessors
+                )
             )
         }
     }
 }
 
 #Preview {
+    let bluetoothEngine = BluetoothEngine(client: .mockClient(
+        systemState: { .poweredOn }
+    ))
     AppContentView()
-        .environment(
-            \.bluetoothClient,
-             .mockClient(
-                systemState: { .poweredOn }
-             )
-        )
+        .environment(\.jsMessageProcessors, [bluetoothEngine])
 }
