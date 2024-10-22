@@ -53,6 +53,7 @@ public enum WebBluetoothResponse: Sendable {
  Models out-of-band Bluetooth API events.
  */
 public enum WebBluetoothEvent: Sendable {
+    case availability(Bool)
     case disconnected(DeviceIdentifier)
     case characteristicValue(DeviceIdentifier, ServiceIdentifier, CharacteristicIdentifier, Data)
     // TODO: moar events, availability state, what else?

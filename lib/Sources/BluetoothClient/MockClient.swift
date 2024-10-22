@@ -1,5 +1,6 @@
 import Bluetooth
 import Helpers
+import Foundation
 
 extension BluetoothClient {
     public static func mockClient(
@@ -16,7 +17,6 @@ extension BluetoothClient {
                 delegateStream.emit(.systemState(systemState()))
             }
         }
-
         return BluetoothClient(request: requestClient, response: responseClient)
     }
 }

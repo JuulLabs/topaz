@@ -24,6 +24,7 @@ public actor BluetoothEngine: JsMessageProcessor {
                 switch event {
                 case let .systemState(state):
                     await systemState.setValue(state)
+                    await sendEvent(.availability(isAvailable(state: state)))
                 case let .disconnected(peripheral, _):
                     // TODO: deal with error case
                     await sendEvent(.disconnected(peripheral.identifier))
@@ -44,7 +45,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     private func sendEvent(_ event: WebBluetoothEvent) async {
-        await context?.sendEvent(event.toJsEvent())
+        await context?.eventSink.send(event.toJsEvent())
     }
 
     public func process(request: JsMessageRequest) async -> JsMessageResponse {

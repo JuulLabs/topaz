@@ -1,3 +1,4 @@
+import Foundation
 
 public typealias JsContextIdentifier = Int
 
@@ -6,13 +7,12 @@ public typealias JsContextIdentifier = Int
  */
 public struct JsContext: Sendable, Identifiable {
     public let id: JsContextIdentifier
-    public let sendEvent: @MainActor @Sendable (_ event: JsEvent) async -> Void
+    public let eventSink: EventSink
 
     public init(
-        id: JsContextIdentifier,
-        sendEvent: @MainActor @Sendable @escaping (_ event: JsEvent) async -> Void
-    ) {
-        self.id = id
-        self.sendEvent = sendEvent
+        id: JsContextIdentifier
+   ) {
+       self.id = id
+       self.eventSink = EventSink()
     }
 }

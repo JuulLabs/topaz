@@ -69,6 +69,7 @@ let package = Package(
         .target(
             name: "JsMessage",
             dependencies: [
+                "Helpers",
             ]
         ),
 
