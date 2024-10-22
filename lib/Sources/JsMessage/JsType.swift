@@ -80,12 +80,12 @@ extension JsType {
         return value
     }
 
-    public var array: Array<JsType>? {
+    public var array: [JsType]? {
         guard case let .array(value) = self else { return .none }
         return value
     }
 
-    public var dictionary: Dictionary<String, JsType>? {
+    public var dictionary: [String: JsType]? {
         guard case let .dictionary(value) = self else { return .none }
         return value
     }

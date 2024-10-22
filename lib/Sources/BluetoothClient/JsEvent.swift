@@ -6,7 +6,7 @@ extension WebBluetoothEvent {
         switch self {
         case let .disconnected(identifier):
             encodeDisconnected(identifier: identifier)
-        case .characteristicValue(_, _, _, _):
+        case .characteristicValue:
             encodeCharacteristicValue()
         }
     }

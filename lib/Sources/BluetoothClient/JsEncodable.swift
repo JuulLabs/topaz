@@ -11,13 +11,13 @@ extension WebBluetoothResponse: JsMessageResponseEncodable {
             return encodeAvailability(isAvailable)
         case let .device(wat):
             return encodeDevice(wat)
-        case .service(_, _):
+        case .service:
             return encodeService()
-        case .services(_, _):
+        case .services:
             return encodeServices()
-        case .characteristic(_, _, _):
+        case .characteristic:
             return encodeCharacteristic()
-        case .characteristics(_, _, _):
+        case .characteristics:
             return encodeCharacteristics()
         }
     }
