@@ -3,14 +3,12 @@ import JsMessage
 
 extension WebBluetoothResponse: JsMessageResponseEncodable {
 
-//    public static let handlerName: String = "bluetooth"
-
     public func encode() -> JsMessageResponse {
         switch self {
         case let .availability(isAvailable):
             return encodeAvailability(isAvailable)
-        case let .device(wat):
-            return encodeDevice(wat)
+        case let .device(id):
+            return encodeDevice(id)
         case .service:
             return encodeService()
         case .services:

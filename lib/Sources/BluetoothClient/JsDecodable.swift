@@ -4,8 +4,6 @@ import JsMessage
 
 extension WebBluetoothRequest: JsMessageRequestDecodable {
 
-//    public static let handlerName: String = "bluetooth"
-
     public static func decode(from message: JsMessageRequest) -> WebBluetoothRequest? {
         guard let action = message.body["action"]?.string else { return nil }
         switch action {
