@@ -1,4 +1,5 @@
 import BluetoothClient
+import DevicePicker
 import SwiftUI
 import WebKit
 
@@ -34,9 +35,12 @@ public struct WebPageView: UIViewRepresentable {
 
 #Preview {
     let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/availability.html")!
-    let bluetoothEngine = BluetoothEngine(client: .mockClient(
-        systemState: { .poweredOn }
-    ))
+    let bluetoothEngine = BluetoothEngine(
+        deviceSelector: DeviceSelector(),
+        client: .mockClient(
+            systemState: { .poweredOn }
+        )
+    )
     WebPageView(
         model: WebPageModel(
             url: url,

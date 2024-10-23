@@ -39,3 +39,9 @@ public struct Advertisement: Equatable, Sendable {
         self.txPowerLevel = txPowerLevel
     }
 }
+
+extension Advertisement: Identifiable {
+    public var id: UUID {
+        peripheralId
+    }
+}

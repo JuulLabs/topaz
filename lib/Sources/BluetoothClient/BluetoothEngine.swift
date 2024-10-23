@@ -1,4 +1,6 @@
 import Bluetooth
+import DevicePicker
+import Foundation
 import Helpers
 import JsMessage
 
@@ -10,15 +12,19 @@ import JsMessage
  */
 public actor BluetoothEngine: JsMessageProcessor {
 
-    let client: BluetoothClient
-
     private var isEnabled: Bool = false
     private var systemState = DeferredValue<SystemState>()
+    private var peripherals: [UUID: AnyPeripheral] = [:]
+
+    public let deviceSelector: InteractiveDeviceSelector
+    public let client: BluetoothClient
 
     public init(
-        client: BluetoothClient? = nil
+        deviceSelector: InteractiveDeviceSelector,
+        client: BluetoothClient
     ) {
-        self.client = client ?? .testValue
+        self.client = client
+        self.deviceSelector = deviceSelector
         Task {
             for await event in self.client.response.events {
                 switch event {
@@ -28,6 +34,9 @@ public actor BluetoothEngine: JsMessageProcessor {
                 case let .disconnected(peripheral, _):
                     // TODO: deal with error case
                     await sendEvent(.disconnected(peripheral.identifier))
+                case let .advertisement(peripheral, advertisement):
+                    await deviceSelector.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
+                    break
                 default:
                     break
                 }
@@ -56,11 +65,13 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     func process(request: WebBluetoothRequest) async -> WebBluetoothResponse {
-        ensureEnabled()
         switch request {
         case .getAvailability:
-            let state = await systemState.getValue()
-            return .availability(isAvailable(state: state))
+            return await currentAvailablility()
+        case let .requestDevice(filter):
+            return await bluetoothReady {
+                await obtainDeviceViaPicker(filter: filter)
+            }
         default:
             break
         }
@@ -70,11 +81,62 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     // MARK: - Private helpers
 
-    private func ensureEnabled() {
+    private func obtainDeviceViaPicker(filter: Filter) async -> WebBluetoothResponse {
+        client.request.startScanning(filter)
+        defer { client.request.stopScanning() }
+        switch await deviceSelector.awaitSelection() {
+        case let .success(peripheral):
+            peripherals[peripheral.identifier] = peripheral
+            return .device(peripheral.identifier, peripheral.name)
+        case let .failure(error):
+            return .error(error)
+        }
+    }
+
+    private func currentAvailablility() async -> WebBluetoothResponse {
+        repeat {
+            guard let state = await waitForLatestState(), !Task.isCancelled else {
+                // Cancelled - means the web page got torn down
+                return .availability(isAvailable(state: .unknown))
+            }
+            switch state {
+            case .unknown:
+                // Keep waiting
+                break
+            default:
+                return .availability(isAvailable(state: state))
+            }
+        } while true
+    }
+
+    /// Blocks until we are in powered on state before running the operation
+    /// Returns an error if the state is not powered on
+    private func bluetoothReady(_ block: () async -> WebBluetoothResponse) async -> WebBluetoothResponse {
+        var isPoweredOn = false
+        repeat {
+            guard let state = await waitForLatestState(), !Task.isCancelled else {
+                // Cancelled - means the web page got torn down
+                return .error(BluetoothError.unknown)
+            }
+            switch state {
+            case .poweredOn:
+                isPoweredOn = true
+            case .unsupported, .unauthorized, .poweredOff:
+                return .error(BluetoothError.unavailable)
+            case .unknown, .resetting:
+                // Keep waiting
+                break
+            }
+        } while !isPoweredOn
+        return await block()
+    }
+
+    private func waitForLatestState() async -> SystemState? {
         if !isEnabled {
             isEnabled = true
             client.request.enable()
         }
+        return await systemState.getValue()
     }
 
     private func isAvailable(state: SystemState?) -> Bool {

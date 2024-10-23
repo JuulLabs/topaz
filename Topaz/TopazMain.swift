@@ -5,12 +5,12 @@ import SwiftUI
 
 @main
 struct TopazMain: App {
-    let bluetoothEngine = BluetoothEngine(client: .liveValue)
+    let appModel = AppModel()
 
     var body: some Scene {
         WindowGroup {
-            AppContentView()
+            AppContentView(model: appModel)
         }
-        .environment(\.jsMessageProcessors, [bluetoothEngine])
+        .environment(\.bluetoothClient, .liveValue)
     }
 }

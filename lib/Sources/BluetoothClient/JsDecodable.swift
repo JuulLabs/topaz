@@ -1,4 +1,5 @@
 import Bluetooth
+import Foundation
 import JsMessage
 
 
@@ -29,9 +30,8 @@ extension WebBluetoothRequest: JsMessageRequestDecodable {
     }
 }
 
-private func decodeRequestDevice(from: [String: JsType]) -> WebBluetoothRequest? {
-    // TODO:
-    return nil
+private func decodeRequestDevice(from data: [String: JsType]) -> WebBluetoothRequest? {
+    return .requestDevice(Filter.decode(from: data))
 }
 
 private func decodeConnect(from: [String: JsType]) -> WebBluetoothRequest? {

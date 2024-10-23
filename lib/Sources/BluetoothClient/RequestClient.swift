@@ -4,7 +4,8 @@ import Foundation
 public struct RequestClient: Sendable {
     public var enable: @Sendable () -> Void
     public var disable: @Sendable () -> Void
-    public var scan: @Sendable (Filter) -> Void
+    public var startScanning: @Sendable (Filter) -> Void
+    public var stopScanning: @Sendable () -> Void
     public var connect: @Sendable (AnyPeripheral) -> Void
     public var disconnect: @Sendable (AnyPeripheral) -> Void
     public var discoverServices: @Sendable (AnyPeripheral, ServiceDiscoveryFilter) -> Void
@@ -13,7 +14,8 @@ public struct RequestClient: Sendable {
     public init(
         enable: @Sendable @escaping () -> Void,
         disable: @Sendable @escaping () -> Void,
-        scan: @Sendable @escaping (Filter) -> Void,
+        startScanning: @Sendable @escaping (Filter) -> Void,
+        stopScanning: @Sendable @escaping () -> Void,
         connect: @Sendable @escaping (AnyPeripheral) -> Void,
         disconnect: @Sendable @escaping (AnyPeripheral) -> Void,
         discoverServices: @Sendable @escaping (AnyPeripheral, ServiceDiscoveryFilter) -> Void,
@@ -21,7 +23,8 @@ public struct RequestClient: Sendable {
     ) {
         self.enable = enable
         self.disable = disable
-        self.scan = scan
+        self.startScanning = startScanning
+        self.stopScanning = stopScanning
         self.connect = connect
         self.disconnect = disconnect
         self.discoverServices = discoverServices
@@ -33,7 +36,8 @@ extension RequestClient {
     public static let testValue = RequestClient(
         enable: { fatalError("Not implemented") },
         disable: { fatalError("Not implemented") },
-        scan: { _ in fatalError("Not implemented") },
+        startScanning: { _ in fatalError("Not implemented") },
+        stopScanning: { fatalError("Not implemented") },
         connect: { _ in fatalError("Not implemented") },
         disconnect: { _ in fatalError("Not implemented") },
         discoverServices: { _, _ in fatalError("Not implemented") },
