@@ -12,8 +12,10 @@ public class AppModel {
 
     public init() {}
 
-    func injectDemoModel(bluetoothClient: BluetoothClient) {
-        let selector = DeviceSelector()
+    func injectDemoModel(
+        bluetoothClient: BluetoothClient,
+        selector: DeviceSelector
+    ) {
         let bluetoothEngine = BluetoothEngine(
             deviceSelector: selector,
             client: bluetoothClient
@@ -52,7 +54,13 @@ public struct AppContentView: View {
         }
         .task {
             // Testing/Demo
-            model.injectDemoModel(bluetoothClient: bluetoothClient)
+            let selector = DeviceSelector()
+#if targetEnvironment(simulator)
+            let client: BluetoothClient = .clientWithMockAds(selector: selector)
+#else
+            let client: BluetoothClient = bluetoothClient
+#endif
+            model.injectDemoModel(bluetoothClient: client, selector: selector)
         }
     }
 }
