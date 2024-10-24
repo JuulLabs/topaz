@@ -45,7 +45,7 @@ struct WebContainerView: View {
 #if targetEnvironment(simulator)
 extension BluetoothClient {
     nonisolated static public func clientWithMockAds(selector: DeviceSelector) -> BluetoothClient {
-        var injectionTask: Task<Void, Never>? = nil
+        var injectionTask: Task<Void, Never>?
         return .mockClient(
             systemState: { .poweredOn },
             startScanning: { _ in

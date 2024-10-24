@@ -12,7 +12,7 @@ extension DeviceSelector {
             "Nuralink 0.0.6-beta",
             "35fc49b",
             "Really smart window",
-            "Even smarter light bulb"
+            "Even smarter light bulb",
         ].map { FakePeripheral(name: $0) }
         return Task {
             while !Task.isCancelled {

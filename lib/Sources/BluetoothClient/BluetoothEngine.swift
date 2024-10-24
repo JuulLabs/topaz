@@ -36,7 +36,6 @@ public actor BluetoothEngine: JsMessageProcessor {
                     await sendEvent(.disconnected(peripheral.identifier))
                 case let .advertisement(peripheral, advertisement):
                     await deviceSelector.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
-                    break
                 default:
                     break
                 }
