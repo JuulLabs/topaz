@@ -15,6 +15,7 @@ private func registerFont(bundle: Bundle, name: String, ext: String) {
     var error: Unmanaged<CFError>?
     if !CTFontManagerRegisterFontsForURL(url as CFURL, .none, &error) {
         let message = error?.takeRetainedValue().localizedDescription ?? "no error"
+        // TODO: log this fault for developers somewhere
         print("Register font \(name) failed: \(message)")
     }
 }

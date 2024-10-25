@@ -63,14 +63,14 @@ extension Font {
         return .custom(dogpatch.rawValue, fixedSize: size)
     }
 
-    public static func dogpatch(_ style: Font.TextStyle, weight: Dogpatch.Weight? = nil, design: Dogpatch.Design? = nil) -> Font {
+    public static func dogpatch(_ style: Font.TextStyle, design: Dogpatch.Design? = nil, weight: Dogpatch.Weight? = nil) -> Font {
         let design = design ?? .sans
         let weight = weight ?? .regular
         let dogpatch = Dogpatch.with(weight: weight, design: design)
         return .custom(dogpatch.rawValue, size: dogpatch.scaleMapping(for: style), relativeTo: style)
     }
 
-    public static func dogpatch(_ typography: Dogpatch.Typography, weight: Dogpatch.Weight? = nil, design: Dogpatch.Design? = nil) -> Font {
+    public static func dogpatch(custom typography: Dogpatch.Typography, design: Dogpatch.Design? = nil, weight: Dogpatch.Weight? = nil) -> Font {
         let design = design ?? .sans
         let weight = weight ?? .regular
         let dogpatch = Dogpatch.with(weight: weight, design: design)
