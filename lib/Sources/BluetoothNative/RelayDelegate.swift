@@ -49,7 +49,7 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
 fileprivate extension Optional where Wrapped == Error {
     func toBluetoothError() -> BluetoothError {
-        map(BluetoothError.CausedBy) ?? BluetoothError.Unknown
+        map(BluetoothError.causedBy) ?? BluetoothError.unknown
     }
 }
 

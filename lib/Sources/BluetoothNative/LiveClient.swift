@@ -16,7 +16,8 @@ private func liveRequestClient(coordinator: Coordinator) -> RequestClient {
     return RequestClient(
         enable: { coordinator.enable() },
         disable: { coordinator.disable() },
-        scan: { coordinator.startScanning(filter: $0) },
+        startScanning: { coordinator.startScanning(filter: $0) },
+        stopScanning: { coordinator.stopScanning() },
         connect: { coordinator.connect(peripheral: $0) },
         disconnect: { coordinator.disconnect(peripheral: $0) },
         discoverServices: { coordinator.discoverServices(peripheral: $0, filter: $1) },

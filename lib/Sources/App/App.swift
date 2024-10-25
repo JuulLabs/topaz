@@ -1,35 +1,71 @@
 import BluetoothClient
+import DevicePicker
 import JsMessage
+import Observation
 import SwiftUI
 import WebView
 
+@MainActor
+@Observable
+public class AppModel {
+    var webContainerModel: WebContainerModel?
+
+    public init() {}
+
+    func injectDemoModel(
+        bluetoothClient: BluetoothClient,
+        selector: DeviceSelector
+    ) {
+        let bluetoothEngine = BluetoothEngine(
+            deviceSelector: selector,
+            client: bluetoothClient
+        )
+        let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
+        let webPageModel = WebPageModel(
+            url: url,
+            messageProcessors: [bluetoothEngine]
+        )
+        webContainerModel = WebContainerModel(
+            webPageModel: webPageModel,
+            selector: selector
+        )
+    }
+}
+
 public struct AppContentView: View {
-    @Environment(\.jsMessageProcessors) var messageProcessors
+    @Environment(\.bluetoothClient) var bluetoothClient
 
-    public init () {}
+    let model: AppModel
 
-    let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/availability.html")!
-
+    public init(
+        model: AppModel
+    ) {
+        self.model = model
+    }
 
     public var body: some View {
         VStack {
             Text("Topaz")
                 .font(.title)
                 .padding()
-            WebPageView(
-                model: WebPageModel(
-                    url: url,
-                    messageProcessors: messageProcessors
-                )
-            )
+            if let webModel = model.webContainerModel {
+                WebContainerView(model: webModel)
+            }
+        }
+        .task {
+            // Testing/Demo
+            let selector = DeviceSelector()
+#if targetEnvironment(simulator)
+            let client: BluetoothClient = .clientWithMockAds(selector: selector)
+#else
+            let client: BluetoothClient = bluetoothClient
+#endif
+            model.injectDemoModel(bluetoothClient: client, selector: selector)
         }
     }
 }
 
 #Preview {
-    let bluetoothEngine = BluetoothEngine(client: .mockClient(
-        systemState: { .poweredOn }
-    ))
-    AppContentView()
-        .environment(\.jsMessageProcessors, [bluetoothEngine])
+    AppContentView(model: AppModel())
+        .environment(\.bluetoothClient, .mockClient())
 }

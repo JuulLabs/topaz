@@ -40,8 +40,9 @@ public enum WebBluetoothRequest: Sendable {
  Models return values to `WebBluetoothRequest` API calls.
  */
 public enum WebBluetoothResponse: Sendable {
+    case error(Error)
     case availability(Bool)
-    case device(DeviceIdentifier)
+    case device(DeviceIdentifier, String?)
     case service(DeviceIdentifier, ServiceIdentifier)
     case services(DeviceIdentifier, [ServiceIdentifier])
     case characteristic(DeviceIdentifier, ServiceIdentifier, CharacteristicIdentifier)

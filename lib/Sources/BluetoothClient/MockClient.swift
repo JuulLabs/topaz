@@ -4,7 +4,9 @@ import Foundation
 
 extension BluetoothClient {
     public static func mockClient(
-        systemState: (@Sendable () -> SystemState)? = nil
+        systemState: (@Sendable () -> SystemState)? = nil,
+        startScanning: (@Sendable (Filter) -> Void)? = nil,
+        stopScanning: (@Sendable () -> Void)? = nil
     ) -> Self {
 
         let delegateStream = EmissionStream<DelegateEvent>()
@@ -17,6 +19,9 @@ extension BluetoothClient {
                 delegateStream.emit(.systemState(systemState()))
             }
         }
+        requestClient.startScanning = { startScanning?($0) }
+        requestClient.stopScanning = { stopScanning?() }
+
         return BluetoothClient(request: requestClient, response: responseClient)
     }
 }
