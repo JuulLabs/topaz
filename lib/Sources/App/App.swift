@@ -1,36 +1,8 @@
 import BluetoothClient
+import Design
 import DevicePicker
-import JsMessage
-import Observation
 import SwiftUI
 import WebView
-
-@MainActor
-@Observable
-public class AppModel {
-    var webContainerModel: WebContainerModel?
-
-    public init() {}
-
-    func injectDemoModel(
-        bluetoothClient: BluetoothClient,
-        selector: DeviceSelector
-    ) {
-        let bluetoothEngine = BluetoothEngine(
-            deviceSelector: selector,
-            client: bluetoothClient
-        )
-        let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-        let webPageModel = WebPageModel(
-            url: url,
-            messageProcessors: [bluetoothEngine]
-        )
-        webContainerModel = WebContainerModel(
-            webPageModel: webPageModel,
-            selector: selector
-        )
-    }
-}
 
 public struct AppContentView: View {
     @Environment(\.bluetoothClient) var bluetoothClient
@@ -41,26 +13,26 @@ public struct AppContentView: View {
         model: AppModel
     ) {
         self.model = model
+        registerFonts()
     }
 
     public var body: some View {
         VStack {
-            Text("Topaz")
-                .font(.title)
-                .padding()
             if let webModel = model.webContainerModel {
                 WebContainerView(model: webModel)
+            } else {
+                FreshPageView(searchBarModel: model.searchBarModel)
             }
         }
         .task {
-            // Testing/Demo
+            // TODO: a more rigourous DI mechanism
             let selector = DeviceSelector()
 #if targetEnvironment(simulator)
             let client: BluetoothClient = .clientWithMockAds(selector: selector)
+            model.injectDependencies(bluetoothClient: client, selector: selector)
 #else
-            let client: BluetoothClient = bluetoothClient
+            model.injectDependencies(bluetoothClient: bluetoothClient, selector: selector)
 #endif
-            model.injectDemoModel(bluetoothClient: client, selector: selector)
         }
     }
 }
