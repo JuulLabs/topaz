@@ -43,10 +43,12 @@ public actor BluetoothEngine: JsMessageProcessor {
             await sendEvent(AvailabilityEvent(isAvailable: isAvailable(state: state)))
         case let .advertisement(peripheral, advertisement):
             await deviceSelector.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
-        case .connected:
-            fatalError("not implemented")
-        case .disconnected:
-            fatalError("not implemented")
+        case let .connected(peripheral):
+            resolveAction(.connect, for: peripheral.identifier)
+        case let .disconnected(peripheral, _):
+            // TODO: deal with error case
+            resolveAction(.disconnect, for: peripheral.identifier)
+            await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
         case .discoveredServices:
             fatalError("not implemented")
         case .discoveredCharacteristics:
@@ -84,8 +86,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .requestDevice: try await requestDevice(message: message)
 
         // GATT Server
-        // TODO: case connect
-        // TODO: case disconnect
+        case .connect: try await connect(message: message)
+        case .disconnect: try await disconnect(message: message)
         // TODO: case getPrimaryService
         // TODO: case getPrimaryServices
 
@@ -124,6 +126,34 @@ public actor BluetoothEngine: JsMessageProcessor {
         let peripheral = try await deviceSelector.awaitSelection().get()
         addPeripheral(peripheral)
         return RequestDeviceResponse(peripheralId: peripheral.identifier, name: peripheral.name)
+    }
+
+    // MARK: - Bluetooth GATT Server
+
+    private func connect(message: Message) async throws -> ConnectResponse {
+        let data = try ConnectRequest.decode(from: message).get()
+        try await bluetoothReadyState()
+        let peripheral = try getPeripheral(data.peripheralId)
+        if case .connected = peripheral.connectionState {
+            return ConnectResponse()
+        }
+        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
+            client.request.connect(peripheral)
+        }
+        return ConnectResponse()
+    }
+
+    private func disconnect(message: Message) async throws -> DisconnectResponse {
+        let data = try DisconnectRequest.decode(from: message).get()
+        try await bluetoothReadyState()
+        let peripheral = try getPeripheral(data.peripheralId)
+        if case .disconnected = peripheral.connectionState {
+            return DisconnectResponse(peripheralId: peripheral.identifier)
+        }
+        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
+            client.request.disconnect(peripheral)
+        }
+        return DisconnectResponse(peripheralId: peripheral.identifier)
     }
 
     // MARK: - Private helpers

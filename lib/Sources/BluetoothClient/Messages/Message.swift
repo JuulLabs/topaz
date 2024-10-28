@@ -15,8 +15,8 @@ struct Message {
         case requestDevice
 
         // GATT Server
-        // TODO: case connect
-        // TODO: case disconnect
+        case connect
+        case disconnect
         // TODO: case getPrimaryService
         // TODO: case getPrimaryServices
 
