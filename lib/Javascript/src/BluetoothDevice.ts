@@ -3,17 +3,17 @@ import { mainDispatcher } from "./EventDispatcher";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothDevice
 export class BluetoothDevice extends EventTarget {
-    id: string;
+    uuid: string;
     name: string | undefined;
     gatt: BluetoothRemoteGATTServer;
 
-    constructor(id: string, name?: string) {
+    constructor(uuid: string, name?: string) {
         super();
-        this.id = id;
+        this.uuid = uuid;
         this.name = name;
         this.gatt = new BluetoothRemoteGATTServer(this);
 
-        mainDispatcher.addTarget(id, "gattserverdisconnected", this);
+        mainDispatcher.addTarget(uuid, "gattserverdisconnected", this);
     }
 
     // TODO:

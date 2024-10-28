@@ -19,10 +19,10 @@ export class BluetoothRemoteGATTServer {
         this.connected = false;
     }
 
-    connect = async function() {
+    connect = async (): Promise<BluetoothRemoteGATTServer> => {
         const response = await bluetoothRequest<ConnectRequest, ConnectResponse>(
             'connect',
-            { uuid: this.device.id }
+            { uuid: this.device.uuid }
         );
         this.connected = response.connected;
         return this;

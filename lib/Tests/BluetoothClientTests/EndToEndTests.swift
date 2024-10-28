@@ -2,11 +2,20 @@ import Bluetooth
 @testable import BluetoothClient
 import DevicePicker
 import Foundation
+import JsMessage
 import Testing
 
 struct EndToEndBluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
+
+    private let requestDeviceRequest = JsMessageRequest(
+        handlerName: "bluetooth",
+        body: [
+            "action": .string("requestDevice"),
+            "options": .dictionary([:]),
+        ]
+    )
 
     /// Tests the integration of:
     /// 1. web app initiating a promise to request a device
@@ -31,17 +40,22 @@ struct EndToEndBluetoothEngineTests {
             selector = selectorSut
         }
 
-        async let promise = await engineSut.process(request: .requestDevice(Filter(services: [])))
+        async let promise = await engineSut.process(request: requestDeviceRequest)
         let advertisements = await selectorSut.advertisements.first(where: { !$0.isEmpty })
+        #expect(advertisements!.count == 1)
+
         await selectorSut.makeSelection(advertisements!.first!.peripheralId)
         let response = await promise
-        guard case let .device(deviceId, deviceName) = response else {
+        guard case let .body(responseBody) = response else {
             Issue.record("Unexpected response: \(response)")
             return
         }
-        #expect(advertisements!.count == 1)
-        #expect(deviceId == zeroUuid)
-        #expect(deviceName == "bob")
+        guard let body = responseBody.jsValue as? [String: Any] else {
+            Issue.record("Expected dictionary but got: \(response)")
+            return
+        }
+        #expect(body["uuid"] as? String == zeroUuid.uuidString)
+        #expect(body["name"] as? String == "bob")
     }
 
 }

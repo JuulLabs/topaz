@@ -15,13 +15,12 @@ struct BluetoothEngineTests {
                 continuation.yield(.systemState(state))
             }
         }
-        let response = await sut.process(request: .getAvailability)
-
-        guard case let .availability(isAvailable) = response else {
+        let response = try await sut.process(message: Message(action: .getAvailability))
+        guard let response = response as? GetAvailabilityResponse else {
             Issue.record("Unexpected response: \(response)")
             return
         }
-        #expect(isAvailable == true)
+        #expect(response.isAvailable == true)
     }
 
     @Test(arguments: [
@@ -37,12 +36,11 @@ struct BluetoothEngineTests {
                 continuation.yield(.systemState(state))
             }
         }
-        let response = await sut.process(request: .getAvailability)
-
-        guard case let .availability(isAvailable) = response else {
+        let response = try await sut.process(message: Message(action: .getAvailability))
+        guard let response = response as? GetAvailabilityResponse else {
             Issue.record("Unexpected response: \(response)")
             return
         }
-        #expect(isAvailable == false)
+        #expect(response.isAvailable == false)
     }
 }
