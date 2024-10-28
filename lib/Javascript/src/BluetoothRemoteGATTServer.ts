@@ -9,6 +9,14 @@ type ConnectResponse = {
     connected: boolean;
 }
 
+type DisconnectRequest = {
+    uuid: string;
+}
+
+type DisconnectResponse = {
+    disconnected: boolean;
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer
 export class BluetoothRemoteGATTServer {
     device: BluetoothDevice;
@@ -19,13 +27,21 @@ export class BluetoothRemoteGATTServer {
         this.connected = false;
     }
 
-    connect = async function() {
+    connect = async (): Promise<BluetoothRemoteGATTServer> => {
         const response = await bluetoothRequest<ConnectRequest, ConnectResponse>(
             'connect',
-            { uuid: this.device.id }
+            { uuid: this.device.uuid }
         );
         this.connected = response.connected;
         return this;
+    }
+
+    disconnect = async (): Promise<void> => {
+        const response = await bluetoothRequest<DisconnectRequest, DisconnectResponse>(
+            'disconnect',
+            { uuid: this.device.uuid }
+        );
+        this.connected = !response.disconnected;
     }
 
     // TODO:

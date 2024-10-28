@@ -16,7 +16,7 @@ type RequestDeviceRequest = {
 }
 
 type RequestDeviceResponse = {
-    id: string;
+    uuid: string;
     name?: string;
 }
 
@@ -37,25 +37,25 @@ export class Bluetooth extends EventTarget {
     onavailabilitychanged = (event: ValueEvent<boolean>) => {
     };
 
-    getAvailability = async function() {
+    getAvailability = async () => {
         const response = await bluetoothRequest<undefined, GetAvailabilityResponse>(
             'getAvailability'
         );
         return response.isAvailable;
     }
 
-    getDevices = async function() {
+    getDevices = async (): Promise<BluetoothDevice[]> => {
         const response = await bluetoothRequest<undefined, RequestDeviceResponse[]>(
             'getDevices'
         );
-        return response.map(device => new BluetoothDevice(device.id, device.name));
+        return response.map(device => new BluetoothDevice(device.uuid, device.name));
     }
 
-    requestDevice = async function(options?: Options) {
+    requestDevice = async (options?: Options): Promise<BluetoothDevice> => {
         const response = await bluetoothRequest<RequestDeviceRequest, RequestDeviceResponse>(
             'requestDevice',
             { options: options }
         );
-        return new BluetoothDevice(response.id, response.name);
+        return new BluetoothDevice(response.uuid, response.name);
     }
 }
