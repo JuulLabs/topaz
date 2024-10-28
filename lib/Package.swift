@@ -16,8 +16,9 @@ let package = Package(
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
         .library(name: "Design", targets: ["Design"]),
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
-        .library(name: "JsMessage", targets: ["JsMessage"]),
         .library(name: "Helpers", targets: ["Helpers"]),
+        .library(name: "JsMessage", targets: ["JsMessage"]),
+        .library(name: "UIHelpers", targets: ["UIHelpers"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
     dependencies: [
@@ -28,6 +29,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 "Design",
+                "UIHelpers",
                 "WebView",
             ]
         ),
@@ -89,6 +91,13 @@ let package = Package(
         ),
 
         .target(
+            name: "Helpers",
+            dependencies: [
+                .product(name: "Semaphore", package: "Semaphore"),
+            ]
+        ),
+
+        .target(
             name: "JsMessage",
             dependencies: [
                 "Helpers",
@@ -96,10 +105,8 @@ let package = Package(
         ),
 
         .target(
-            name: "Helpers",
-            dependencies: [
-                .product(name: "Semaphore", package: "Semaphore"),
-            ]
+            name: "UIHelpers",
+            dependencies: []
         ),
 
         .target(
