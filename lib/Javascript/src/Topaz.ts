@@ -1,6 +1,5 @@
 import { Bluetooth } from "./Bluetooth";
-import { sendEvent } from "./EventSink";
-import { TargetedEvent } from "./EventSink";
+import { sendEvent, TargetedEvent } from "./EventSink";
 
 export class Topaz {
     bluetooth: Bluetooth;

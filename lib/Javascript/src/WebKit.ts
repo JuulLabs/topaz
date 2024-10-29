@@ -1,6 +1,7 @@
 // Channels map one-to-one to the available WebKit JsMessageHandlers
 declare namespace window.webkit.messageHandlers {
     const bluetooth: Channel<BluetoothMessage>;
+    const logging: Channel<LogMessage>;
 }
 
 interface Channel<Message> {
@@ -22,5 +23,19 @@ export const bluetoothRequest = function <Request, Response>(
     return window.webkit.messageHandlers.bluetooth.postMessage<Response>({
         action: action,
         data: data
+    });
+}
+
+
+// Logging Channel
+
+type LogMessage = {
+    // TODO: log level
+    msg: string;
+}
+
+export const appLog = function (msg: string): Promise<void> {
+    return window.webkit.messageHandlers.logging.postMessage<void>({
+        msg: msg
     });
 }

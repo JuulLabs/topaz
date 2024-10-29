@@ -2,11 +2,12 @@ import Foundation
 import JsMessage
 import Observation
 
+@MainActor
 @Observable
 public class WebPageModel {
     public let contextId: JsContextIdentifier
     public let tab: Int
-    public var url: URL
+    public private(set) var url: URL
 
     let scriptResourceNames = ["BluetoothPolyfill"]
     let messageProcessors: [JsMessageProcessor]
@@ -27,5 +28,9 @@ public class WebPageModel {
         self.tab = tab
         self.url = url
         self.messageProcessors = messageProcessors
+    }
+
+    public func loadNewPage(url: URL) {
+        self.url = url
     }
 }

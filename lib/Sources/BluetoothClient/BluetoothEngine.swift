@@ -14,7 +14,6 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private var isEnabled: Bool = false
     private var systemState = DeferredValue<SystemState>()
-    private var promiseRegistry = PromiseRegistry()
     private var peripherals: [UUID: AnyPeripheral] = [:]
 
     public let deviceSelector: InteractiveDeviceSelector
@@ -61,9 +60,17 @@ public actor BluetoothEngine: JsMessageProcessor {
     // MARK: - JsMessageProcessor
     public let handlerName: String = "bluetooth"
     private var context: JsContext?
+    private var promiseRegistry: PromiseRegistry?
 
     public func didAttach(to context: JsContext) async {
         self.context = context
+        promiseRegistry = PromiseRegistry()
+    }
+
+    public func didDetach(from context: JsContext) async {
+        promiseRegistry?.resolveAll()
+        promiseRegistry = nil
+        self.context = nil
     }
 
     private func sendEvent(_ event: JsEventEncodable) async {
@@ -159,7 +166,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     // MARK: - Private helpers
 
     private func resolveAction(_ action: Message.Action, for id: UUID) {
-        promiseRegistry.resolve(action, for: id)
+        promiseRegistry?.resolve(action, for: id)
     }
 
     private func awaitAction(
@@ -167,7 +174,9 @@ public actor BluetoothEngine: JsMessageProcessor {
         uuid: UUID,
         launchEffect: () -> Void
     ) async throws {
-        let promise = promiseRegistry.register(action, for: uuid)
+        guard let promise = promiseRegistry?.register(action, for: uuid) else {
+            throw BluetoothError.unavailable
+        }
         launchEffect()
         try await promise.awaitResolved()
     }
