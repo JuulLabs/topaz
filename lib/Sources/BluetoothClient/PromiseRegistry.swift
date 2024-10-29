@@ -43,10 +43,18 @@ struct PromiseRegistry {
         let key = Key(uuid: id, action: action)
         guard let promise = pendingPromises[key] else {
             // TODO: throw error, or can we ignore these??
+            // We can ignore them if it was due to the web page going away (i.e. resolveAll was invoked)
             print("WARNING: no such pending promise \(action) \(id)")
             return
         }
         pendingPromises.removeValue(forKey: key)
         promise.resolve()
+    }
+
+    mutating func resolveAll() {
+        pendingPromises.values.forEach { promise in
+            promise.resolve()
+        }
+        pendingPromises = [:]
     }
 }
