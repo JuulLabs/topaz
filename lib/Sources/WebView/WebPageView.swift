@@ -43,6 +43,7 @@ public struct WebPageView: UIViewRepresentable {
     )
     WebPageView(
         model: WebPageModel(
+            tab: 0,
             url: url,
             messageProcessors: [bluetoothEngine]
         )

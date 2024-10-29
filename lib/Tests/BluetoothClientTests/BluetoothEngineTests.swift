@@ -7,6 +7,11 @@ import Testing
 struct BluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
+    private let url: URL! = URL(string: "https://topaz.com/")
+    private let context = JsContext(
+        id: JsContextIdentifier(tab: 0, url: URL(string: "https://topaz.com/")!),
+        eventSink: { _ in }
+    )
 
     @Test(arguments: [
         SystemState.resetting,
@@ -69,6 +74,7 @@ struct BluetoothEngineTests {
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
+        await sut.didAttach(to: context)
         let message = Message(action: .connect, requestBody: connectRequestBody)
         let response = try await sut.process(message: message)
         guard let response = response as? ConnectResponse else {
@@ -99,6 +105,7 @@ struct BluetoothEngineTests {
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
+        await sut.didAttach(to: context)
         let message = Message(action: .disconnect, requestBody: disconnectRequestBody)
         let response = try await sut.process(message: message)
         guard let response = response as? DisconnectResponse else {

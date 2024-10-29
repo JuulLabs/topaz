@@ -16,9 +16,10 @@ public class AppModel {
         searchBarModel.onSubmit = { [weak self] url in
             guard let self else { return }
             if let existingModel = self.webContainerModel {
-                existingModel.webPageModel.url = url
+                existingModel.webPageModel.loadNewPage(url: url)
             } else {
                 let webPageModel = WebPageModel(
+                    tab: 0,
                     url: url,
                     messageProcessors: [self.bluetoothEngine]
                 )

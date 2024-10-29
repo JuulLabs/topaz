@@ -1,18 +1,21 @@
 import Foundation
 
-public typealias JsContextIdentifier = Int
-
 /**
  Represents the communications channel to a web page javascript context.
  */
 public struct JsContext: Sendable, Identifiable {
     public let id: JsContextIdentifier
-    public let eventSink: EventSink
+    private let eventSink: @MainActor (JsEvent) -> Void
 
     public init(
-        id: JsContextIdentifier
-   ) {
-       self.id = id
-       self.eventSink = EventSink()
+        id: JsContextIdentifier,
+        eventSink: @escaping @MainActor (JsEvent) -> Void
+    ) {
+        self.id = id
+        self.eventSink = eventSink
+    }
+
+    public func sendEvent(_ event: JsEvent) async {
+        await eventSink(event)
     }
 }

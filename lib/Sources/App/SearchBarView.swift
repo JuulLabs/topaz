@@ -21,6 +21,7 @@ struct SearchBarView: View {
                 .foregroundStyle(Color.steel600)
             TextField("Paste or enter website address", text: $model.searchString)
                 .font(.dogpatch(.subheadline))
+                .foregroundStyle(Color.steel600)
                 .focused($focusedField, equals: .searchBar)
                 .keyboardType(.default)
                 .autocorrectionDisabled()

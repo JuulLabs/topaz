@@ -7,36 +7,44 @@ import WebKit
  */
 @MainActor
 class ScriptHandler: NSObject {
-    let context: JsContext
+    private let context: JsContext
+    private let processors: [String: JsMessageProcessor]
+    private var notifiedProcessors: Set<String> = []
 
-    private var processors: [String: JsMessageProcessor] = [:]
-    private var alreadyAttached: Set<String> = []
-
-    init(context: JsContext) {
+    init(context: JsContext, processors: [JsMessageProcessor]) {
         self.context = context
+        self.processors = processors.reduce(into: [:]) { lookupTable, processor in
+            lookupTable[processor.handlerName] = processor
+        }
         super.init()
-        self.attach(processor: context.eventSink)
     }
 
     var allProcessors: Dictionary<String, any JsMessageProcessor>.Values {
         processors.values
     }
 
-    func attach(processor: JsMessageProcessor) {
-        processors[processor.handlerName] = processor
-    }
-
-    // TODO: detach processors when webview goes out of scope
-
     func getProcessor(named name: String) async -> JsMessageProcessor? {
         guard let processor = processors[name] else {
             return nil
         }
-        if !alreadyAttached.contains(name) {
-            alreadyAttached.insert(name)
+        if !notifiedProcessors.contains(name) {
+            notifiedProcessors.insert(name)
             await processor.didAttach(to: context)
         }
         return processor
+    }
+
+    func detachProcessors() {
+        let detached = processors.reduce(into: [JsMessageProcessor]()) { (result, entry) in
+            if notifiedProcessors.contains(entry.key) {
+                result.append(entry.value)
+            }
+        }
+        Task.detached { [context, detached] in
+            for processor in detached {
+                await processor.didDetach(from: context)
+            }
+        }
     }
 }
 

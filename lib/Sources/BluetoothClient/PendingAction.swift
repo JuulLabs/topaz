@@ -13,14 +13,3 @@ struct PendingAction {
         semaphore.signal()
     }
 }
-
-extension PendingAction {
-    func onResolved<T: JsMessageEncodable>(buildResponse: () -> Result<T, Error>) async -> Result<T, Error> {
-        do {
-            try await awaitResolved()
-        } catch {
-            return .failure(error)
-        }
-        return buildResponse()
-    }
-}

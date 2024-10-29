@@ -2,10 +2,12 @@ import Foundation
 import JsMessage
 import Observation
 
+@MainActor
 @Observable
 public class WebPageModel {
     public let contextId: JsContextIdentifier
-    public var url: URL
+    public let tab: Int
+    public private(set) var url: URL
 
     let scriptResourceNames = ["BluetoothPolyfill"]
     let messageProcessors: [JsMessageProcessor]
@@ -18,12 +20,17 @@ public class WebPageModel {
     }
 
     public init(
+        tab: Int,
         url: URL,
         messageProcessors: [JsMessageProcessor] = []
     ) {
-        // TODO: additonally hash in the tab number for the case where the same URL is opened on multiple tabs
-        self.contextId = url.hashValue
+        self.contextId = JsContextIdentifier(tab: tab, url: url)
+        self.tab = tab
         self.url = url
         self.messageProcessors = messageProcessors
+    }
+
+    public func loadNewPage(url: URL) {
+        self.url = url
     }
 }
