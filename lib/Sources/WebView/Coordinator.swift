@@ -12,7 +12,7 @@ public class Coordinator: NSObject {
         webView.customUserAgent = model.customUserAgent
         webView.navigationDelegate = self
 
-        let context = JsContext(id: model.contextId)
+        let context = webView.createContext(contextId: model.contextId, world: .page)
         let scriptHandler = ScriptHandler(context: context)
         model.messageProcessors.forEach( { processor in
             scriptHandler.attach(processor: processor)
@@ -35,6 +35,26 @@ public class Coordinator: NSObject {
 }
 
 extension WKWebView {
+    func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
+        return JsContext(id: contextId) { [weak self] event in
+            self?.callAsyncJavaScript(
+                "topaz.sendEvent(event)",
+                arguments: [ "event": event.jsValue ],
+                in: nil,
+                in: world) { result in
+#if DEBUG
+                    switch result {
+                    case .success:
+                        print("Did send event \(event.jsValue)")
+                    case let .failure(error):
+                        // TODO: log this somewhere
+                        print("Event send failed: \(error.localizedDescription)")
+                    }
+#endif
+            }
+        }
+    }
+
     func attachScriptHandler(_ handler: ScriptHandler) {
         handler.allProcessors.forEach { processor in
             configuration.userContentController.addScriptMessageHandler(handler, contentWorld: .page, name: processor.handlerName)

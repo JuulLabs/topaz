@@ -67,7 +67,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     private func sendEvent(_ event: JsEventEncodable) async {
-        await context?.eventSink.send(event.toJsEvent())
+        await context?.sendEvent(event.toJsEvent())
     }
 
     public func process(request: JsMessageRequest) async -> JsMessageResponse {

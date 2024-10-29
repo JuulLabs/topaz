@@ -1,9 +1,8 @@
 // Polyfill for https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth
 
-import { Bluetooth } from './Bluetooth';
-import { drainEvents } from './EventSink';
+import { Topaz } from "./Topaz";
 
-if ((navigator as any).bluetooth === undefined) {
-    (navigator as any).bluetooth = new Bluetooth();
-    drainEvents();
+if (typeof((navigator as any).bluetooth) === 'undefined') {
+    globalThis.topaz = new Topaz();
+    (navigator as any).bluetooth = globalThis.topaz.bluetooth;
 }

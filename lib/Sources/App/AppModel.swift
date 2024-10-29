@@ -19,6 +19,7 @@ public class AppModel {
                 existingModel.webPageModel.url = url
             } else {
                 let webPageModel = WebPageModel(
+                    tab: 0,
                     url: url,
                     messageProcessors: [self.bluetoothEngine]
                 )

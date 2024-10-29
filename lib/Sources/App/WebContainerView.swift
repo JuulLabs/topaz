@@ -31,6 +31,7 @@ struct WebContainerView: View {
         client: client
     )
     let webPageModel = WebPageModel(
+        tab: 0,
         url: url,
         messageProcessors: [bluetoothEngine]
     )

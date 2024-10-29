@@ -15,7 +15,6 @@ class ScriptHandler: NSObject {
     init(context: JsContext) {
         self.context = context
         super.init()
-        self.attach(processor: context.eventSink)
     }
 
     var allProcessors: Dictionary<String, any JsMessageProcessor>.Values {
