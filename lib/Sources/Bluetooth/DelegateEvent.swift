@@ -7,7 +7,7 @@ public enum DelegateEvent: Equatable, Sendable {
     case advertisement(AnyPeripheral, Advertisement)
     case connected(AnyPeripheral)
     case disconnected(AnyPeripheral, BluetoothError?)
-    case discoveredServices(AnyPeripheral, BluetoothError?)
+    case discoveredServices(AnyPeripheral, [Service], BluetoothError?)
     case discoveredCharacteristics(AnyPeripheral, Service, BluetoothError?)
     case updatedCharacteristic(AnyPeripheral, Characteristic, BluetoothError?)
 }

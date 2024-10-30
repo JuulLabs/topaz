@@ -33,7 +33,8 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
-        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), error.toBluetoothError()))
+        let services = peripheral.services?.compactMap { $0.toService() } ?? []
+        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), services, error.toBluetoothError()))
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
