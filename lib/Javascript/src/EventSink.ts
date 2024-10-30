@@ -7,7 +7,7 @@ export type TargetedEvent = {
     data?: any;
 }
 
-export function sendEvent(event: TargetedEvent) {
+export function dispatchEvent(event: TargetedEvent) {
     // TODO: find out if we need to support other event types
     const valueEvent = new ValueEvent(event.name, { value: event.data });
     mainDispatcher.postMessage(event.id, valueEvent);

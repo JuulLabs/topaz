@@ -61,6 +61,12 @@ extension Dictionary: JsConvertable where Key == String, Value == JsConvertable 
     }
 }
 
+extension Data: JsConvertable {
+    public var jsValue: Any {
+        base64EncodedString() as NSString
+    }
+}
+
 private struct JsNull: JsConvertable {
     var jsValue: Any { NSNull() }
 }

@@ -89,4 +89,8 @@ extension JsType {
         guard case let .dictionary(value) = self else { return .none }
         return value
     }
+
+    public var data: Data? {
+        string.flatMap { Data(base64Encoded: $0) }
+    }
 }
