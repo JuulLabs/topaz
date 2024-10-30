@@ -1,5 +1,5 @@
 import { Bluetooth } from "./Bluetooth";
-import { sendEvent, TargetedEvent } from "./EventSink";
+import { dispatchEvent, TargetedEvent } from "./EventSink";
 
 export class Topaz {
     bluetooth: Bluetooth;
@@ -9,6 +9,6 @@ export class Topaz {
     }
 
     sendEvent = (event: TargetedEvent) => {
-        sendEvent(event);
+        dispatchEvent(event);
     }
 }
