@@ -137,7 +137,7 @@ struct BluetoothEngineTests {
             request.enable = { [events] in
                 events!.yield(.systemState(.poweredOn))
             }
-            request.discoverServices = { [events] peripheral, filter in
+            request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, fakeServices, nil))
             }
         }
