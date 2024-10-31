@@ -8,7 +8,11 @@ public actor DeferredValue<Value: Sendable>: Sendable {
     private var value: Value?
     private let semaphore = AsyncSemaphore(value: 0)
 
-    public init() { }
+    public init(initialValue: Value? = nil) {
+        if let initialValue {
+            self.value = initialValue
+        }
+    }
 
     /**
      Setting the value will resume any tasks that are awaiting a value.

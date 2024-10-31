@@ -3,12 +3,24 @@ import DevicePicker
 import Observation
 import SwiftUI
 import WebView
+import WebKit
 
 struct WebContainerView: View {
     @Bindable var model: WebContainerModel
+    let config: WKWebViewConfiguration
 
     var body: some View {
-        WebPageView(model: model.webPageModel)
+        WebPageView(model: model.webPageModel, config: config)
+            .overlay {
+                // TODO: temporary for demo only - move this to the navigation panel
+                if case let .inProgress(progress) = model.webPageModel.loadingState {
+                    ProgressView(value: progress)
+                        .tint(.white)
+                        .frame(minHeight: 40)
+                        .background(Color.topaz600)
+                        .offset(y: 300)
+                }
+            }
             .sheet(isPresented: $model.selector.isSelecting) {
                 NavigationStack {
                     DevicePickerView(model: model.pickerModel)
@@ -19,7 +31,15 @@ struct WebContainerView: View {
 }
 
 #Preview {
-    let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
+    WebContainerView(
+        model: previewModel(),
+        config: previewWebConfig()
+    )
+}
+
+@MainActor
+private func previewModel() -> WebContainerModel {
+    let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
     let selector = DeviceSelector()
 #if targetEnvironment(simulator)
     let client: BluetoothClient = .clientWithMockAds(selector: selector)
@@ -35,12 +55,19 @@ struct WebContainerView: View {
         url: url,
         messageProcessors: [bluetoothEngine]
     )
-    WebContainerView(
-        model: WebContainerModel(
-            webPageModel: webPageModel,
-            selector: selector
-        )
+    return WebContainerModel(
+        webPageModel: webPageModel,
+        selector: selector
     )
+}
+
+@MainActor
+private func previewWebConfig() -> WKWebViewConfiguration {
+#if targetEnvironment(simulator)
+    return WebConfigLoader.loadImmediate()
+#else
+    return WKWebViewConfiguration()
+#endif
 }
 
 #if targetEnvironment(simulator)

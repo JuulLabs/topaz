@@ -8,7 +8,6 @@ struct FreshPageView: View {
     var body: some View {
         ZStack {
             Color.topaz600
-                .edgesIgnoringSafeArea(.all)
             SearchBarView(model: searchBarModel)
                 .padding(.horizontal, 24)
         }

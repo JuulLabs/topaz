@@ -9,23 +9,26 @@ public class Coordinator: NSObject {
     private var messageProcessors: [JsMessageProcessor]!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
+    private var viewModel: WebPageModel?
 
     var navigatingToUrl: URL?
 
     override init() {}
 
     func initialize(webView: WKWebView, model: WebPageModel) {
+        self.viewModel = model
         self.messageProcessors = model.messageProcessors
         self.contextId = JsContextIdentifier(tab: model.tab, url: model.url)
 
         webView.customUserAgent = model.customUserAgent
         webView.navigationDelegate = self
+        webView.uiDelegate = self
 
-        // TODO: offload this to be async and show a loading indicator
-        webView.loadScripts(model.scriptResourceNames)
+        model.didInitializeWebView(webView)
     }
 
     func deinitialize(webView: WKWebView) {
+        viewModel = nil
         detachOldHandler(from: webView)
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
         webView.configuration.userContentController.removeAllUserScripts()
@@ -36,14 +39,14 @@ public class Coordinator: NSObject {
         webView.load(URLRequest(url: model.url))
     }
 
-    func attachNewHandler(to webView: WKWebView) {
+    private func attachNewHandler(to webView: WKWebView) {
         let context = webView.createContext(contextId: contextId, world: world)
         let newHandler = ScriptHandler(context: context, processors: messageProcessors)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
 
-    func detachOldHandler(from webView: WKWebView) {
+    private func detachOldHandler(from webView: WKWebView) {
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -54,6 +57,14 @@ public class Coordinator: NSObject {
         self.contextId = contextId.withUrl(url)
         attachNewHandler(to: webView)
         // TODO: tell model url changed without reloading it
+    }
+
+    func didCommitNavigation(in webView: WKWebView) {
+        viewModel?.didCommitNavigation()
+    }
+
+    func didFinishNavigation(to url: URL, in webView: WKWebView) {
+        // TODO: update history
     }
 }
 
@@ -89,24 +100,6 @@ extension WKWebView {
             configuration.userContentController.addScriptMessageHandler(handler, contentWorld: world, name: processor.handlerName)
         }
     }
-
-    func loadScripts(_ scripts: [String]) {
-        scripts.forEach { name in
-            if let resource = loadJsResource(name) {
-                let script = WKUserScript(source: resource, injectionTime: .atDocumentStart, forMainFrameOnly: false)
-                configuration.userContentController.addUserScript(script)
-            } else {
-                fatalError("Missing resource \(name)")
-            }
-        }
-    }
-}
-
-private func loadJsResource(_ name: String) -> String? {
-    guard let fileURL = Bundle.module.url(forResource: name, withExtension: "js") else {
-        return nil
-    }
-    return try? String(contentsOf: fileURL)
 }
 
 extension JsContextIdentifier {

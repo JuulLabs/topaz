@@ -17,13 +17,15 @@ public struct AppContentView: View {
     }
 
     public var body: some View {
-        VStack {
+        ZStack {
+            Color.topaz600
             if let webModel = model.webContainerModel {
-                WebContainerView(model: webModel)
+                WebLoadingView(loader: model.webConfigLoader, model: webModel)
             } else {
                 FreshPageView(searchBarModel: model.searchBarModel)
             }
         }
+        .edgesIgnoringSafeArea(.all) // TODO: only if full screen
         .task {
             // TODO: a more rigourous DI mechanism
             let selector = DeviceSelector()
@@ -37,7 +39,17 @@ public struct AppContentView: View {
     }
 }
 
-#Preview {
+#Preview("FreshTab") {
     AppContentView(model: AppModel())
         .environment(\.bluetoothClient, .mockClient())
+}
+
+#Preview("Content") {
+    let model = AppModel()
+    AppContentView(model: model)
+        .environment(\.bluetoothClient, .mockClient())
+        .task {
+            let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
+            model.searchBarModel.onSubmit(url)
+        }
 }
