@@ -68,7 +68,7 @@ struct DevicePickerTests {
         let fake = FakePeripheral(name: "bob")
         sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
         await Task.yield()
-        sut.makeSelection(fake.identifier)
+        sut.makeSelection(fake._identifier)
         let result = await pendingResult
         switch result {
         case let .success(success):

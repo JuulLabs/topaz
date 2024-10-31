@@ -64,7 +64,7 @@ struct BluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
         let connectRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake.identifier.uuidString),
+                "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -95,7 +95,7 @@ struct BluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
         let disconnectRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake.identifier.uuidString),
+                "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -123,10 +123,14 @@ struct BluetoothEngineTests {
 
     @Test
     func getPrimaryServices_withoutBluetoothServiceUUID() async throws {
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
+        let expectedServices: [Service] = [
+            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+        ]
+        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
         let getPrimaryServicesRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake.identifier.uuidString),
+                "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -138,7 +142,7 @@ struct BluetoothEngineTests {
                 events!.yield(.systemState(.poweredOn))
             }
             request.discoverServices = { [events] peripheral, _ in
-                events!.yield(.discoveredServices(peripheral, fakeServices, nil))
+                events!.yield(.discoveredServices(peripheral, nil))
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
@@ -149,20 +153,18 @@ struct BluetoothEngineTests {
             Issue.record("Unexpected response: \(response)")
             return
         }
-
-        let expectedServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
-        ]
         #expect(response.primaryServices == expectedServices)
     }
 
     @Test
     func getPrimaryServices_withBluetoothServiceUUID() async throws {
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
+        let expectedServices: [Service] = [
+            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
+        ]
+        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
         let getPrimaryServicesRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake.identifier.uuidString),
+                "uuid": .string(fake._identifier.uuidString),
                 "bluetoothServiceUUID": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
@@ -175,9 +177,7 @@ struct BluetoothEngineTests {
                 events!.yield(.systemState(.poweredOn))
             }
             request.discoverServices = { [events] peripheral, filter in
-                // Emulate `CBPeripheral.discoverServices(serviceUUIDs: [CBUUID]?)` behavior.
-                let discovered = fakeServices.filter { filter.services?.contains($0.uuid) ?? true }
-                events!.yield(.discoveredServices(peripheral, discovered, nil))
+                events!.yield(.discoveredServices(peripheral, nil))
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
@@ -188,10 +188,6 @@ struct BluetoothEngineTests {
             Issue.record("Unexpected response: \(response)")
             return
         }
-
-        let expectedServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
-        ]
         #expect(response.primaryServices == expectedServices)
     }
 }
