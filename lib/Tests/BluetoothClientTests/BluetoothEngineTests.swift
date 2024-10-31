@@ -138,9 +138,7 @@ struct BluetoothEngineTests {
                 events!.yield(.systemState(.poweredOn))
             }
             request.discoverServices = { [events] peripheral, filter in
-                // Emulate `CBPeripheral.discoverServices(serviceUUIDs: [CBUUID]?)` behavior.
-                let discovered = fakeServices.filter { filter.services?.contains($0.uuid) ?? true }
-                events!.yield(.discoveredServices(peripheral, discovered, nil))
+                events!.yield(.discoveredServices(peripheral, fakeServices, nil))
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
