@@ -15,6 +15,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private var isEnabled: Bool = false
     private var systemState = DeferredValue<SystemState>()
     private var peripherals: [UUID: AnyPeripheral] = [:]
+    private var services: [UUID: [Service]] = [:]
 
     public let deviceSelector: InteractiveDeviceSelector
     public let client: BluetoothClient
@@ -46,10 +47,13 @@ public actor BluetoothEngine: JsMessageProcessor {
             resolveAction(.connect, for: peripheral.identifier)
         case let .disconnected(peripheral, _):
             // TODO: deal with error case
+            clearServices(peripheral)
             resolveAction(.disconnect, for: peripheral.identifier)
             await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
-        case .discoveredServices:
-            fatalError("not implemented")
+        case let .discoveredServices(peripheral, services, _):
+            // TODO: deal with error case
+            self.services[peripheral.identifier] = services
+            resolveAction(.getPrimaryServices, for: peripheral.identifier)
         case .discoveredCharacteristics:
             fatalError("not implemented")
         case .updatedCharacteristic:
@@ -77,6 +81,10 @@ public actor BluetoothEngine: JsMessageProcessor {
         await context?.sendEvent(event.toJsEvent())
     }
 
+    private func clearServices(_ peripheral: AnyPeripheral) {
+        self.services[peripheral.identifier] = []
+    }
+
     public func process(request: JsMessageRequest) async -> JsMessageResponse {
         do {
             let message = try extractMessage(from: request).get()
@@ -96,7 +104,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .connect: try await connect(message: message)
         case .disconnect: try await disconnect(message: message)
         // TODO: case getPrimaryService
-        // TODO: case getPrimaryServices
+        case .getPrimaryServices: try await getPrimaryServices(message: message)
 
         // GATT Service
         // TODO: case getCharacteristic
@@ -161,6 +169,18 @@ public actor BluetoothEngine: JsMessageProcessor {
             client.request.disconnect(peripheral)
         }
         return DisconnectResponse(peripheralId: peripheral.identifier)
+    }
+
+    private func getPrimaryServices(message: Message) async throws -> GetPrimaryServicesResponse {
+        let data = try GetPrimaryServicesRequest.decode(from: message).get()
+        try await bluetoothReadyState()
+        let peripheral = try getPeripheral(data.peripheralId)
+        // todo: error response if not connected
+        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
+            client.request.discoverServices(peripheral, data.toServiceDiscoveryFilter())
+        }
+        let primaryServices = self.services[peripheral.identifier]?.filter { $0.isPrimary } ?? []
+        return GetPrimaryServicesResponse(peripheralId: peripheral.identifier, primaryServices: primaryServices)
     }
 
     // MARK: - Private helpers
@@ -231,5 +251,12 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .resetting, .poweredOn:
             true
         }
+    }
+}
+
+fileprivate extension GetPrimaryServicesRequest {
+    func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
+        let services = serviceUuid.map { [$0] }
+        return ServiceDiscoveryFilter(primaryOnly: true, services: services)
     }
 }

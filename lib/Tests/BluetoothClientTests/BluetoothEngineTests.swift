@@ -13,6 +13,12 @@ struct BluetoothEngineTests {
         eventSink: { _ in }
     )
 
+    private let fakeServices: [Service] = [
+        Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+        Service(uuid: UUID(uuidString: "00000002-0000-0000-0000-000000000000")!, isPrimary: false),
+        Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+    ]
+
     @Test(arguments: [
         SystemState.resetting,
         SystemState.poweredOn,
@@ -113,5 +119,79 @@ struct BluetoothEngineTests {
             return
         }
         #expect(response.isDisconnected == true)
+    }
+
+    @Test
+    func getPrimaryServices_withoutBluetoothServiceUUID() async throws {
+        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
+        let getPrimaryServicesRequestBody: [String: JsType] = [
+            "data": .dictionary([
+                "uuid": .string(fake.identifier.uuidString),
+            ]),
+        ]
+        let sut: BluetoothEngine = await withClient { request, response, _ in
+            var events: AsyncStream<DelegateEvent>.Continuation!
+            response.events = AsyncStream { continuation in
+                events = continuation
+            }
+            request.enable = { [events] in
+                events!.yield(.systemState(.poweredOn))
+            }
+            request.discoverServices = { [events] peripheral, _ in
+                events!.yield(.discoveredServices(peripheral, fakeServices, nil))
+            }
+        }
+        await sut.addPeripheral(fake.eraseToAnyPeripheral())
+        await sut.didAttach(to: context)
+        let message = Message(action: .getPrimaryServices, requestBody: getPrimaryServicesRequestBody)
+        let response = try await sut.process(message: message)
+        guard let response = response as? GetPrimaryServicesResponse else {
+            Issue.record("Unexpected response: \(response)")
+            return
+        }
+
+        let expectedServices: [Service] = [
+            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+        ]
+        #expect(response.primaryServices == expectedServices)
+    }
+
+    @Test
+    func getPrimaryServices_withBluetoothServiceUUID() async throws {
+        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
+        let getPrimaryServicesRequestBody: [String: JsType] = [
+            "data": .dictionary([
+                "uuid": .string(fake.identifier.uuidString),
+                "bluetoothServiceUUID": .string("00000003-0000-0000-0000-000000000000"),
+            ]),
+        ]
+        let sut: BluetoothEngine = await withClient { request, response, _ in
+            var events: AsyncStream<DelegateEvent>.Continuation!
+            response.events = AsyncStream { continuation in
+                events = continuation
+            }
+            request.enable = { [events] in
+                events!.yield(.systemState(.poweredOn))
+            }
+            request.discoverServices = { [events] peripheral, filter in
+                // Emulate `CBPeripheral.discoverServices(serviceUUIDs: [CBUUID]?)` behavior.
+                let discovered = fakeServices.filter { filter.services?.contains($0.uuid) ?? true }
+                events!.yield(.discoveredServices(peripheral, discovered, nil))
+            }
+        }
+        await sut.addPeripheral(fake.eraseToAnyPeripheral())
+        await sut.didAttach(to: context)
+        let message = Message(action: .getPrimaryServices, requestBody: getPrimaryServicesRequestBody)
+        let response = try await sut.process(message: message)
+        guard let response = response as? GetPrimaryServicesResponse else {
+            Issue.record("Unexpected response: \(response)")
+            return
+        }
+
+        let expectedServices: [Service] = [
+            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
+        ]
+        #expect(response.primaryServices == expectedServices)
     }
 }

@@ -1,5 +1,6 @@
 import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
+import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 
 type ConnectRequest = {
     uuid: string;
@@ -15,6 +16,15 @@ type DisconnectRequest = {
 
 type DisconnectResponse = {
     disconnected: boolean;
+}
+
+type GetPrimaryServicesRequest = {
+    uuid: string;
+    bluetoothServiceUUID?: string;
+}
+
+type GetPrimaryServicesResponse = {
+    primaryServices: string[];
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer
@@ -42,6 +52,18 @@ export class BluetoothRemoteGATTServer {
             { uuid: this.device.uuid }
         );
         this.connected = !response.disconnected;
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryServices
+    getPrimaryServices = async (bluetoothServiceUUID?: string): Promise<Array<BluetoothRemoteGATTService>> => {
+        const response = await bluetoothRequest<GetPrimaryServicesRequest, GetPrimaryServicesResponse>(
+            'getPrimaryServices',
+            {
+                uuid: this.device.uuid,
+                bluetoothServiceUUID: bluetoothServiceUUID
+            }
+        );
+        return response.primaryServices.map(service => new BluetoothRemoteGATTService(this.device, service, true));
     }
 
     // TODO:
