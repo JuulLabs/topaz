@@ -72,7 +72,7 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
         case let .body(value):
             (value.jsValue, nil)
         case let .error(reason):
-            (nil, reason)
+            (nil, reason.jsRepresentation)
         }
     }
 }

@@ -1,8 +1,13 @@
 import Bluetooth
 import JsMessage
 
-extension BluetoothError {
-    var asJsResponse: JsMessageResponse {
-        .error(localizedDescription)
+extension BluetoothError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
+        switch self {
+        case .causedBy: .unknown
+        case .noSuchDevice: .notFound
+        case .unavailable: .unknown
+        case .unknown: .unknown
+        }
     }
 }

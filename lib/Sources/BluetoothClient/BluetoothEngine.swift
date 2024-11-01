@@ -90,7 +90,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             let message = try extractMessage(from: request).get()
             return try await process(message: message).toJsMessage()
         } catch {
-            return .error(error.localizedDescription)
+            return .error(error.toDomError())
         }
     }
 

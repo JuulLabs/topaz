@@ -5,5 +5,9 @@ import Foundation
  */
 public enum JsMessageResponse: Sendable {
     case body(JsConvertable)
-    case error(String)
+    case error(JsErrorStringRepresentable)
+}
+
+public protocol JsErrorStringRepresentable: Sendable {
+    var jsRepresentation: String { get }
 }

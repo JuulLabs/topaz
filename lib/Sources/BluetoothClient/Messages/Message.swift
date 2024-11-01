@@ -50,7 +50,7 @@ struct Message {
     }
 }
 
-func extractMessage(from request: JsMessageRequest) -> Result<Message, any Error> {
+func extractMessage(from request: JsMessageRequest) -> Result<Message, Error> {
     guard let actionString = request.body["action"]?.string else {
         return .failure(MessageDecodeError.badRequest)
     }
