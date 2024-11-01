@@ -10,12 +10,12 @@ type TopazError = {
     msg: string;
 }
 
-const transformToDOMException = (error: WebKitError): DOMException => {
+const transformToDOMException = (error: WebKitError): Error => {
     try {
         const decoded = JSON.parse(error.message) as TopazError;
         return new DOMException(decoded.msg, decoded.name);
     } catch (e) {
-        return new DOMException(`${e} when decoding "${error}"`, 'EncodingError');
+        return new TypeError(`${e} when decoding "${error}"`);
     }
 }
 
