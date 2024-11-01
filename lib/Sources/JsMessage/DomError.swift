@@ -25,7 +25,7 @@ extension DomError: JsErrorStringRepresentable {
             }
             return jsonString
         } catch {
-            // We got an error on our error! Presumably the error text contained something crazy.\
+            // We got an error on our error! Presumably the error text contained something crazy
             // Return a hand-rolled JSON struct and deliberately exclude the offending non-codeable text
             // TODO: log this somewhere
             // TODO: It may be useful to display an alert on the web page for this case as well
