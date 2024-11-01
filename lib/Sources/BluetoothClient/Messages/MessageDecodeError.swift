@@ -1,9 +1,14 @@
 import Foundation
+import JsMessage
 
 enum MessageDecodeError {
     case actionNotFound(String)
     case badRequest
     case bodyDecodeFailed(String)
+}
+
+extension MessageDecodeError: DomErrorConvertable {
+    var domErrorName: DomErrorName { .encoding }
 }
 
 extension MessageDecodeError: LocalizedError {
