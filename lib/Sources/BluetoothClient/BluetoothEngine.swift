@@ -15,7 +15,6 @@ public actor BluetoothEngine: JsMessageProcessor {
     private var isEnabled: Bool = false
     private var systemState = DeferredValue<SystemState>()
     private var peripherals: [UUID: AnyPeripheral] = [:]
-    private var services: [UUID: [Service]] = [:]
 
     public let deviceSelector: InteractiveDeviceSelector
     public let client: BluetoothClient
@@ -47,12 +46,10 @@ public actor BluetoothEngine: JsMessageProcessor {
             resolveAction(.connect, for: peripheral.identifier)
         case let .disconnected(peripheral, _):
             // TODO: deal with error case
-            clearServices(peripheral)
             resolveAction(.disconnect, for: peripheral.identifier)
             await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
-        case let .discoveredServices(peripheral, services, _):
+        case let .discoveredServices(peripheral, _):
             // TODO: deal with error case
-            self.services[peripheral.identifier] = services
             resolveAction(.getPrimaryServices, for: peripheral.identifier)
         case .discoveredCharacteristics:
             fatalError("not implemented")
@@ -79,10 +76,6 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private func sendEvent(_ event: JsEventEncodable) async {
         await context?.sendEvent(event.toJsEvent())
-    }
-
-    private func clearServices(_ peripheral: AnyPeripheral) {
-        self.services[peripheral.identifier] = []
     }
 
     public func process(request: JsMessageRequest) async -> JsMessageResponse {
@@ -179,7 +172,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         try await awaitAction(action: message.action, uuid: peripheral.identifier) {
             client.request.discoverServices(peripheral, data.toServiceDiscoveryFilter())
         }
-        let primaryServices = self.services[peripheral.identifier]?.filter { $0.isPrimary } ?? []
+        let primaryServices = peripherals[peripheral.identifier]?.services.filter { $0.isPrimary } ?? []
         return GetPrimaryServicesResponse(peripheralId: peripheral.identifier, primaryServices: primaryServices)
     }
 

@@ -33,8 +33,7 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     // MARK: - CBPeripheralDelegate
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
-        let services = peripheral.services?.compactMap { $0.toService() } ?? []
-        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), services, error.toBluetoothError()))
+        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), error.toBluetoothError()))
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
@@ -54,7 +53,7 @@ fileprivate extension Optional where Wrapped == Error {
     }
 }
 
-fileprivate extension CBService {
+extension CBService {
     func toService() -> Service? {
         guard let uuid = cbToUuid(uuid) else { return nil }
         return Service(uuid: uuid, isPrimary: isPrimary)

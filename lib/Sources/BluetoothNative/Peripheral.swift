@@ -10,9 +10,12 @@ extension CBPeripheral: @retroactive @unchecked Sendable {}
  TODO: To satisfy @unchecked Sendable we theoretically should lock-isolate all state when going
  through `PeripheralProtocol`. Accessing getters like name or state is probably fine for now.
  */
-extension CBPeripheral: PeripheralProtocol {
+extension CBPeripheral: WrappedPeripheral {
+    public var _identifier: UUID {
+        self.identifier
+    }
 
-    public var connectionState: Bluetooth.ConnectionState {
+    public var _connectionState: ConnectionState {
         switch self.state {
         case .disconnecting, .disconnected, .connecting:
             .disconnected
@@ -21,5 +24,13 @@ extension CBPeripheral: PeripheralProtocol {
         @unknown default:
             .disconnected
         }
+    }
+
+    public var _name: String? {
+        self.name
+    }
+
+    public var _services: [Bluetooth.Service] {
+        return services?.compactMap { $0.toService() } ?? []
     }
 }

@@ -3,27 +3,30 @@ import Foundation
 
 // TODO: move to a "Fakes" module
 
-public struct FakePeripheral: PeripheralProtocol {
-    public let identifier: UUID
-    public let name: String?
-    public var connectionState: Bluetooth.ConnectionState = .disconnected
+public struct FakePeripheral: Equatable, WrappedPeripheral {
+    public let _identifier: UUID
+    public let _name: String?
+    public var _connectionState: ConnectionState = .disconnected
+    public var _services: [Service]
 
     public init(
         name: String,
-        connectionState: Bluetooth.ConnectionState = .disconnected,
-        identifier: UUID? = nil
+        connectionState: ConnectionState = .disconnected,
+        identifier: UUID? = nil,
+        services: [Service] = []
     ) {
-        self.name = name
-        self.connectionState = connectionState
-        self.identifier = identifier ?? UUID()
+        self._name = name
+        self._connectionState = connectionState
+        self._identifier = identifier ?? UUID()
+        self._services = services
     }
 }
 
 extension FakePeripheral {
     public func fakeAd(rssi: Int) -> Advertisement {
         Advertisement(
-            peripheralId: identifier,
-            peripheralName: name,
+            peripheralId: _identifier,
+            peripheralName: _name,
             rssi: rssi,
             isConnectable: nil,
             localName: nil,

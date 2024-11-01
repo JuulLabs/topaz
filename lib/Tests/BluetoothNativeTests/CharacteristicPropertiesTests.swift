@@ -2,6 +2,7 @@ import Bluetooth
 import CoreBluetooth
 import Testing
 
+@Suite(.timeLimit(.minutes(1)))
 struct CharacteristicPropertiesTests {
 
     @Test(arguments: [

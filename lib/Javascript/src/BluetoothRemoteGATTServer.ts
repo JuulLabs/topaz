@@ -24,7 +24,7 @@ type GetPrimaryServicesRequest = {
 }
 
 type GetPrimaryServicesResponse = {
-    primaryServices: string[];
+    services: string[];
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer
@@ -63,7 +63,7 @@ export class BluetoothRemoteGATTServer {
                 bluetoothServiceUUID: bluetoothServiceUUID
             }
         );
-        return response.primaryServices.map(service => new BluetoothRemoteGATTService(this.device, service, true));
+        return response.services.map(service => new BluetoothRemoteGATTService(this.device, service, true));
     }
 
     // TODO:
