@@ -41,7 +41,7 @@ struct Message {
         self.requestBody = request.body
     }
 
-    func decode<T: JsMessageDecodable>(_ type: T.Type) -> Result<T.Request, any Error> {
+    func decode<T: JsMessageDecodable>(_ type: T.Type) -> Result<T.Request, Error> {
         let data = requestBody["data"]?.dictionary
         guard let decoded = T.decode(from: data) else {
             return .failure(MessageDecodeError.bodyDecodeFailed("\(T.self)"))
@@ -50,7 +50,7 @@ struct Message {
     }
 }
 
-func extractMessage(from request: JsMessageRequest) -> Result<Message, Error> {
+func extractMessage(from request: JsMessageRequest) -> Result<Message, any Error> {
     guard let actionString = request.body["action"]?.string else {
         return .failure(MessageDecodeError.badRequest)
     }
