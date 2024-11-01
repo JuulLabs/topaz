@@ -1,5 +1,6 @@
 import BluetoothClient
 import DevicePicker
+import JsMessage
 import Observation
 import SwiftUI
 import WebView
@@ -21,7 +22,7 @@ public class AppModel {
                 let webPageModel = WebPageModel(
                     tab: 0,
                     url: url,
-                    messageProcessors: [self.bluetoothEngine]
+                    messageProcessors: [self.bluetoothEngine, jsLogger]
                 )
                 self.webContainerModel = WebContainerModel(
                     webPageModel: webPageModel,

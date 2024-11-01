@@ -49,7 +49,7 @@ public class Coordinator: NSObject {
         webView.detachScriptHandler(scriptHandler, in: world)
     }
 
-    func didNavigate(to url: URL, in webView: WKWebView) {
+    func didBeginNavigation(to url: URL, in webView: WKWebView) {
         detachOldHandler(from: webView)
         self.contextId = contextId.withUrl(url)
         attachNewHandler(to: webView)

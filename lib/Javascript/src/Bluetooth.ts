@@ -37,7 +37,7 @@ export class Bluetooth extends EventTarget {
     onavailabilitychanged = (event: ValueEvent<boolean>) => {
     };
 
-    getAvailability = async () => {
+    getAvailability = async (): Promise<boolean> => {
         const response = await bluetoothRequest<undefined, GetAvailabilityResponse>(
             'getAvailability'
         );
