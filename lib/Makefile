@@ -51,6 +51,14 @@ test: $(TEST_MODULES)
 	xcodebuild \
 		-project $(XCODE_PROJECT) \
 		-sdk iphoneos \
+		-scheme $* \
+		-destination "platform=iOS Simulator,id=$(shell cat $(SIM_ID_CACHE))" \
+		build \
+		$(XCODE_OPTIONS) \
+		CODE_SIGNING_ALLOWED='NO'
+	xcodebuild \
+		-project $(XCODE_PROJECT) \
+		-sdk iphoneos \
 		-scheme $@ \
 		-destination "platform=iOS Simulator,id=$(shell cat $(SIM_ID_CACHE))" \
 		test \

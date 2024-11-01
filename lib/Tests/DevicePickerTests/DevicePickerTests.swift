@@ -4,6 +4,7 @@ import Foundation
 import Testing
 
 @MainActor
+@Suite(.timeLimit(.minutes(1)))
 struct DevicePickerTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
@@ -68,7 +69,7 @@ struct DevicePickerTests {
         let fake = FakePeripheral(name: "bob")
         sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
         await Task.yield()
-        sut.makeSelection(fake.identifier)
+        sut.makeSelection(fake._identifier)
         let result = await pendingResult
         switch result {
         case let .success(success):
