@@ -5,12 +5,22 @@ on:
       - main
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: [self-hosted, ConX, macOS]
+    steps:
+      - uses: actions/checkout@v3
+      - run: swiftlint --version
+      - run: swiftlint lint --strict --reporter github-actions-logging
   build:
-    runs-on: [self-hosted, macOS, ConX]
+    name: Build
+    runs-on: [self-hosted, ConX, macOS]
     steps:
       - uses: actions/checkout@v3
       - run: make -C lib build
+  test:
+    name: Test
+    runs-on: [self-hosted, ConX, macOS]
+    steps:
+      - uses: actions/checkout@v3
       - run: make -C lib test
-      - run: |
-          swiftlint --version
-          swiftlint lint --strict --reporter github-actions-logging
