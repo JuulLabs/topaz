@@ -5,6 +5,7 @@ import Foundation
 import JsMessage
 import Testing
 
+@Suite(.timeLimit(.minutes(1)))
 struct EndToEndBluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
