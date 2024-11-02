@@ -50,7 +50,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
         case let .discoveredServices(peripheral, _):
             // TODO: deal with error case
-            resolveAction(.getPrimaryServices, for: peripheral.identifier)
+            resolveAction(.discoverServices, for: peripheral.identifier)
         case .discoveredCharacteristics:
             fatalError("not implemented")
         case .updatedCharacteristic:
@@ -96,8 +96,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         // GATT Server
         case .connect: try await connect(message: message)
         case .disconnect: try await disconnect(message: message)
-        // TODO: case getPrimaryService
-        case .getPrimaryServices: try await getPrimaryServices(message: message)
+        case .discoverServices: try await discoverServices(message: message)
 
         // GATT Service
         // TODO: case getCharacteristic
@@ -164,8 +163,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         return DisconnectResponse(peripheralId: peripheral.identifier)
     }
 
-    private func getPrimaryServices(message: Message) async throws -> GetPrimaryServicesResponse {
-        let data = try GetPrimaryServicesRequest.decode(from: message).get()
+    private func discoverServices(message: Message) async throws -> GetGattChildrenResponse {
+        let data = try GetGattChildrenRequest.decode(from: message).get()
         try await bluetoothReadyState()
         let peripheral = try getPeripheral(data.peripheralId)
         // todo: error response if not connected
@@ -173,7 +172,15 @@ public actor BluetoothEngine: JsMessageProcessor {
             client.request.discoverServices(peripheral, data.toServiceDiscoveryFilter())
         }
         let primaryServices = peripherals[peripheral.identifier]?.services.filter { $0.isPrimary } ?? []
-        return GetPrimaryServicesResponse(peripheralId: peripheral.identifier, primaryServices: primaryServices)
+        switch data.query {
+        case let .first(serviceUuid):
+            guard let service = primaryServices.first else {
+                throw DomError(name: .notFound, message: "Service '\(serviceUuid)' not found.")
+            }
+            return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: [service])
+        case .all:
+            return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: primaryServices)
+        }
     }
 
     // MARK: - Private helpers
@@ -247,9 +254,9 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 }
 
-fileprivate extension GetPrimaryServicesRequest {
+fileprivate extension GetGattChildrenRequest {
     func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
-        let services = serviceUuid.map { [$0] }
+        let services = query.serviceUuid.map { [$0] }
         return ServiceDiscoveryFilter(primaryOnly: true, services: services)
     }
 }
