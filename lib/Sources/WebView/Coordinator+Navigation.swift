@@ -5,13 +5,13 @@ extension Coordinator: WKNavigationDelegate {
 
     // Request has been sent to the web server and we are ready to start receiving a response
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        if let url = navigatingToUrl {
+            didBeginNavigation(to: url, in: webView)
+        }
     }
 
     // Started receiving a response and will attempt to begin parsing the HTML
     public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
-        if let url = navigatingToUrl {
-            didNavigate(to: url, in: webView)
-        }
     }
 
     // All data received and if DOM is not already complete it will be very soon
