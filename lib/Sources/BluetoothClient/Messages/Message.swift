@@ -17,8 +17,7 @@ struct Message {
         // GATT Server
         case connect
         case disconnect
-        // TODO: case getPrimaryService
-        case getPrimaryServices
+        case discoverServices
 
         // GATT Service
         // TODO: case getCharacteristic
