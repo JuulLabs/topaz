@@ -4,8 +4,21 @@ import JsMessage
 
 struct GetGattChildrenRequest: JsMessageDecodable, PeripheralIdentifiable {
     let peripheralId: UUID
-    let single: Bool
-    let serviceUuid: UUID?
+    let query: Query
+
+    enum Query {
+        case first(UUID)
+        case all(UUID?)
+
+        var serviceUuid: UUID? {
+            switch self {
+            case let .first(uuid):
+                uuid
+            case let .all(uuid):
+                uuid
+            }
+        }
+    }
 
     static func decode(from data: [String: JsType]?) -> Self? {
         guard let uuid = data?["uuid"]?.string.flatMap(UUID.init(uuidString:)) else {
@@ -15,7 +28,16 @@ struct GetGattChildrenRequest: JsMessageDecodable, PeripheralIdentifiable {
             return nil
         }
         let serviceUuid = data?["bluetoothServiceUUID"]?.string.flatMap(UUID.init(uuidString:))
-        return .init(peripheralId: uuid, single: single, serviceUuid: serviceUuid)
+        let query: Query? = switch (single, serviceUuid) {
+        case (true, .none):
+            nil
+        case let (true, .some(service)):
+            .first(service)
+        case let (false, service):
+            .all(service)
+        }
+        guard let query else { return nil }
+        return .init(peripheralId: uuid, query: query)
     }
 }
 

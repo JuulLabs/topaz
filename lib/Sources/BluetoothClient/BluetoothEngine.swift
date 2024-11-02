@@ -172,12 +172,13 @@ public actor BluetoothEngine: JsMessageProcessor {
             client.request.discoverServices(peripheral, data.toServiceDiscoveryFilter())
         }
         let primaryServices = peripherals[peripheral.identifier]?.services.filter { $0.isPrimary } ?? []
-        if data.single {
+        switch data.query {
+        case let .first(serviceUuid):
             guard let service = primaryServices.first else {
-                throw DomError(name: .notFound, message: "Service '\(data.serviceUuid!)' not found.")
+                throw DomError(name: .notFound, message: "Service '\(serviceUuid)' not found.")
             }
             return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: [service])
-        } else {
+        case .all:
             return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: primaryServices)
         }
     }
@@ -255,7 +256,7 @@ public actor BluetoothEngine: JsMessageProcessor {
 
 fileprivate extension GetGattChildrenRequest {
     func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
-        let services = serviceUuid.map { [$0] }
+        let services = query.serviceUuid.map { [$0] }
         return ServiceDiscoveryFilter(primaryOnly: true, services: services)
     }
 }
