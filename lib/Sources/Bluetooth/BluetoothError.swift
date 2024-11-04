@@ -1,37 +1,25 @@
 import Foundation
 
 public enum BluetoothError: Error, Sendable {
+    case cancelled
     case causedBy(any Error)
     case noSuchDevice(UUID)
+    case noSuchService(UUID)
     case unavailable
     case unknown
-}
-
-extension BluetoothError: Equatable {
-    public static func == (lhs: BluetoothError, rhs: BluetoothError) -> Bool {
-        switch (lhs, rhs) {
-        case let (.causedBy(lhsError), .causedBy(rhsError)):
-            // This only makes sense because the underlying NSErrors are equatable
-            _isEqual(lhsError, rhsError) ?? false
-        case let (.noSuchDevice(lhsUuid), .noSuchDevice(rhsUuid)):
-            lhsUuid == rhsUuid
-        case (.unavailable, .unavailable):
-            true
-        case (.unknown, .unknown):
-            true
-        default:
-            false
-        }
-    }
 }
 
 extension BluetoothError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .cancelled:
+            "The operation was cancelled"
         case let .causedBy(error):
             error.localizedDescription
         case let .noSuchDevice(uuid):
             "No such device \(uuid.uuidString)"
+        case let .noSuchService(uuid):
+            "No such service \(uuid.uuidString)"
         case .unavailable:
             "Bluetooth not available"
         case .unknown:

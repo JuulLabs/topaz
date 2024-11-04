@@ -1,15 +1,26 @@
 import Semaphore
 
-struct PendingAction {
-    private let semaphore = AsyncSemaphore(value: 0)
+final class PendingAction<T: Sendable> {
+    private var continuation: CheckedContinuation<T, any Error>?
 
-    let action: Message.Action
-
-    func awaitResolved() async throws {
-        try await semaphore.waitUnlessCancelled()
+    func awaitResolved(isolation: isolated (any Actor)? = #isolation) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            self.continuation = continuation
+        }
     }
 
-    func resolve() {
-        semaphore.signal()
+    func resolve(with value: T) {
+        continuation?.resume(returning: value)
+    }
+
+    func reject(with error: any Error) {
+        continuation?.resume(throwing: error)
+    }
+
+    func resolve(with value: T, orRejectIf error: (any Error)? = nil) {
+        switch error {
+        case .none: resolve(with: value)
+        case let .some(error): reject(with: error)
+        }
     }
 }

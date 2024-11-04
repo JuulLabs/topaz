@@ -44,13 +44,11 @@ public actor BluetoothEngine: JsMessageProcessor {
             await deviceSelector.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
         case let .connected(peripheral):
             resolveAction(.connect, for: peripheral.identifier)
-        case let .disconnected(peripheral, _):
-            // TODO: deal with error case
-            resolveAction(.disconnect, for: peripheral.identifier)
+        case let .disconnected(peripheral, error):
+            resolveAction(.disconnect, for: peripheral.identifier, with: error)
             await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
-        case let .discoveredServices(peripheral, _):
-            // TODO: deal with error case
-            resolveAction(.discoverServices, for: peripheral.identifier)
+        case let .discoveredServices(peripheral, error):
+            resolveAction(.discoverServices, for: peripheral.identifier, with: error)
         case .discoveredCharacteristics:
             fatalError("not implemented")
         case .updatedCharacteristic:
@@ -69,7 +67,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     public func didDetach(from context: JsContext) async {
-        promiseRegistry?.resolveAll()
+        promiseRegistry?.rejectAll(with: BluetoothError.cancelled)
         promiseRegistry = nil
         self.context = nil
     }
@@ -175,7 +173,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         switch data.query {
         case let .first(serviceUuid):
             guard let service = primaryServices.first else {
-                throw DomError(name: .notFound, message: "Service '\(serviceUuid)' not found.")
+                throw BluetoothError.noSuchService(serviceUuid)
             }
             return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: [service])
         case .all:
@@ -185,8 +183,8 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     // MARK: - Private helpers
 
-    private func resolveAction(_ action: Message.Action, for id: UUID) {
-        promiseRegistry?.resolve(action, for: id)
+    private func resolveAction(_ action: Message.Action, for id: UUID, with error: (any Error)? = nil) {
+        promiseRegistry?.resolve(action, for: id, with: error)
     }
 
     private func awaitAction(

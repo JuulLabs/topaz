@@ -27,29 +27,29 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
         peripheral.delegate = nil
-        handleEvent(.disconnected(peripheral.eraseToAnyPeripheral(), error.toBluetoothError()))
+        handleEvent(.disconnected(peripheral.eraseToAnyPeripheral(), error.toDelegateError()))
     }
 
     // MARK: - CBPeripheralDelegate
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
-        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), error.toBluetoothError()))
+        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), error.toDelegateError()))
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
         guard let service = service.toService() else { return }
-        handleEvent(.discoveredCharacteristics(peripheral.eraseToAnyPeripheral(), service, error.toBluetoothError()))
+        handleEvent(.discoveredCharacteristics(peripheral.eraseToAnyPeripheral(), service, error.toDelegateError()))
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
         guard let characteristic = characteristic.toCharacteristic() else { return }
-        handleEvent(.updatedCharacteristic(peripheral.eraseToAnyPeripheral(), characteristic, error.toBluetoothError()))
+        handleEvent(.updatedCharacteristic(peripheral.eraseToAnyPeripheral(), characteristic, error.toDelegateError()))
     }
 }
 
 fileprivate extension Optional where Wrapped == Error {
-    func toBluetoothError() -> BluetoothError {
-        map(BluetoothError.causedBy) ?? BluetoothError.unknown
+    func toDelegateError() -> DelegateEventError? {
+        map(DelegateEventError.causedBy)
     }
 }
 

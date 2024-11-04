@@ -26,34 +26,29 @@ struct PromiseRegistry {
         let action: Message.Action
     }
 
-    private var pendingPromises: [Key: PendingAction] = [:]
+    private var pendingPromises: [Key: [PendingAction<Void>]] = [:]
 
-    mutating func register(_ action: Message.Action, for id: UUID) -> PendingAction {
+    mutating func register(_ action: Message.Action, for id: UUID) -> PendingAction<Void> {
         let key = Key(uuid: id, action: action)
-        let promise = PendingAction(action: action)
-        let existing = pendingPromises.updateValue(promise, forKey: key)
-        if let existing {
-            // TODO: throw error, or resolve it??
-            print("WARNING: clobbered pending promise \(existing.action) \(id)")
+        if pendingPromises[key] == nil {
+            pendingPromises[key] = []
         }
+        let promise = PendingAction<Void>()
+        pendingPromises[key]?.append(promise)
         return promise
     }
 
-    mutating func resolve(_ action: Message.Action, for id: UUID) {
+    mutating func resolve(_ action: Message.Action, for id: UUID, with error: (any Error)? = nil) {
         let key = Key(uuid: id, action: action)
-        guard let promise = pendingPromises[key] else {
-            // TODO: throw error, or can we ignore these??
-            // We can ignore them if it was due to the web page going away (i.e. resolveAll was invoked)
-            print("WARNING: no such pending promise \(action) \(id)")
+        guard let promises = pendingPromises.removeValue(forKey: key) else {
             return
         }
-        pendingPromises.removeValue(forKey: key)
-        promise.resolve()
+        promises.forEach { $0.resolve(with: (), orRejectIf: error) }
     }
 
-    mutating func resolveAll() {
-        pendingPromises.values.forEach { promise in
-            promise.resolve()
+    mutating func rejectAll(with error: any Error) {
+        pendingPromises.values.forEach { promises in
+            promises.forEach { $0.reject(with: error) }
         }
         pendingPromises = [:]
     }
