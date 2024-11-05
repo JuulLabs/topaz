@@ -21,6 +21,13 @@ jobs:
   test:
     name: Test
     runs-on: [self-hosted, ConX, macOS]
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v3
       - run: make -C lib test
+      - uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 4
+          max_attempts: 3
+          retry_on: timeout
+          command: make -C lib test
