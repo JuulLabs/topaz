@@ -9,22 +9,21 @@ jobs:
     name: Lint
     runs-on: [self-hosted, ConX, macOS]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: swiftlint --version
       - run: swiftlint lint --strict --reporter github-actions-logging
   build:
     name: Build
     runs-on: [self-hosted, ConX, macOS]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: make -C lib build
   test:
     name: Test
     runs-on: [self-hosted, ConX, macOS]
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
-      - run: make -C lib test
+      - uses: actions/checkout@v4
       - uses: nick-fields/retry@v3
         with:
           timeout_minutes: 4
