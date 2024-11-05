@@ -12,10 +12,14 @@ extension Coordinator: WKNavigationDelegate {
 
     // Started receiving a response and will attempt to begin parsing the HTML
     public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+        didCommitNavigation(in: webView)
     }
 
     // All data received and if DOM is not already complete it will be very soon
     public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if let url = navigatingToUrl {
+            didFinishNavigation(to: url, in: webView)
+        }
         navigatingToUrl = nil
     }
 

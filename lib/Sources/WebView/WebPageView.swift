@@ -3,18 +3,18 @@ import DevicePicker
 import SwiftUI
 import WebKit
 
-import JsMessage
-
 public struct WebPageView: UIViewRepresentable {
 
     private let model: WebPageModel
+    private let config: WKWebViewConfiguration
 
-    public init (model: WebPageModel) {
+    public init (model: WebPageModel, config: WKWebViewConfiguration) {
         self.model = model
+        self.config = config
     }
 
     public func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView.init()
+        let webView = WKWebView(frame: .zero, configuration: config)
         webView.allowsBackForwardNavigationGestures = true
         context.coordinator.initialize(webView: webView, model: model)
         return webView
@@ -34,18 +34,33 @@ public struct WebPageView: UIViewRepresentable {
 }
 
 #Preview {
-    let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/availability.html")!
+    WebPageView(
+        model: previewModel(),
+        config: previewWebConfig()
+    )
+ }
+
+@MainActor
+private func previewModel() -> WebPageModel {
+    let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
     let bluetoothEngine = BluetoothEngine(
         deviceSelector: DeviceSelector(),
         client: .mockClient(
             systemState: { .poweredOn }
         )
     )
-    WebPageView(
-        model: WebPageModel(
-            tab: 0,
-            url: url,
-            messageProcessors: [bluetoothEngine]
-        )
+    return WebPageModel(
+        tab: 0,
+        url: url,
+        messageProcessors: [bluetoothEngine]
     )
- }
+}
+
+@MainActor
+private func previewWebConfig() -> WKWebViewConfiguration {
+#if targetEnvironment(simulator)
+    return WebConfigLoader.loadImmediate()
+#else
+    return WKWebViewConfiguration()
+#endif
+}

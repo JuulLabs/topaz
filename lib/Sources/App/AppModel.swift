@@ -8,6 +8,7 @@ import WebView
 @MainActor
 @Observable
 public class AppModel {
+    var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     var deviceSelector: DeviceSelector = .init()
     var bluetoothEngine: BluetoothEngine = .init(deviceSelector: DeviceSelector(), client: .testValue)
     var searchBarModel: SearchBarModel = .init()
