@@ -18,13 +18,13 @@ type DisconnectResponse = {
     disconnected: boolean;
 }
 
-type GetGattChildrenRequest = {
+type DiscoverServicesRequest = {
     uuid: string;
     single: boolean;
     service: string;
 }
 
-type GetGattChildrenResponse = {
+type DiscoverServicesResponse = {
     services: string[];
 }
 
@@ -56,8 +56,8 @@ export class BluetoothRemoteGATTServer {
     }
 
     /**
-     * Models the `GetGATTChildren` function as described in the
-     * [Web Bluetooth Specification: BluetoothRemoteGATTServer](https://webbluetoothcg.github.io/web-bluetooth/#bluetoothgattremoteserver-interface):
+     * Loosely models the `GetGATTChildren` function as described in the Web Bluetooth Specification:
+     * https://webbluetoothcg.github.io/web-bluetooth/#bluetoothgattremoteserver-interface
      *
      * ```
      * Return GetGATTChildren(attribute=this.device,
@@ -69,8 +69,8 @@ export class BluetoothRemoteGATTServer {
      * ```
      */
     private GetGATTChildren = async (single: boolean, service?: string): Promise<Array<BluetoothRemoteGATTService>> => {
-        const response = await bluetoothRequest<GetGattChildrenRequest, GetGattChildrenResponse>(
-            'GetGATTChildren',
+        const response = await bluetoothRequest<DiscoverServicesRequest, DiscoverServicesResponse>(
+            'discoverServices',
             {
                 uuid: this.device.uuid,
                 single: single,
@@ -85,12 +85,14 @@ export class BluetoothRemoteGATTServer {
         if (typeof bluetoothServiceUUID === "undefined") {
             throw new TypeError("Missing 'bluetoothServiceUUID' parameter.")
         }
-        return this.GetGATTChildren(true, bluetoothServiceUUID)[0];
+        const services = await this.GetGATTChildren(true, bluetoothServiceUUID)
+        return services[0]
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryServices
     getPrimaryServices = async (bluetoothServiceUUID?: string): Promise<Array<BluetoothRemoteGATTService>> => {
-        return this.GetGATTChildren(false, bluetoothServiceUUID);
+        const services = await this.GetGATTChildren(false, bluetoothServiceUUID)
+        return services
     }
 
     // TODO:
