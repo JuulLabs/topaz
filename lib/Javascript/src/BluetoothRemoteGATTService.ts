@@ -70,9 +70,8 @@ export class BluetoothRemoteGATTService extends EventTarget {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTService/getCharacteristics
-    getCharacteristics = async (characteristic?: string): Promise<Array<BluetoothRemoteGATTCharacteristic>> => {
-        const characteristics = await this.GetGATTChildren(false, characteristic)
-        return characteristics
+    getCharacteristics = async (characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic[]> => {
+        return this.GetGATTChildren(false, characteristic)
     }
 
     // TODO:

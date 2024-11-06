@@ -91,8 +91,7 @@ export class BluetoothRemoteGATTServer {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryServices
     getPrimaryServices = async (bluetoothServiceUUID?: string): Promise<Array<BluetoothRemoteGATTService>> => {
-        const services = await this.GetGATTChildren(false, bluetoothServiceUUID)
-        return services
+        return this.GetGATTChildren(false, bluetoothServiceUUID)
     }
 
     // TODO:
