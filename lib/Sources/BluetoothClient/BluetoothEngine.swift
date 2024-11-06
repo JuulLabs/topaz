@@ -49,8 +49,8 @@ public actor BluetoothEngine: JsMessageProcessor {
             await sendEvent(DisconnectEvent(peripheralId: peripheral.identifier))
         case let .discoveredServices(peripheral, error):
             resolveAction(.discoverServices, for: peripheral.identifier, with: error)
-        case .discoveredCharacteristics:
-            fatalError("not implemented")
+        case let .discoveredCharacteristics(peripheral, _, error):
+            resolveAction(.discoverCharacteristics, for: peripheral.identifier, with: error)
         case .updatedCharacteristic:
             fatalError("not implemented")
         }
@@ -97,8 +97,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .discoverServices: try await discoverServices(message: message)
 
         // GATT Service
-        // TODO: case getCharacteristic
-        // TODO: case getCharacteristics
+        case .discoverCharacteristics: try await discoverCharacteristics(message: message)
 
         // GATT Characteristic
         // TODO: moar descriptors, start/stop notifications, read/write value
@@ -161,8 +160,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         return DisconnectResponse(peripheralId: peripheral.identifier)
     }
 
-    private func discoverServices(message: Message) async throws -> GetGattChildrenResponse {
-        let data = try GetGattChildrenRequest.decode(from: message).get()
+    private func discoverServices(message: Message) async throws -> DiscoverServicesResponse {
+        let data = try DiscoverServicesRequest.decode(from: message).get()
         try await bluetoothReadyState()
         let peripheral = try getPeripheral(data.peripheralId)
         // todo: error response if not connected
@@ -175,9 +174,29 @@ public actor BluetoothEngine: JsMessageProcessor {
             guard let service = primaryServices.first else {
                 throw BluetoothError.noSuchService(serviceUuid)
             }
-            return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: [service])
+            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: [service])
         case .all:
-            return GetGattChildrenResponse(peripheralId: peripheral.identifier, services: primaryServices)
+            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: primaryServices)
+        }
+    }
+
+    private func discoverCharacteristics(message: Message) async throws -> DiscoverCharacteristicsResponse {
+        let data = try DiscoverCharacteristicsRequest.decode(from: message).get()
+        try await bluetoothReadyState()
+        let peripheral = try getPeripheral(data.peripheralId)
+        // todo: error response if not connected
+        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
+            client.request.discoverCharacteristics(peripheral, data.toCharacteristicDiscoveryFilter())
+        }
+        let characteristics = peripherals[peripheral.identifier]?.services.first(where: { $0.uuid == data.serviceUuid })?.characteristics ?? []
+        switch data.query {
+        case let .first(characteristicUuid):
+            guard let characteristic = characteristics.first else {
+                throw BluetoothError.noSuchCharacteristic(service: data.serviceUuid, characteristic: characteristicUuid)
+            }
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: [characteristic])
+        case .all:
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: characteristics)
         }
     }
 
@@ -252,9 +271,16 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 }
 
-fileprivate extension GetGattChildrenRequest {
+fileprivate extension DiscoverServicesRequest {
     func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
         let services = query.serviceUuid.map { [$0] }
         return ServiceDiscoveryFilter(primaryOnly: true, services: services)
+    }
+}
+
+fileprivate extension DiscoverCharacteristicsRequest {
+    func toCharacteristicDiscoveryFilter() -> CharacteristicDiscoveryFilter {
+        let characteristics = query.characteristicUuid.map { [$0] }
+        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
     }
 }

@@ -8,6 +8,7 @@ extension BluetoothError: DomErrorConvertable {
         case .causedBy: .unknown
         case .noSuchDevice: .notFound
         case .noSuchService: .notFound
+        case .noSuchCharacteristic: .notFound
         case .unavailable: .unknown
         case .unknown: .unknown
         }

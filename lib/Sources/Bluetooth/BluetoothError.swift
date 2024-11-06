@@ -5,6 +5,7 @@ public enum BluetoothError: Error, Sendable {
     case causedBy(any Error)
     case noSuchDevice(UUID)
     case noSuchService(UUID)
+    case noSuchCharacteristic(service: UUID, characteristic: UUID)
     case unavailable
     case unknown
 }
@@ -20,6 +21,8 @@ extension BluetoothError: LocalizedError {
             "No such device \(uuid.uuidString)"
         case let .noSuchService(uuid):
             "No such service \(uuid.uuidString)"
+        case let .noSuchCharacteristic(serviceUuid, characteristicUuid):
+            "No such characteristic \(characteristicUuid.uuidString) under service \(serviceUuid.uuidString)"
         case .unavailable:
             "Bluetooth not available"
         case .unknown:

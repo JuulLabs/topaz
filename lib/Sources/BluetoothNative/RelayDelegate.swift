@@ -56,7 +56,8 @@ fileprivate extension Optional where Wrapped == Error {
 extension CBService {
     func toService() -> Service? {
         guard let uuid = cbToUuid(uuid) else { return nil }
-        return Service(uuid: uuid, isPrimary: isPrimary)
+        let characteristics = characteristics?.compactMap { $0.toCharacteristic() } ?? []
+        return Service(uuid: uuid, isPrimary: isPrimary, characteristics: characteristics)
     }
 }
 

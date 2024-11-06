@@ -20,8 +20,7 @@ struct Message {
         case discoverServices
 
         // GATT Service
-        // TODO: case getCharacteristic
-        // TODO: case getCharacteristics
+        case discoverCharacteristics
 
         // GATT Characteristic
         // TODO: moar descriptors, start/stop notifications, read/write value

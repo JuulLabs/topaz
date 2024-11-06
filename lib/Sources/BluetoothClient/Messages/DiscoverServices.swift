@@ -2,7 +2,7 @@ import Bluetooth
 import Foundation
 import JsMessage
 
-struct GetGattChildrenRequest: JsMessageDecodable, PeripheralIdentifiable {
+struct DiscoverServicesRequest: JsMessageDecodable, PeripheralIdentifiable {
     let peripheralId: UUID
     let query: Query
 
@@ -27,7 +27,7 @@ struct GetGattChildrenRequest: JsMessageDecodable, PeripheralIdentifiable {
         guard let single = data?["single"]?.number?.boolValue else {
             return nil
         }
-        let serviceUuid = data?["bluetoothServiceUUID"]?.string.flatMap(UUID.init(uuidString:))
+        let serviceUuid = data?["service"]?.string.flatMap(UUID.init(uuidString:))
         let query: Query? = switch (single, serviceUuid) {
         case (true, .none):
             nil
@@ -41,7 +41,7 @@ struct GetGattChildrenRequest: JsMessageDecodable, PeripheralIdentifiable {
     }
 }
 
-struct GetGattChildrenResponse: JsMessageEncodable {
+struct DiscoverServicesResponse: JsMessageEncodable {
     let peripheralId: UUID
     let services: [Service]
 

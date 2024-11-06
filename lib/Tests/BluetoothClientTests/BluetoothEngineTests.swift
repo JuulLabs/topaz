@@ -123,16 +123,16 @@ struct BluetoothEngineTests {
     }
 
     @Test
-    func getGattChildren_single_withBluetoothServiceUUID() async throws {
+    func discoverServices_single_withService() async throws {
         let expectedServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
         let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
-        let getGattChildrenBody: [String: JsType] = [
+        let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(true),
                 "uuid": .string(fake._identifier.uuidString),
-                "bluetoothServiceUUID": .string("00000003-0000-0000-0000-000000000000"),
+                "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -149,9 +149,9 @@ struct BluetoothEngineTests {
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
-        let message = Message(action: .discoverServices, requestBody: getGattChildrenBody)
+        let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)
-        guard let response = response as? GetGattChildrenResponse else {
+        guard let response = response as? DiscoverServicesResponse else {
             Issue.record("Unexpected response: \(response)")
             return
         }
@@ -159,13 +159,13 @@ struct BluetoothEngineTests {
     }
 
     @Test
-    func getGattChildren_withoutBluetoothServiceUUID() async throws {
+    func discoverServices_withoutService() async throws {
         let expectedServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
         ]
         let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
-        let getGattChildrenBody: [String: JsType] = [
+        let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
                 "uuid": .string(fake._identifier.uuidString),
@@ -185,9 +185,9 @@ struct BluetoothEngineTests {
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
-        let message = Message(action: .discoverServices, requestBody: getGattChildrenBody)
+        let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)
-        guard let response = response as? GetGattChildrenResponse else {
+        guard let response = response as? DiscoverServicesResponse else {
             Issue.record("Unexpected response: \(response)")
             return
         }
@@ -195,12 +195,12 @@ struct BluetoothEngineTests {
     }
 
     @Test
-    func getGattChildren_withBluetoothServiceUUID() async throws {
+    func discoverServices_withService() async throws {
         let expectedServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
         let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
-        let getGattChildrenBody: [String: JsType] = [
+        let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
                 "uuid": .string(fake._identifier.uuidString),
@@ -221,9 +221,9 @@ struct BluetoothEngineTests {
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
-        let message = Message(action: .discoverServices, requestBody: getGattChildrenBody)
+        let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)
-        guard let response = response as? GetGattChildrenResponse else {
+        guard let response = response as? DiscoverServicesResponse else {
             Issue.record("Unexpected response: \(response)")
             return
         }
