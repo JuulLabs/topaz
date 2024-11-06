@@ -2,15 +2,16 @@ import DevicePicker
 import Observation
 import SwiftUI
 import WebView
+import WebKit
 
 @MainActor
 @Observable
-public class WebContainerModel {
+public final class WebContainerModel {
     public let webPageModel: WebPageModel
     public let pickerModel: DevicePickerModel
     public var selector: DeviceSelector
 
-    public init(
+    init(
         webPageModel: WebPageModel,
         selector: DeviceSelector
     ) {
@@ -19,9 +20,19 @@ public class WebContainerModel {
         self.pickerModel = DevicePickerModel(
             siteName: webPageModel.hostname,
             selector: selector,
-            onDismiss: {
+            onDismiss: { [selector] in
                 selector.cancel()
             }
         )
+    }
+
+    static func loadAsync(
+        selector: DeviceSelector,
+        webConfigLoader: WebConfigLoader,
+        buildWebModel: @escaping (WKWebViewConfiguration) -> WebPageModel
+    ) async throws -> WebContainerModel {
+        let config = try await webConfigLoader.loadConfig()
+        let webPageModel = buildWebModel(config)
+        return .init(webPageModel: webPageModel, selector: selector)
     }
 }

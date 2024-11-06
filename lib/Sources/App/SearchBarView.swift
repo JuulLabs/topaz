@@ -32,8 +32,8 @@ struct SearchBarView: View {
         }
         .padding(12)
         .background(.white)
-        .frame(maxWidth: .infinity, maxHeight: 32)
-        .cornerRadius(16)
+        .cornerRadius(24)
+        .frame(maxWidth: .infinity, minHeight: 48)
         .onAppear {
             focusedField = .searchBar
         }

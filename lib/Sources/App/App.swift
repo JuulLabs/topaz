@@ -3,6 +3,7 @@ import Design
 import DevicePicker
 import SwiftUI
 import WebView
+import WebKit
 
 public struct AppContentView: View {
     @Environment(\.bluetoothClient) var bluetoothClient
@@ -17,15 +18,7 @@ public struct AppContentView: View {
     }
 
     public var body: some View {
-        ZStack {
-            Color.topaz600
-            if let webModel = model.webContainerModel {
-                WebLoadingView(loader: model.webConfigLoader, model: webModel)
-            } else {
-                FreshPageView(searchBarModel: model.searchBarModel)
-            }
-        }
-        .edgesIgnoringSafeArea(.all) // TODO: only if full screen
+        WebLoadingView(model: model.loadingModel)
         .task {
             // TODO: a more rigourous DI mechanism
             let selector = DeviceSelector()
@@ -49,7 +42,8 @@ public struct AppContentView: View {
     AppContentView(model: model)
         .environment(\.bluetoothClient, .mockClient())
         .task {
+            try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
             let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-            model.searchBarModel.onSubmit(url)
+            model.freshPageModel.searchBarModel.onSubmit(url)
         }
 }

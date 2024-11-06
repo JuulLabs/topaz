@@ -9,6 +9,7 @@ import WebKit
 public class WebPageModel {
     private var kvoStore: [NSKeyValueObservation] = []
 
+    public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
     public let tab: Int
     public private(set) var url: URL
@@ -31,11 +32,13 @@ public class WebPageModel {
     public init(
         tab: Int,
         url: URL,
+        config: WKWebViewConfiguration,
         messageProcessors: [JsMessageProcessor] = []
     ) {
         self.contextId = JsContextIdentifier(tab: tab, url: url)
         self.tab = tab
         self.url = url
+        self.config = config
         self.messageProcessors = messageProcessors
     }
 

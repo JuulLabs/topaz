@@ -7,10 +7,9 @@ import WebKit
 
 struct WebContainerView: View {
     @Bindable var model: WebContainerModel
-    let config: WKWebViewConfiguration
 
     var body: some View {
-        WebPageView(model: model.webPageModel, config: config)
+        WebPageView(model: model.webPageModel)
             .overlay {
                 // TODO: temporary for demo only - move this to the navigation panel
                 if case let .inProgress(progress) = model.webPageModel.loadingState {
@@ -30,16 +29,15 @@ struct WebContainerView: View {
     }
 }
 
-#Preview {
+#Preview("DevicePicker") {
     WebContainerView(
-        model: previewModel(),
-        config: previewWebConfig()
+        model: previewModel()
     )
 }
 
 @MainActor
 private func previewModel() -> WebContainerModel {
-    let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
+    let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
     let selector = DeviceSelector()
 #if targetEnvironment(simulator)
     let client: BluetoothClient = .clientWithMockAds(selector: selector)
@@ -53,6 +51,7 @@ private func previewModel() -> WebContainerModel {
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
+        config: previewWebConfig(),
         messageProcessors: [bluetoothEngine]
     )
     return WebContainerModel(
@@ -62,7 +61,7 @@ private func previewModel() -> WebContainerModel {
 }
 
 @MainActor
-private func previewWebConfig() -> WKWebViewConfiguration {
+func previewWebConfig() -> WKWebViewConfiguration {
 #if targetEnvironment(simulator)
     return WebConfigLoader.loadImmediate()
 #else
