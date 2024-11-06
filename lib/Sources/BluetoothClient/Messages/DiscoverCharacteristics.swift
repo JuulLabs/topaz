@@ -51,24 +51,22 @@ struct DiscoverCharacteristicsResponse: JsMessageEncodable {
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
         return .body([
-            "characteristics": characteristics.toJsConvertable()
+            "characteristics": characteristics.map { $0.asDictionary() }
         ])
     }
 }
 
-fileprivate extension Array where Element == Characteristic {
-    func toJsConvertable() -> [JsConvertable] {
-        return self.map {
-            [
-                "uuid": $0.uuid.uuidString,
-                "properties": $0.properties.toJsConvertable(),
-            ]
-        }
+fileprivate extension Characteristic {
+    func asDictionary() -> [String: JsConvertable] {
+        return [
+            "uuid": uuid.uuidString,
+            "properties": properties.asDictionary(),
+        ]
     }
 }
 
 fileprivate extension CharacteristicProperties {
-    func toJsConvertable() -> JsConvertable {
+    func asDictionary() -> [String: JsConvertable] {
         return [
             "authenticatedSignedWrites": self.contains(.authenticatedSignedWrites),
             "broadcast": self.contains(.broadcast),
