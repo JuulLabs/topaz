@@ -45,7 +45,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
      *                        child type="GATT Characteristic")
      * ```
      */
-    private GetGATTChildren = async (single: boolean, characteristic?: string): Promise<Array<BluetoothRemoteGATTCharacteristic>> => {
+    private GetGATTChildren = async (single: boolean, characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic[]> => {
         const response = await bluetoothRequest<DiscoverCharacteristicsRequest, DiscoverCharacteristicsResponse>(
             'discoverCharacteristics',
             {
