@@ -121,8 +121,7 @@ struct DiscoverCharacteristicsTests {
                 events!.yield(.systemState(.poweredOn))
             }
             request.discoverCharacteristics = { [events] peripheral, filter in
-                let service = fakeServices[1]
-                #expect(filter.characteristics?.first == service.characteristics[0].uuid)
+                let service = fakeServices.first(where: { $0.uuid == filter.service })!
                 events!.yield(.discoveredCharacteristics(peripheral, service, nil))
             }
         }
