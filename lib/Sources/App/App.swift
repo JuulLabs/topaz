@@ -3,7 +3,6 @@ import Design
 import DevicePicker
 import SwiftUI
 import WebView
-import WebKit
 
 public struct AppContentView: View {
     @Environment(\.bluetoothClient) var bluetoothClient

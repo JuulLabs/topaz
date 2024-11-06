@@ -106,7 +106,9 @@ let package = Package(
 
         .target(
             name: "UIHelpers",
-            dependencies: []
+            dependencies: [
+                "Helpers",
+            ]
         ),
 
         .target(

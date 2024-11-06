@@ -17,7 +17,7 @@ struct WebLoadingView: View {
                 FreshPageView(model: model.freshPageModel)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: model.shouldShowFreshPageOverlay)
+        .animation(.easeInOut, value: model.shouldShowFreshPageOverlay)
     }
 }
 
