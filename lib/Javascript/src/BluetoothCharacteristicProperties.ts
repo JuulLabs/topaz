@@ -1,5 +1,5 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothCharacteristicProperties
-export class BluetoothCharacteristicProperties extends EventTarget {
+export class BluetoothCharacteristicProperties {
     authenticatedSignedWrites: boolean;
     broadcast: boolean;
     indicate: boolean;
@@ -21,7 +21,6 @@ export class BluetoothCharacteristicProperties extends EventTarget {
         write: boolean,
         writeWithoutResponse: boolean,
     ) {
-        super();
         this.authenticatedSignedWrites = authenticatedSignedWrites;
         this.broadcast = broadcast;
         this.indicate = indicate;
