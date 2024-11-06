@@ -60,15 +60,15 @@ struct DiscoverCharacteristicsTests {
             Characteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
         ]
         let fakeServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
         ]
         let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
                 "uuid": .string(fake._identifier.uuidString),
-                "service": .string("00000001-0000-0000-0000-000000000000"),
+                "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -98,7 +98,6 @@ struct DiscoverCharacteristicsTests {
     func discoverCharacteristics_withCharacteristic() async throws {
         let expectedCharacteristics = [
             Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
-            Characteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
         ]
         let fakeServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
@@ -121,8 +120,10 @@ struct DiscoverCharacteristicsTests {
             request.enable = { [events] in
                 events!.yield(.systemState(.poweredOn))
             }
-            request.discoverCharacteristics = { [events] peripheral, _ in
-                events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
+            request.discoverCharacteristics = { [events] peripheral, filter in
+                let service = fakeServices[1]
+                #expect(filter.characteristics?.first == service.characteristics[0].uuid)
+                events!.yield(.discoveredCharacteristics(peripheral, service, nil))
             }
         }
         await sut.addPeripheral(fake.eraseToAnyPeripheral())
