@@ -130,9 +130,9 @@ struct BluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
-                "single": .number(true),
-                "uuid": .string(fake._identifier.uuidString),
+                "device": .string(fake._identifier.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
+                "single": .number(true),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -167,8 +167,8 @@ struct BluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
+                "device": .string(fake._identifier.uuidString),
                 "single": .number(false),
-                "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in
@@ -202,9 +202,9 @@ struct BluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
+                "device": .string(fake._identifier.uuidString),
+                "service": .string("00000003-0000-0000-0000-000000000000"),
                 "single": .number(false),
-                "uuid": .string(fake._identifier.uuidString),
-                "bluetoothServiceUUID": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { request, response, _ in

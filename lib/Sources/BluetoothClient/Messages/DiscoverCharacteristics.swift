@@ -22,16 +22,16 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable, PeripheralIdentifiabl
     }
 
     static func decode(from data: [String: JsType]?) -> Self? {
-        guard let uuid = data?["uuid"]?.string.flatMap(UUID.init(uuidString:)) else {
-            return nil
-        }
-        guard let single = data?["single"]?.number?.boolValue else {
+        guard let device = data?["device"]?.string.flatMap(UUID.init(uuidString:)) else {
             return nil
         }
         guard let service = data?["service"]?.string.flatMap(UUID.init(uuidString:)) else {
             return nil
         }
         let characteristic = data?["characteristic"]?.string.flatMap(UUID.init(uuidString:))
+        guard let single = data?["single"]?.number?.boolValue else {
+            return nil
+        }
         let query: Query? = switch (single, characteristic) {
         case (true, .none):
             nil
@@ -41,7 +41,7 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable, PeripheralIdentifiabl
             .all(characteristic)
         }
         guard let query else { return nil }
-        return .init(peripheralId: uuid, serviceUuid: service, query: query)
+        return .init(peripheralId: device, serviceUuid: service, query: query)
     }
 }
 

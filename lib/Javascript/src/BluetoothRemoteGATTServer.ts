@@ -19,9 +19,9 @@ type DisconnectResponse = {
 }
 
 type DiscoverServicesRequest = {
-    uuid: string;
-    single: boolean;
+    device: string;
     service: string;
+    single: boolean;
 }
 
 type DiscoverServicesResponse = {
@@ -72,9 +72,9 @@ export class BluetoothRemoteGATTServer {
         const response = await bluetoothRequest<DiscoverServicesRequest, DiscoverServicesResponse>(
             'discoverServices',
             {
-                uuid: this.device.uuid,
-                single: single,
-                service: service
+                device: this.device.uuid,
+                service: service,
+                single: single
             }
         );
         return response.services.map(service => new BluetoothRemoteGATTService(this.device, service, true));
