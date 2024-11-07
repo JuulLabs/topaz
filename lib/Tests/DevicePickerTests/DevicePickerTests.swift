@@ -66,7 +66,7 @@ struct DevicePickerTests {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
         await Task.yield()
-        let fake = FakePeripheral(name: "bob")
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
         sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
         await Task.yield()
         sut.makeSelection(fake._identifier)
@@ -84,7 +84,7 @@ struct DevicePickerTests {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
         await Task.yield()
-        let fake = FakePeripheral(name: "bob")
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
         sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
         await Task.yield()
         async let collected = await sut.advertisements.first(where: { !$0.isEmpty })!

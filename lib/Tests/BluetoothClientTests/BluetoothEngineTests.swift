@@ -93,7 +93,7 @@ struct BluetoothEngineTests {
 
     @Test
     func disconnect() async throws {
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected)
         let disconnectRequestBody: [String: JsType] = [
             "data": .dictionary([
                 "uuid": .string(fake._identifier.uuidString),
@@ -127,7 +127,7 @@ struct BluetoothEngineTests {
         let expectedServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(true),
@@ -164,7 +164,7 @@ struct BluetoothEngineTests {
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
@@ -199,7 +199,7 @@ struct BluetoothEngineTests {
         let expectedServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: expectedServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),

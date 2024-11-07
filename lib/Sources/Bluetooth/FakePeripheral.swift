@@ -11,13 +11,13 @@ public struct FakePeripheral: Equatable, WrappedPeripheral {
 
     public init(
         name: String,
+        identifier: UUID,
         connectionState: ConnectionState = .disconnected,
-        identifier: UUID? = nil,
         services: [Service] = []
     ) {
         self._name = name
+        self._identifier = identifier
         self._connectionState = connectionState
-        self._identifier = identifier ?? UUID()
         self._services = services
     }
 }

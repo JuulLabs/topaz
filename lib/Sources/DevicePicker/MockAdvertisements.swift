@@ -13,7 +13,7 @@ extension DeviceSelector {
             "35fc49b",
             "Really smart window",
             "Even smarter light bulb",
-        ].map { FakePeripheral(name: $0) }
+        ].map { FakePeripheral(name: $0, identifier: UUID()) }
         return Task {
             while !Task.isCancelled {
                 let delay = UInt64.random(in: 1..<6)

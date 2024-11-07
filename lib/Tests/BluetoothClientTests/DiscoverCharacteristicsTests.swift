@@ -21,7 +21,7 @@ struct DiscoverCharacteristicsTests {
         let fakeServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: fakeServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(true),
@@ -63,7 +63,7 @@ struct DiscoverCharacteristicsTests {
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: fakeServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
@@ -103,7 +103,7 @@ struct DiscoverCharacteristicsTests {
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
         ]
-        let fake = FakePeripheral(name: "bob", connectionState: .connected, identifier: zeroUuid, services: fakeServices)
+        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
