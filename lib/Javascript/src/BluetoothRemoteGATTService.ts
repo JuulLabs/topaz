@@ -4,7 +4,7 @@ import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacte
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
 
 type DiscoverCharacteristicsRequest = {
-    uuid: string;
+    device: string;
     service: string;
     characteristic: string;
     single: boolean;
@@ -49,7 +49,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
         const response = await bluetoothRequest<DiscoverCharacteristicsRequest, DiscoverCharacteristicsResponse>(
             'discoverCharacteristics',
             {
-                uuid: this.device.uuid,
+                device: this.device.uuid,
                 service: this.uuid,
                 characteristic: characteristic,
                 single: single

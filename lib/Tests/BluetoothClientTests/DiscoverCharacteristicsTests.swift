@@ -25,7 +25,7 @@ struct DiscoverCharacteristicsTests {
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(true),
-                "uuid": .string(fake._identifier.uuidString),
+                "device": .string(fake._identifier.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
@@ -67,7 +67,7 @@ struct DiscoverCharacteristicsTests {
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
-                "uuid": .string(fake._identifier.uuidString),
+                "device": .string(fake._identifier.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
@@ -107,7 +107,7 @@ struct DiscoverCharacteristicsTests {
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
-                "uuid": .string(fake._identifier.uuidString),
+                "device": .string(fake._identifier.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
