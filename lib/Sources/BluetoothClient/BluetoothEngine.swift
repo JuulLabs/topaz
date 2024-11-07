@@ -51,6 +51,8 @@ public actor BluetoothEngine: JsMessageProcessor {
             resolveAction(.discoverServices, for: peripheral.identifier, with: error)
         case let .discoveredCharacteristics(peripheral, _, error):
             resolveAction(.discoverCharacteristics, for: peripheral.identifier, with: error)
+        case let .characteristicChanged(peripheral, characteristic):
+            await sendEvent(CharacteristicChangedEvent(characteristic: characteristic))
         case .updatedCharacteristic:
             fatalError("not implemented")
         }
@@ -198,6 +200,14 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .all:
             return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: characteristics)
         }
+    }
+
+    private func startCharacteristicNotifications(message: Message) async throws -> StartCharacteristicNotificationsResponse {
+        // todo
+    }
+    
+    private func stopCharacteristicNotifications(message: Message) async throws -> StopCharacteristicNotificationsResponse {
+        // todo
     }
 
     // MARK: - Private helpers
