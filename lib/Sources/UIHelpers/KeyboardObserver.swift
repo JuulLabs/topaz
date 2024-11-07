@@ -9,22 +9,20 @@ public final class KeyboardObserver {
     public var frame: CGRect?
 
     public init() {
-        Task {
-            Task { [weak self] in
-                for await newFrame in compactMapNotifications(
-                    name: UIResponder.keyboardWillShowNotification,
-                    transform: KeyboardObserver.extractKeyboardFrame
-                ) {
-                    self?.frame = newFrame
-                }
+        Task { [weak self] in
+            for await newFrame in compactMapNotifications(
+                name: UIResponder.keyboardWillShowNotification,
+                transform: KeyboardObserver.extractKeyboardFrame
+            ) {
+                self?.frame = newFrame
             }
-            Task { [weak self] in
-                for await _ in mapNotifications(
-                    name: UIResponder.keyboardWillHideNotification,
-                    transform: { _ in 0 }
-                ) {
-                    self?.frame = nil
-                }
+        }
+        Task { [weak self] in
+            for await _ in mapNotifications(
+                name: UIResponder.keyboardWillHideNotification,
+                transform: { _ in 0 }
+            ) {
+                self?.frame = nil
             }
         }
     }
