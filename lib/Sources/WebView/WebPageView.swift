@@ -6,15 +6,13 @@ import WebKit
 public struct WebPageView: UIViewRepresentable {
 
     private let model: WebPageModel
-    private let config: WKWebViewConfiguration
 
-    public init (model: WebPageModel, config: WKWebViewConfiguration) {
+    public init (model: WebPageModel) {
         self.model = model
-        self.config = config
     }
 
     public func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView(frame: .zero, configuration: config)
+        let webView = WKWebView(frame: .zero, configuration: model.config)
         webView.allowsBackForwardNavigationGestures = true
         context.coordinator.initialize(webView: webView, model: model)
         return webView
@@ -34,10 +32,7 @@ public struct WebPageView: UIViewRepresentable {
 }
 
 #Preview {
-    WebPageView(
-        model: previewModel(),
-        config: previewWebConfig()
-    )
+    WebPageView(model: previewModel())
  }
 
 @MainActor
@@ -52,6 +47,7 @@ private func previewModel() -> WebPageModel {
     return WebPageModel(
         tab: 0,
         url: url,
+        config: previewWebConfig(),
         messageProcessors: [bluetoothEngine]
     )
 }

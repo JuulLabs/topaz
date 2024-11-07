@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-public class SearchBarModel {
+public final class SearchBarModel {
     var searchString: String = ""
     var onSubmit: (URL) -> Void = { _ in }
 

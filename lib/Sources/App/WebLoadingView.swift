@@ -6,58 +6,68 @@ import WebView
 import WebKit
 
 struct WebLoadingView: View {
-    @State private var webConfig: WKWebViewConfiguration?
-
-    let loader: WebConfigLoader
-    let model: WebContainerModel
+    let model: WebLoadingModel
 
     var body: some View {
         ZStack {
-            if let webConfig {
-                WebContainerView(model: model, config: webConfig)
+            if let webContainerModel = model.webContainerModel {
+                WebContainerView(model: webContainerModel)
             }
-            if webConfig == nil || model.webPageModel.isPerformingInitialContentLoad {
-                FullscreenLoadingView()
-                    .task {
-                        await loadConfigAsync()
-                    }
+            if model.shouldShowFreshPageOverlay {
+                FreshPageView(model: model.freshPageModel)
             }
         }
-    }
-
-    private func loadConfigAsync() async {
-        do {
-            let loaded = try await loader.loadConfig()
-            withAnimation(.easeInOut(duration: 0.25)) {
-                webConfig = loaded
-            }
-        } catch {
-            // TODO: navigate away due to failure and try again
-            print("Unable to load \(error)")
-        }
+        .animation(.easeInOut, value: model.shouldShowFreshPageOverlay)
     }
 }
 
-#Preview("Ok") {
+#Preview("Empty") {
     WebLoadingView(
-        loader: WebConfigLoader(),
         model: previewModel()
     )
+#if targetEnvironment(simulator)
+        .forceLoadFontsInPreview()
+#endif
 }
 
-#Preview("BadScript") {
-    WebLoadingView(
-        loader: WebConfigLoader(scriptResourceNames: ["LostFile"]),
-        model: previewModel()
-    )
+#Preview("Loading") {
+    let model: WebLoadingModel = previewModel()
+    WebLoadingView(model: model)
+        .task {
+            model.freshPageModel.isLoading = true
+        }
+#if targetEnvironment(simulator)
+        .forceLoadFontsInPreview()
+#endif
+}
+
+#Preview("Loaded") {
+    let model: WebLoadingModel = previewModel()
+    WebLoadingView(model: model)
+        .task {
+            model.freshPageModel.isLoading = true
+            try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
+            let url = URL.init(string: "https://loremipsum.org")!
+            model.webContainerModel = webModel(url: url)
+        }
+#if targetEnvironment(simulator)
+        .forceLoadFontsInPreview()
+#endif
 }
 
 @MainActor
-private func previewModel() -> WebContainerModel {
+private func previewModel() -> WebLoadingModel {
+    let freshPageModel = FreshPageModel(searchBarModel: SearchBarModel())
+    return WebLoadingModel(freshPageModel: freshPageModel)
+}
+
+@MainActor
+private func webModel(url: URL) -> WebContainerModel {
     WebContainerModel(
         webPageModel: WebPageModel(
             tab: 0,
-            url: URL(string: "https://cataas.com/cat")!,
+            url: url,
+            config: previewWebConfig(),
             messageProcessors: []
         ),
         selector: DeviceSelector()
