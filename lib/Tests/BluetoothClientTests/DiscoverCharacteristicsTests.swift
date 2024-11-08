@@ -16,7 +16,7 @@ struct DiscoverCharacteristicsTests {
     @Test
     func discoverCharacteristics_single_withCharacteristic() async throws {
         let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
         ]
         let fakeServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
@@ -56,8 +56,8 @@ struct DiscoverCharacteristicsTests {
     @Test
     func discoverCharacteristics_withoutCharacteristic() async throws {
         let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
-            Characteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            Characteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
         ]
         let fakeServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
@@ -97,7 +97,7 @@ struct DiscoverCharacteristicsTests {
     @Test
     func discoverCharacteristics_withCharacteristic() async throws {
         let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
         ]
         let fakeServices: [Service] = [
             Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),

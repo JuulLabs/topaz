@@ -66,6 +66,7 @@ fileprivate extension CBCharacteristic {
         guard let uuid = cbToUuid(uuid) else { return nil }
         return Characteristic(
             uuid: uuid,
+            instance: UInt32(truncatingIfNeeded: ObjectIdentifier(self).hashValue),
             properties: CharacteristicProperties(rawValue: properties.rawValue),
             value: value,
             descriptors: descriptors?.compactMap(convertDescriptor) ?? [],

@@ -2,6 +2,7 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { mainDispatcher } from "./EventDispatcher";
 import { ValueEvent } from "./ValueEvent";
+import { store } from "./Store";
 
 type Options = {
     // external
@@ -18,6 +19,12 @@ type RequestDeviceRequest = {
 type RequestDeviceResponse = {
     uuid: string;
     name?: string;
+}
+
+const createDevice = (uuid: string, name?: string): BluetoothDevice => {
+    const device = new BluetoothDevice(uuid, name);
+    store.addDevice(device);
+    return device;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth
@@ -48,7 +55,7 @@ export class Bluetooth extends EventTarget {
         const response = await bluetoothRequest<undefined, RequestDeviceResponse[]>(
             'getDevices'
         );
-        return response.map(device => new BluetoothDevice(device.uuid, device.name));
+        return response.map(device => createDevice(device.uuid, device.name));
     }
 
     requestDevice = async (options?: Options): Promise<BluetoothDevice> => {
@@ -56,6 +63,6 @@ export class Bluetooth extends EventTarget {
             'requestDevice',
             { options: options }
         );
-        return new BluetoothDevice(response.uuid, response.name);
+        return createDevice(response.uuid, response.name);
     }
 }

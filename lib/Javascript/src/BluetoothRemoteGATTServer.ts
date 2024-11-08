@@ -1,6 +1,7 @@
 import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
+import { store } from "./Store";
 
 type ConnectRequest = {
     uuid: string;
@@ -26,6 +27,16 @@ type DiscoverServicesRequest = {
 
 type DiscoverServicesResponse = {
     services: string[];
+}
+
+const getOrCreateService = (device: BluetoothDevice, uuid: string, isPrimary: boolean): BluetoothRemoteGATTService => {
+    const existingService = store.getService(device.uuid, uuid);
+    if (existingService) {
+        return existingService;
+    }
+    const service = new BluetoothRemoteGATTService(device, uuid, isPrimary);
+    store.addService(service);
+    return service;
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer
@@ -77,7 +88,7 @@ export class BluetoothRemoteGATTServer {
                 single: single
             }
         );
-        return response.services.map(service => new BluetoothRemoteGATTService(this.device, service, true));
+        return response.services.map(service => getOrCreateService(this.device, service, true));
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryService
