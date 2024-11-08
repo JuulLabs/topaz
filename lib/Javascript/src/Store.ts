@@ -18,7 +18,7 @@ type DeviceRecord = {
     services: Map<string, ServiceRecord>;
 }
 
-export const characteristicKey = (uuid: string, instance: number): CharacteristicKey => {
+const characteristicKey = (uuid: string, instance: number): CharacteristicKey => {
     return uuid + '.' + instance;
 }
 

@@ -13,6 +13,7 @@ type DiscoverCharacteristicsRequest = {
 
 type Characteristic = {
     uuid: string;
+    instance: number;
     properties: BluetoothCharacteristicProperties;
 }
 
@@ -57,8 +58,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
             }
         );
         return response.characteristics.map(characteristic =>
-            // TODO: inject the instance ID
-            store.getOrCreateCharacteristic(this, characteristic.uuid, characteristic.properties, 0)
+            store.getOrCreateCharacteristic(this, characteristic.uuid, characteristic.properties, characteristic.instance)
         );
     }
 
