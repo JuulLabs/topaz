@@ -60,6 +60,7 @@ fileprivate extension Characteristic {
     func asDictionary() -> [String: JsConvertable] {
         return [
             "uuid": uuid.uuidString,
+            "instance": instance,
             "properties": properties.asDictionary(),
         ]
     }
