@@ -3,15 +3,16 @@ import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProp
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic
 export class BluetoothRemoteGATTCharacteristic extends EventTarget {
-    service: BluetoothRemoteGATTService;
-    uuid: string;
-    properties: BluetoothCharacteristicProperties;
+    public value?: DataView;
 
-    constructor(service: BluetoothRemoteGATTService, uuid: string, properties: BluetoothCharacteristicProperties) {
+    constructor(
+        public service: BluetoothRemoteGATTService,
+        public uuid: string,
+        public properties: BluetoothCharacteristicProperties,
+        private instanceId: number
+    ) {
         super();
-        this.service = service;
-        this.uuid = uuid;
-        this.properties = properties;
+        this.value = null;
     }
 
     // TODO:

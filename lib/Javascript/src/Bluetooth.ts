@@ -49,7 +49,7 @@ export class Bluetooth extends EventTarget {
         const response = await bluetoothRequest<undefined, RequestDeviceResponse[]>(
             'getDevices'
         );
-        return response.map(device => store.getOrCreateDevice(device.uuid, device.name));
+        return response.map(device => store.createDevice(device.uuid, device.name));
     }
 
     requestDevice = async (options?: Options): Promise<BluetoothDevice> => {
@@ -57,6 +57,6 @@ export class Bluetooth extends EventTarget {
             'requestDevice',
             { options: options }
         );
-        return store.getOrCreateDevice(response.uuid, response.name);
+        return store.createDevice(response.uuid, response.name);
     }
 }
