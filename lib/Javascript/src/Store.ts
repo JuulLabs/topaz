@@ -29,11 +29,7 @@ class Store {
     }
 
     getDevice = (uuid: string): BluetoothDevice | undefined => {
-        const deviceRecord = this.#devices.get(uuid);
-        if (!deviceRecord) {
-            return undefined;
-        }
-        return deviceRecord.device;
+        return this.#devices.get(uuid)?.device;
     }
 
     addDevice = (device: BluetoothDevice) => {
