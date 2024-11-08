@@ -1,6 +1,7 @@
 import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
+import { store } from "./Store";
 
 type ConnectRequest = {
     uuid: string;
@@ -77,7 +78,7 @@ export class BluetoothRemoteGATTServer {
                 single: single
             }
         );
-        return response.services.map(service => new BluetoothRemoteGATTService(this.device, service, true));
+        return response.services.map(service => store.getOrCreateService(this.device, service, true));
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryService

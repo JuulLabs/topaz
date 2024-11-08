@@ -2,6 +2,7 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
+import { store } from "./Store";
 
 type DiscoverCharacteristicsRequest = {
     device: string;
@@ -56,7 +57,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
             }
         );
         return response.characteristics.map(characteristic =>
-            new BluetoothRemoteGATTCharacteristic(this, characteristic.uuid, characteristic.properties)
+            store.getOrCreateCharacteristic(this, characteristic.uuid, characteristic.properties)
         );
     }
 

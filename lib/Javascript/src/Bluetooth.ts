@@ -2,6 +2,7 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { mainDispatcher } from "./EventDispatcher";
 import { ValueEvent } from "./ValueEvent";
+import { store } from "./Store";
 
 type Options = {
     // external
@@ -48,7 +49,7 @@ export class Bluetooth extends EventTarget {
         const response = await bluetoothRequest<undefined, RequestDeviceResponse[]>(
             'getDevices'
         );
-        return response.map(device => new BluetoothDevice(device.uuid, device.name));
+        return response.map(device => store.getOrCreateDevice(device.uuid, device.name));
     }
 
     requestDevice = async (options?: Options): Promise<BluetoothDevice> => {
@@ -56,6 +57,6 @@ export class Bluetooth extends EventTarget {
             'requestDevice',
             { options: options }
         );
-        return new BluetoothDevice(response.uuid, response.name);
+        return store.getOrCreateDevice(response.uuid, response.name);
     }
 }
