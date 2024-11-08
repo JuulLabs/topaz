@@ -21,6 +21,21 @@ type DiscoverCharacteristicsResponse = {
     characteristics: Characteristic[];
 }
 
+const getOrCreateCharacteristic = (
+    service: BluetoothRemoteGATTService,
+    uuid: string,
+    properties: BluetoothCharacteristicProperties,
+    instance: number
+): BluetoothRemoteGATTCharacteristic => {
+    const existingCharacteristic = store.getCharacteristic(service, uuid, instance);
+    if (existingCharacteristic) {
+        return existingCharacteristic;
+    }
+    const characteristic = new BluetoothRemoteGATTCharacteristic(service, uuid, properties, instance);
+    store.addCharacteristic(service, characteristic, instance);
+    return characteristic;
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTService
 export class BluetoothRemoteGATTService extends EventTarget {
     device: BluetoothDevice;
@@ -58,7 +73,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
             }
         );
         return response.characteristics.map(characteristic =>
-            store.getOrCreateCharacteristic(this, characteristic.uuid, characteristic.properties, characteristic.instance)
+            getOrCreateCharacteristic(this, characteristic.uuid, characteristic.properties, characteristic.instance)
         );
     }
 

@@ -1,7 +1,6 @@
-import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
-import { BluetoothDevice } from "./BluetoothDevice";
-import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
-import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
+import type { BluetoothDevice } from "./BluetoothDevice";
+import type { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
+import type { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { mainDispatcher } from "./EventDispatcher";
 
 type CharacteristicKey = string
@@ -23,55 +22,54 @@ const characteristicKey = (uuid: string, instance: number): CharacteristicKey =>
 }
 
 class Store {
-    private devices = new Map<string, DeviceRecord>()
+    #devices: Map<string, DeviceRecord>;
 
-    constructor() {}
+    constructor() {
+        this.#devices = new Map();
+    }
 
-    createDevice = (uuid: string, name?: string): BluetoothDevice => {
-        const deviceRecord = this.devices.get(uuid);
+    getDevice = (uuid: string): BluetoothDevice | undefined => {
+        const deviceRecord = this.#devices.get(uuid);
+        if (!deviceRecord) {
+            return undefined;
+        }
+        return deviceRecord.device;
+    }
+
+    addDevice = (device: BluetoothDevice) => {
+        const deviceRecord = this.#devices.get(device.uuid);
         if (deviceRecord) {
             mainDispatcher.removeTarget(deviceRecord.device.uuid, 'gattserverdisconnected');
         }
-        const device = new BluetoothDevice(uuid, name);
-        this.devices.set(uuid, { uuid, device, services: new Map() });
-        return device;
+        this.#devices.set(device.uuid, { uuid: device.uuid, device, services: new Map() });
     }
 
-    getOrCreateService = (device: BluetoothDevice, uuid: string, isPrimary: boolean): BluetoothRemoteGATTService => {
-        const deviceRecord = this.devices.get(device.uuid);
-        if (!deviceRecord) {
-            throw new ReferenceError(`Device ${device.uuid} not found`);
-        }
-        const serviceRecord = deviceRecord.services.get(uuid);
-        if (serviceRecord) {
-            return serviceRecord.service;
-        }
-        const service = new BluetoothRemoteGATTService(device, uuid, isPrimary);
-        deviceRecord.services.set(uuid, { uuid, service, characteristics: new Map() });
-        return service;
+    getService = (deviceUuid: string, serviceUuid: string): BluetoothRemoteGATTService | undefined => {
+        return this.#devices.get(deviceUuid)?.services.get(serviceUuid)?.service;
     }
 
-    getOrCreateCharacteristic = (service: BluetoothRemoteGATTService, uuid: string, properties: BluetoothCharacteristicProperties, instance: number): BluetoothRemoteGATTCharacteristic => {
-        const deviceRecord = this.devices.get(service.device.uuid);
+    addService = (service: BluetoothRemoteGATTService) => {
+        const deviceRecord = this.#devices.get(service.device.uuid);
         if (!deviceRecord) {
             throw new ReferenceError(`Device ${service.device.uuid} not found`);
         }
-        const serviceRecord = deviceRecord.services.get(service.uuid);
+        deviceRecord.services.set(service.uuid, { uuid: service.uuid, service, characteristics: new Map() });
+    }
+
+    getCharacteristic = (service: BluetoothRemoteGATTService, uuid: string, instance: number): BluetoothRemoteGATTCharacteristic | undefined => {
+        return this.#devices.get(service.device.uuid)?.services.get(service.uuid)?.characteristics.get(characteristicKey(uuid, instance));
+    }
+
+    addCharacteristic = (service: BluetoothRemoteGATTService, characteristic: BluetoothRemoteGATTCharacteristic, instance: number) => {
+        const serviceRecord = this.#devices.get(service.device.uuid)?.services.get(service.uuid);
         if (!serviceRecord) {
             throw new ReferenceError(`Service ${service.uuid} not found`);
         }
-        const key = characteristicKey(uuid, instance);
-        const cachedCharacteristic = serviceRecord.characteristics.get(key);
-        if (cachedCharacteristic) {
-            return cachedCharacteristic;
-        }
-        const characteristic = new BluetoothRemoteGATTCharacteristic(service, uuid, properties, instance);
-        serviceRecord.characteristics.set(key, characteristic);
-        return characteristic;
+        serviceRecord.characteristics.set(characteristicKey(characteristic.uuid, instance), characteristic);
     }
 
     private findCharacteristic = (key: CharacteristicKey): BluetoothRemoteGATTCharacteristic | undefined => {
-        for (const deviceRecord of this.devices.values()) {
+        for (const deviceRecord of this.#devices.values()) {
             for (const serviceRecord of deviceRecord.services.values()) {
                 const characteristic = serviceRecord.characteristics.get(key);
                 if (characteristic) {
