@@ -14,7 +14,6 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private var isEnabled: Bool = false
     private var systemState = DeferredValue<SystemState>()
-    private var peripherals: [UUID: AnyPeripheral] = [:]
 
     private let state: BluetoothState
 
