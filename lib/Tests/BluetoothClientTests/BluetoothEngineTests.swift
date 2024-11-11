@@ -25,7 +25,7 @@ struct BluetoothEngineTests {
         SystemState.poweredOn,
     ])
     func process_getAvailability_returnsTrue(state: SystemState) async throws {
-        let sut = await withClient { request, response, _ in
+        let sut = await withClient { _, request, response, _ in
             request.enable = { }
             response.events = AsyncStream { continuation in
                 continuation.yield(.systemState(state))
@@ -46,7 +46,7 @@ struct BluetoothEngineTests {
         SystemState.poweredOff,
     ])
     func process_getAvailability_returnsFalse(state: SystemState) async throws {
-        let sut = await withClient { request, response, _ in
+        let sut = await withClient { _, request, response, _ in
             request.enable = { }
             response.events = AsyncStream { continuation in
                 continuation.yield(.systemState(state))
@@ -68,7 +68,7 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -79,8 +79,8 @@ struct BluetoothEngineTests {
             request.connect = { [events] peripheral in
                 events!.yield(.connected(peripheral))
             }
+            await state.addPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .connect, requestBody: connectRequestBody)
         let response = try await sut.process(message: message)
@@ -99,7 +99,7 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -110,8 +110,8 @@ struct BluetoothEngineTests {
             request.disconnect = { [events] peripheral in
                 events!.yield(.disconnected(peripheral, nil))
             }
+            await state.addPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .disconnect, requestBody: disconnectRequestBody)
         let response = try await sut.process(message: message)
@@ -135,7 +135,7 @@ struct BluetoothEngineTests {
                 "single": .number(true),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -146,8 +146,8 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
+            await state.addPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)
@@ -171,7 +171,7 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -182,8 +182,8 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
+            await state.addPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)
@@ -207,7 +207,7 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -218,8 +218,8 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
+            await state.addPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
         let response = try await sut.process(message: message)

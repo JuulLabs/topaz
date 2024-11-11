@@ -29,3 +29,20 @@ struct DisconnectEvent: JsEventEncodable {
         JsEvent(targetId: peripheralId.uuidString, eventName: "gattserverdisconnected")
     }
 }
+
+
+struct Disconnector: BluetoothAction {
+    let request: DisconnectRequest
+
+    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> DisconnectResponse {
+        try await effector.bluetoothReadyState()
+        let peripheral = try await state.getPeripheral(request.peripheralId)
+        if case .disconnected = peripheral.connectionState {
+            return DisconnectResponse(peripheralId: peripheral.identifier)
+        }
+        try await effector.runEffect(action: .disconnect, uuid: peripheral.identifier) { client in
+            client.disconnect(peripheral)
+        }
+        return DisconnectResponse(peripheralId: peripheral.identifier)
+    }
+}

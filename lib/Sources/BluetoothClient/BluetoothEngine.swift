@@ -16,13 +16,17 @@ public actor BluetoothEngine: JsMessageProcessor {
     private var systemState = DeferredValue<SystemState>()
     private var peripherals: [UUID: AnyPeripheral] = [:]
 
+    private let state: BluetoothState
+
     public let deviceSelector: InteractiveDeviceSelector
     public let client: BluetoothClient
 
     public init(
+        state: BluetoothState,
         deviceSelector: InteractiveDeviceSelector,
         client: BluetoothClient
     ) {
+        self.state = state
         self.client = client
         self.deviceSelector = deviceSelector
         Task {
@@ -92,16 +96,21 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .requestDevice: try await requestDevice(message: message)
 
         // GATT Server
-        case .connect: try await connect(message: message)
-        case .disconnect: try await disconnect(message: message)
-        case .discoverServices: try await discoverServices(message: message)
+        case .connect: try await processAction(message: message)
+        case .disconnect: try await processAction(message: message)
+        case .discoverServices: try await processAction(message: message)
 
         // GATT Service
-        case .discoverCharacteristics: try await discoverCharacteristics(message: message)
+        case .discoverCharacteristics: try await processAction(message: message)
 
         // GATT Characteristic
         // TODO: moar descriptors, start/stop notifications, read/write value
         }
+    }
+
+    private func processAction(message: Message) async throws -> JsMessageEncodable {
+        let action = try message.buildAction().get()
+        return try await action.execute(state: state, effector: self)
     }
 
     // MARK: - Bluetooth General Operations
@@ -128,76 +137,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         client.request.startScanning(data.filter)
         defer { client.request.stopScanning() }
         let peripheral = try await deviceSelector.awaitSelection().get()
-        addPeripheral(peripheral)
+        await state.addPeripheral(peripheral)
         return RequestDeviceResponse(peripheralId: peripheral.identifier, name: peripheral.name)
-    }
-
-    // MARK: - Bluetooth GATT Server
-
-    private func connect(message: Message) async throws -> ConnectResponse {
-        let data = try ConnectRequest.decode(from: message).get()
-        try await bluetoothReadyState()
-        let peripheral = try getPeripheral(data.peripheralId)
-        if case .connected = peripheral.connectionState {
-            return ConnectResponse()
-        }
-        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
-            client.request.connect(peripheral)
-        }
-        return ConnectResponse()
-    }
-
-    private func disconnect(message: Message) async throws -> DisconnectResponse {
-        let data = try DisconnectRequest.decode(from: message).get()
-        try await bluetoothReadyState()
-        let peripheral = try getPeripheral(data.peripheralId)
-        if case .disconnected = peripheral.connectionState {
-            return DisconnectResponse(peripheralId: peripheral.identifier)
-        }
-        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
-            client.request.disconnect(peripheral)
-        }
-        return DisconnectResponse(peripheralId: peripheral.identifier)
-    }
-
-    private func discoverServices(message: Message) async throws -> DiscoverServicesResponse {
-        let data = try DiscoverServicesRequest.decode(from: message).get()
-        try await bluetoothReadyState()
-        let peripheral = try getPeripheral(data.peripheralId)
-        // todo: error response if not connected
-        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
-            client.request.discoverServices(peripheral, data.toServiceDiscoveryFilter())
-        }
-        let primaryServices = peripherals[peripheral.identifier]?.services.filter { $0.isPrimary } ?? []
-        switch data.query {
-        case let .first(serviceUuid):
-            guard let service = primaryServices.first else {
-                throw BluetoothError.noSuchService(serviceUuid)
-            }
-            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: [service])
-        case .all:
-            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: primaryServices)
-        }
-    }
-
-    private func discoverCharacteristics(message: Message) async throws -> DiscoverCharacteristicsResponse {
-        let data = try DiscoverCharacteristicsRequest.decode(from: message).get()
-        try await bluetoothReadyState()
-        let peripheral = try getPeripheral(data.peripheralId)
-        // todo: error response if not connected
-        try await awaitAction(action: message.action, uuid: peripheral.identifier) {
-            client.request.discoverCharacteristics(peripheral, data.toCharacteristicDiscoveryFilter())
-        }
-        let characteristics = peripherals[peripheral.identifier]?.services.first(where: { $0.uuid == data.serviceUuid })?.characteristics ?? []
-        switch data.query {
-        case let .first(characteristicUuid):
-            guard let characteristic = characteristics.first else {
-                throw BluetoothError.noSuchCharacteristic(service: data.serviceUuid, characteristic: characteristicUuid)
-            }
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: [characteristic])
-        case .all:
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: characteristics)
-        }
     }
 
     // MARK: - Private helpers
@@ -218,22 +159,9 @@ public actor BluetoothEngine: JsMessageProcessor {
         try await promise.awaitResolved()
     }
 
-    /// Marked internal for testing purposes
-    internal func addPeripheral(_ peripheral: AnyPeripheral) {
-        peripherals[peripheral.identifier] = peripheral
-    }
-
-    /// Marked internal for testing purposes
-    internal func getPeripheral(_ uuid: UUID) throws -> AnyPeripheral {
-        guard let peripheral = peripherals[uuid] else {
-            throw BluetoothError.noSuchDevice(uuid)
-        }
-        return peripheral
-    }
-
     /// Blocks until we are in powered on state
     /// Throws an error if the state is not powered on
-    private func bluetoothReadyState() async throws {
+    func bluetoothReadyState() async throws {
         var isPoweredOn = false
         repeat {
             guard let state = await waitForLatestState(), !Task.isCancelled else {
@@ -271,16 +199,12 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 }
 
-fileprivate extension DiscoverServicesRequest {
-    func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
-        let services = query.serviceUuid.map { [$0] }
-        return ServiceDiscoveryFilter(primaryOnly: true, services: services)
-    }
-}
-
-fileprivate extension DiscoverCharacteristicsRequest {
-    func toCharacteristicDiscoveryFilter() -> CharacteristicDiscoveryFilter {
-        let characteristics = query.characteristicUuid.map { [$0] }
-        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
+extension BluetoothEngine: BluetoothEffector {
+    func runEffect(action: Message.Action, uuid: UUID, effect: @Sendable (RequestClient) -> Void) async throws {
+        guard let promise = promiseRegistry?.register(action, for: uuid) else {
+            throw BluetoothError.unavailable
+        }
+        effect(client.request)
+        try await promise.awaitResolved()
     }
 }

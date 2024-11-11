@@ -1,12 +1,11 @@
 import JsMessage
 
 protocol JsMessageDecodable {
-    associatedtype Request
-    static func decode(from data: [String: JsType]?) -> Request?
+    static func decode(from data: [String: JsType]?) -> Self?
 }
 
 extension JsMessageDecodable {
-    static func decode(from message: Message) -> Result<Request, Error> {
+    static func decode(from message: Message) -> Result<Self, Error> {
         return message.decode(Self.self)
     }
 }

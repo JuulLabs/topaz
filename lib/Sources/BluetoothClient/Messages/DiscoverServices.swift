@@ -51,3 +51,33 @@ struct DiscoverServicesResponse: JsMessageEncodable {
         ])
     }
 }
+
+struct DiscoverServices: BluetoothAction {
+    let request: DiscoverServicesRequest
+
+    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> DiscoverServicesResponse {
+        try await effector.bluetoothReadyState()
+        let peripheral = try await state.getPeripheral(request.peripheralId)
+        // todo: error response if not connected
+        try await effector.runEffect(action: .discoverServices, uuid: peripheral.identifier) { client in
+            client.discoverServices(peripheral, request.toServiceDiscoveryFilter())
+        }
+        let primaryServices = peripheral.services.filter { $0.isPrimary }
+        switch request.query {
+        case let .first(serviceUuid):
+            guard let service = primaryServices.first else {
+                throw BluetoothError.noSuchService(serviceUuid)
+            }
+            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: [service])
+        case .all:
+            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: primaryServices)
+        }
+    }
+}
+
+fileprivate extension DiscoverServicesRequest {
+    func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
+        let services = query.serviceUuid.map { [$0] }
+        return ServiceDiscoveryFilter(primaryOnly: true, services: services)
+    }
+}
