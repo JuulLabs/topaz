@@ -24,7 +24,7 @@ struct DiscoverServicesRequest: JsMessageDecodable, PeripheralIdentifiable {
         guard let device = data?["device"]?.string.flatMap(UUID.init(uuidString:)) else {
             return nil
         }
-        let serviceUuid = data?["service"]?.string.flatMap(UUID.init(uuidString:))
+        let serviceUuid = data?["service"]?.string.flatMap(resolveServiceUuid)
         guard let single = data?["single"]?.number?.boolValue else {
             return nil
         }

@@ -23,6 +23,8 @@ struct Message {
         case discoverCharacteristics
 
         // GATT Characteristic
+        case readCharacteristic
+
         // TODO: moar descriptors, start/stop notifications, read/write value
     }
 

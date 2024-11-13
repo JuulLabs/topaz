@@ -43,7 +43,7 @@ class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
         guard let characteristic = characteristic.toCharacteristic() else { return }
-        handleEvent(.updatedCharacteristic(peripheral.eraseToAnyPeripheral(), characteristic, error.toDelegateError()))
+        handleEvent(.characteristicChanged(peripheral.eraseToAnyPeripheral(), characteristic, error.toDelegateError()))
     }
 }
 
@@ -66,7 +66,7 @@ fileprivate extension CBCharacteristic {
         guard let uuid = cbToUuid(uuid) else { return nil }
         return Characteristic(
             uuid: uuid,
-            instance: UInt32(truncatingIfNeeded: ObjectIdentifier(self).hashValue),
+            instance: instanceId,
             properties: CharacteristicProperties(rawValue: properties.rawValue),
             value: value,
             descriptors: descriptors?.compactMap(convertDescriptor) ?? [],

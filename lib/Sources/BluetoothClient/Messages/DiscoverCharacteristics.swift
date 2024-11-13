@@ -25,10 +25,10 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable, PeripheralIdentifiabl
         guard let device = data?["device"]?.string.flatMap(UUID.init(uuidString:)) else {
             return nil
         }
-        guard let service = data?["service"]?.string.flatMap(UUID.init(uuidString:)) else {
+        guard let service = data?["service"]?.string.flatMap(resolveServiceUuid) else {
             return nil
         }
-        let characteristic = data?["characteristic"]?.string.flatMap(UUID.init(uuidString:))
+        let characteristic = data?["characteristic"]?.string.flatMap(resolveCharacteristicUuid)
         guard let single = data?["single"]?.number?.boolValue else {
             return nil
         }
