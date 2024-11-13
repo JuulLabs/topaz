@@ -27,7 +27,7 @@ public actor Scanner {
             var failure: Error?
             while failure == nil && !Task.isCancelled {
                 do {
-                    let result = try await effector.getAdvertisement()
+                    let result = try await effector.advertisement()
                     continuation.yield(result)
                 } catch {
                     failure = error

@@ -1,16 +1,16 @@
 import Bluetooth
 import Foundation
 
-struct AdvertisementEffect: BluetoothEffect {
-    let peripheral: AnyPeripheral
-    let advertisement: Advertisement
+public struct AdvertisementEffect: BluetoothEffect {
+    public let peripheral: AnyPeripheral
+    public let advertisement: Advertisement
 
-    init(_ peripheral: AnyPeripheral, _ advertisement: Advertisement) {
+    public init(_ peripheral: AnyPeripheral, _ advertisement: Advertisement) {
         self.peripheral = peripheral
         self.advertisement = advertisement
     }
 
-    var key: EffectKey {
+    public var key: EffectKey {
         .advertisement
     }
 }

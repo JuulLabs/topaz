@@ -1,12 +1,13 @@
 import Bluetooth
 import Foundation
 
-struct ErrorEffect: BluetoothEffect {
+public struct ErrorEffect: BluetoothEffect {
     let name: EffectName
-    let key: EffectKey
-    let error: any Error
 
-    init(_ name: EffectName, _ key: EffectKey, _ error: any Error) {
+    public let key: EffectKey
+    public let error: any Error
+
+    public init(_ name: EffectName, _ key: EffectKey, _ error: any Error) {
         self.name = name
         self.key = key
         self.error = error
