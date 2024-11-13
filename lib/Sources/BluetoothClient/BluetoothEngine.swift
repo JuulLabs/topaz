@@ -136,7 +136,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         client.request.startScanning(data.filter)
         defer { client.request.stopScanning() }
         let peripheral = try await deviceSelector.awaitSelection().get()
-        await state.addPeripheral(peripheral)
+        await state.putPeripheral(peripheral)
         return RequestDeviceResponse(peripheralId: peripheral.identifier, name: peripheral.name)
     }
 

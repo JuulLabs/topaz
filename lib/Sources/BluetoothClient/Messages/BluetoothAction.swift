@@ -12,7 +12,7 @@ protocol BluetoothAction: Sendable {
 
 extension BluetoothAction {
     static func create(from message: Message) -> Result<any BluetoothAction, Error> {
-        return Request.decode(from: message).map(Self.init)
+        Request.decode(from: message).map(Self.init)
     }
 }
 

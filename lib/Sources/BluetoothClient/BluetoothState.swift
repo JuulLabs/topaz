@@ -12,7 +12,7 @@ public actor BluetoothState: Sendable {
         }
     }
 
-    func addPeripheral(_ peripheral: AnyPeripheral) {
+    func putPeripheral(_ peripheral: AnyPeripheral) {
         peripherals[peripheral.identifier] = peripheral
     }
 

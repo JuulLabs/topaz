@@ -41,7 +41,7 @@ struct DiscoverCharacteristicsTests {
             request.discoverCharacteristics = { [events] peripheral, _ in
                 events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -82,7 +82,7 @@ struct DiscoverCharacteristicsTests {
             request.discoverCharacteristics = { [events] peripheral, _ in
                 events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -124,7 +124,7 @@ struct DiscoverCharacteristicsTests {
                 let service = fakeServices.first(where: { $0.uuid == filter.service })!
                 events!.yield(.discoveredCharacteristics(peripheral, service, nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)

@@ -79,7 +79,7 @@ struct BluetoothEngineTests {
             request.connect = { [events] peripheral in
                 events!.yield(.connected(peripheral))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .connect, requestBody: connectRequestBody)
@@ -110,7 +110,7 @@ struct BluetoothEngineTests {
             request.disconnect = { [events] peripheral in
                 events!.yield(.disconnected(peripheral, nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .disconnect, requestBody: disconnectRequestBody)
@@ -146,7 +146,7 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -182,7 +182,7 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -218,7 +218,7 @@ struct BluetoothEngineTests {
             request.discoverServices = { [events] peripheral, _ in
                 events!.yield(.discoveredServices(peripheral, nil))
             }
-            await state.addPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
