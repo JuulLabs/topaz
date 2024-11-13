@@ -1,17 +1,18 @@
 import Bluetooth
 
-struct CharacteristicEffect: BluetoothEffect {
+public struct CharacteristicEffect: BluetoothEffect {
     let name: EffectName
-    let peripheral: AnyPeripheral
-    let characteristic: Characteristic
 
-    init(_ name: EffectName, _ peripheral: AnyPeripheral, _ characteristic: Characteristic) {
+    public let peripheral: AnyPeripheral
+    public let characteristic: Characteristic
+
+    public init(_ name: EffectName, _ peripheral: AnyPeripheral, _ characteristic: Characteristic) {
         self.name = name
         self.peripheral = peripheral
         self.characteristic = characteristic
     }
 
-    var key: EffectKey {
+    public var key: EffectKey {
         .characteristic(name, peripheral, characteristic)
     }
 }

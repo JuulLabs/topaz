@@ -1,6 +1,6 @@
 import Foundation
 
-struct EffectKey: Hashable {
+public struct EffectKey: Sendable, Hashable {
     let id: Int
 
     init(name: EffectName, _ items: any Hashable...) {

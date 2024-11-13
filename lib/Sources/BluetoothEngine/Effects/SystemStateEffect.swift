@@ -1,13 +1,13 @@
 import Bluetooth
 
-struct SystemStateEffect: BluetoothEffect {
-    let systemState: SystemState
+public struct SystemStateEffect: BluetoothEffect {
+    public let systemState: SystemState
 
-    init(_ systemState: SystemState) {
+    public init(_ systemState: SystemState) {
         self.systemState = systemState
     }
 
-    var key: EffectKey {
+    public var key: EffectKey {
         .systemState
     }
 }

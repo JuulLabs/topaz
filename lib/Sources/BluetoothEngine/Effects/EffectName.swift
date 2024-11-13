@@ -1,5 +1,5 @@
 
-enum EffectName {
+public enum EffectName: Sendable {
     case systemState
     case advertisement
     case connect
