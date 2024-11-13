@@ -13,6 +13,7 @@ let package = Package(
         .library(name: "App", targets: ["App"]),
         .library(name: "Bluetooth", targets: ["Bluetooth"]),
         .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
+        .library(name: "BluetoothEngine", targets: ["BluetoothEngine"]),
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
         .library(name: "Design", targets: ["Design"]),
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
@@ -58,6 +59,13 @@ let package = Package(
         .testTarget(
             name: "BluetoothClientTests",
             dependencies: ["BluetoothClient"]
+        ),
+
+        .target(
+            name: "BluetoothEngine",
+            dependencies: [
+                "BluetoothClient",
+            ]
         ),
 
         .target(
