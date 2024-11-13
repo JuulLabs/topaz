@@ -16,7 +16,7 @@ struct RequestDeviceResponse: JsMessageEncodable {
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
         .body([
-            "uuid": peripheralId.uuidString,
+            "uuid": peripheralId,
             "name": name,
         ])
     }

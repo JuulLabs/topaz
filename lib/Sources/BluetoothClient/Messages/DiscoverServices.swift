@@ -47,7 +47,7 @@ struct DiscoverServicesResponse: JsMessageEncodable {
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
         return .body([
-            "services": services.map { $0.uuid.uuidString }
+            "services": services.map { $0.uuid }
         ])
     }
 }
