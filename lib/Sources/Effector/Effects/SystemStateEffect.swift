@@ -1,6 +1,6 @@
 import Bluetooth
 
-public struct SystemStateEffect: BluetoothEffect {
+public struct SystemStateEffect: Effect {
     public let systemState: SystemState
 
     public init(_ systemState: SystemState) {

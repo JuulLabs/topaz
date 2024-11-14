@@ -1,7 +1,7 @@
 import Bluetooth
 import Foundation
 
-public struct ErrorEffect: BluetoothEffect {
+public struct ErrorEffect: Effect {
     let name: EffectName
 
     public let key: EffectKey

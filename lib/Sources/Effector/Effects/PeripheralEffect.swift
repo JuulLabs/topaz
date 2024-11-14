@@ -1,12 +1,12 @@
 import Bluetooth
 import Foundation
 
-public struct PeripheralEffect: BluetoothEffect {
+public struct PeripheralEffect: Effect {
     let name: EffectName
 
     public let peripheral: AnyPeripheral
 
-    init(_ name: EffectName, _ peripheral: AnyPeripheral) {
+    public init(_ name: EffectName, _ peripheral: AnyPeripheral) {
         self.name = name
         self.peripheral = peripheral
     }

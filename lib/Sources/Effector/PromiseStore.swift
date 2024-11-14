@@ -44,4 +44,11 @@ struct PromiseStore<Result: Sendable> {
         }
         continuations.forEach { $0.resume(throwing: error) }
     }
+
+    mutating func rejectAll(with error: any Error) {
+        promises.values.forEach { continuations in
+            continuations.forEach { $0.resume(throwing: error) }
+        }
+        promises = [:]
+    }
 }

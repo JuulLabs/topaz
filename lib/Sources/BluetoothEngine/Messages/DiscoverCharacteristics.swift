@@ -1,4 +1,5 @@
 import Bluetooth
+import Effector
 import Foundation
 import JsMessage
 
@@ -6,6 +7,11 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable, PeripheralIdentifiabl
     let peripheralId: UUID
     let serviceUuid: UUID
     let query: Query
+
+    var filter: CharacteristicDiscoveryFilter {
+        let characteristics = query.characteristicUuid.map { [$0] }
+        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
+    }
 
     enum Query {
         case first(UUID)
@@ -59,13 +65,11 @@ struct DiscoverCharacteristicsResponse: JsMessageEncodable {
 struct DiscoverCharacteristics: BluetoothAction {
     let request: DiscoverCharacteristicsRequest
 
-    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> DiscoverCharacteristicsResponse {
+    func execute(state: BluetoothState, effector: Effector) async throws -> DiscoverCharacteristicsResponse {
         try await effector.bluetoothReadyState()
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        try await effector.runEffect(action: .discoverCharacteristics, uuid: peripheral.identifier) { client in
-            client.discoverCharacteristics(peripheral, request.toCharacteristicDiscoveryFilter())
-        }
+        _ = try await effector.discoverCharacteristics(peripheral, request.filter)
         let characteristics = peripheral.services.first(where: { $0.uuid == request.serviceUuid })?.characteristics ?? []
         switch request.query {
         case let .first(characteristicUuid):
@@ -102,12 +106,5 @@ fileprivate extension CharacteristicProperties {
             "write": self.contains(.write),
             "writeWithoutResponse": self.contains(.writeWithoutResponse),
         ]
-    }
-}
-
-fileprivate extension DiscoverCharacteristicsRequest {
-    func toCharacteristicDiscoveryFilter() -> CharacteristicDiscoveryFilter {
-        let characteristics = query.characteristicUuid.map { [$0] }
-        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
     }
 }

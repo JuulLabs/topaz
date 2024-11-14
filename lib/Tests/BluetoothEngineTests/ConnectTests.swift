@@ -1,5 +1,7 @@
 import Bluetooth
-@testable import BluetoothClient
+import BluetoothClient
+@testable import BluetoothEngine
+import Effector
 import Foundation
 import JsMessage
 import Testing
@@ -66,26 +68,38 @@ struct ConnectorTests {
         FakePeripheral(name: "bob", identifier: uuid, connectionState: connectionState)
             .eraseToAnyPeripheral()
     }
-    private let readyEffector = MockEffector(mockReady: {})
-    private let unReadyEffector = MockEffector(
-        mockReady: { throw BluetoothError.unavailable }
-    )
-    private let effectorThatThrows = MockEffector(
-        mockReady: {},
-        mockRun: { _, _, _ in
+    private let readyEffector: Effector = {
+        var effector = Effector.testValue
+        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
+        return effector
+    }()
+    private let unReadyEffector: Effector = {
+        var effector = Effector.testValue
+        effector.systemState = { _ in SystemStateEffect(.poweredOff) }
+        return effector
+    }()
+    private let effectorThatThrows: Effector = {
+        var effector = Effector.testValue
+        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
+        effector.connect = { _ in
             // All the effect machinery either succeeds or throws - simulate the failure case by throwing
             throw BluetoothError.unknown
         }
-    )
-    private let effectorThatConnects = { (state: BluetoothState, uuid: UUID) throws in
-        return MockEffector(
-            mockReady: {},
-            mockRun: { _, _, _ in
-                let existing = try state.getPeripheral(uuid)
-                let peripheral = FakePeripheral(name: existing.name!, identifier: uuid, connectionState: .connected)
-                state.putPeripheral(peripheral.eraseToAnyPeripheral())
-            }
-        )
+        return effector
+    }()
+    private let effectorThatConnects = { (state: BluetoothState) throws in
+        var effector = Effector.testValue
+        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
+        effector.connect = { peripheral in
+            let connectedPeripheral = FakePeripheral(
+                name: peripheral.name!,
+                identifier: peripheral.identifier,
+                connectionState: .connected
+            ).eraseToAnyPeripheral()
+            state.putPeripheral(connectedPeripheral)
+            return PeripheralEffect(.connect, connectedPeripheral)
+        }
+        return effector
     }
 
     @Test
@@ -111,7 +125,7 @@ struct ConnectorTests {
         let state = BluetoothState(peripherals: [peripheral(zeroUuid, .disconnected)])
         let request = ConnectRequest(peripheralId: zeroUuid)
         let sut = Connector(request: request)
-        let response = try await sut.execute(state: state, effector: effectorThatConnects(state, zeroUuid))
+        let response = try await sut.execute(state: state, effector: effectorThatConnects(state))
         #expect(response.isConnected == true)
     }
 

@@ -1,10 +1,16 @@
 import Bluetooth
+import Effector
 import Foundation
 import JsMessage
 
 struct DiscoverServicesRequest: JsMessageDecodable, PeripheralIdentifiable {
     let peripheralId: UUID
     let query: Query
+
+    var filter: ServiceDiscoveryFilter {
+        let services = query.serviceUuid.map { [$0] }
+        return ServiceDiscoveryFilter(primaryOnly: true, services: services)
+    }
 
     enum Query {
         case first(UUID)
@@ -55,13 +61,11 @@ struct DiscoverServicesResponse: JsMessageEncodable {
 struct DiscoverServices: BluetoothAction {
     let request: DiscoverServicesRequest
 
-    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> DiscoverServicesResponse {
+    func execute(state: BluetoothState, effector: Effector) async throws -> DiscoverServicesResponse {
         try await effector.bluetoothReadyState()
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        try await effector.runEffect(action: .discoverServices, uuid: peripheral.identifier) { client in
-            client.discoverServices(peripheral, request.toServiceDiscoveryFilter())
-        }
+        _  = try await effector.discoverServices(peripheral, request.filter)
         let primaryServices = peripheral.services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):
@@ -72,12 +76,5 @@ struct DiscoverServices: BluetoothAction {
         case .all:
             return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: primaryServices)
         }
-    }
-}
-
-fileprivate extension DiscoverServicesRequest {
-    func toServiceDiscoveryFilter() -> ServiceDiscoveryFilter {
-        let services = query.serviceUuid.map { [$0] }
-        return ServiceDiscoveryFilter(primaryOnly: true, services: services)
     }
 }

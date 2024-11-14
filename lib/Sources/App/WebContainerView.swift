@@ -1,5 +1,7 @@
 import BluetoothClient
+import BluetoothEngine
 import DevicePicker
+import Effector
 import Observation
 import SwiftUI
 import WebView
@@ -46,6 +48,7 @@ private func previewModel() -> WebContainerModel {
 #endif
     let bluetoothEngine = BluetoothEngine(
         state: BluetoothState(),
+        effector: .liveValue(client: client.request),
         deviceSelector: selector,
         client: client
     )
