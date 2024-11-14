@@ -2,7 +2,7 @@
 /**
  Models the various CoreBluetooth delegate events as Sendable data.
  */
-public enum DelegateEvent: Equatable, Sendable {
+public enum DelegateEvent: Sendable {
     case systemState(SystemState)
     case advertisement(AnyPeripheral, Advertisement)
     case connected(AnyPeripheral)
@@ -16,12 +16,12 @@ public enum DelegateEventError: Error, Sendable {
     case causedBy(any Error)
 }
 
-extension DelegateEventError: Equatable {
-    public static func == (lhs: DelegateEventError, rhs: DelegateEventError) -> Bool {
-        switch (lhs, rhs) {
-        case let (.causedBy(lhsError), .causedBy(rhsError)):
-            // This only makes sense because the underlying NSErrors are equatable
-            _isEqual(lhsError, rhsError) ?? false
-        }
-    }
-}
+//extension DelegateEventError: Equatable {
+//    public static func == (lhs: DelegateEventError, rhs: DelegateEventError) -> Bool {
+//        switch (lhs, rhs) {
+//        case let (.causedBy(lhsError), .causedBy(rhsError)):
+//            // This only makes sense because the underlying NSErrors are equatable
+//            _isEqual(lhsError, rhsError) ?? false
+//        }
+//    }
+//}
