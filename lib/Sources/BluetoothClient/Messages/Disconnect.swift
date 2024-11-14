@@ -26,7 +26,7 @@ struct DisconnectEvent: JsEventEncodable {
     let peripheralId: UUID
 
     func toJsEvent() -> JsEvent {
-        JsEvent(targetId: peripheralId.uuidString, eventName: "gattserverdisconnected")
+        JsEvent(targetId: peripheralId.uuidString.lowercased(), eventName: "gattserverdisconnected")
     }
 }
 

@@ -44,6 +44,12 @@ extension Date: JsConvertable {
     }
 }
 
+extension UUID: JsConvertable {
+    public var jsValue: Any {
+        self.uuidString.lowercased() as NSString
+    }
+}
+
 extension Optional: JsConvertable where Wrapped == JsConvertable {
     public var jsValue: Any {
         switch self {
