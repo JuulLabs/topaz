@@ -1,7 +1,7 @@
 import Bluetooth
 import Foundation
 
-public struct AdvertisementEffect: BluetoothEffect {
+public struct AdvertisementEffect: Effect {
     public let peripheral: AnyPeripheral
     public let advertisement: Advertisement
 

@@ -1,4 +1,7 @@
 import Bluetooth
+import BluetoothClient
+import DevicePicker
+import Effector
 import JsMessage
 
 protocol BluetoothAction: Sendable {
@@ -7,7 +10,7 @@ protocol BluetoothAction: Sendable {
 
     init(request: Request)
 
-    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> Response
+    func execute(state: BluetoothState, effector: Effector) async throws -> Response
 }
 
 extension BluetoothAction {
@@ -17,12 +20,14 @@ extension BluetoothAction {
 }
 
 extension Message {
-    func buildAction() -> Result<any BluetoothAction, Error> {
+    func buildAction(selector: any InteractiveDeviceSelector, client: RequestClient) -> Result<any BluetoothAction, Error> {
         switch action {
         case .getAvailability:
-            fatalError()
+            return Availability.create(from: self)
         case .requestDevice:
-            fatalError()
+            return RequestDeviceRequest.decode(from: self).map {
+                RequestDevice(request: $0, selector: selector, client: client)
+            }
         case .connect:
             return Connector.create(from: self)
         case .disconnect:

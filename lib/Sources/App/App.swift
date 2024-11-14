@@ -1,6 +1,8 @@
 import BluetoothClient
+import BluetoothEngine
 import Design
 import DevicePicker
+import Effector
 import SwiftUI
 import WebView
 
@@ -24,9 +26,11 @@ public struct AppContentView: View {
             let selector = DeviceSelector()
 #if targetEnvironment(simulator)
             let client: BluetoothClient = .clientWithMockAds(selector: selector)
-            model.injectDependencies(state: state, bluetoothClient: client, selector: selector)
+            let effector = Effector.liveValue(client: client.request)
+            model.injectDependencies(state: state, effector: effector, bluetoothClient: client, selector: selector)
 #else
-            model.injectDependencies(state: state, bluetoothClient: bluetoothClient, selector: selector)
+            let effector = Effector.liveValue(client: bluetoothClient.request)
+            model.injectDependencies(state: state, effector: effector, bluetoothClient: bluetoothClient, selector: selector)
 #endif
         }
     }

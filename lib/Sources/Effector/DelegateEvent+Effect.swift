@@ -2,7 +2,7 @@ import Bluetooth
 import Foundation
 
 extension DelegateEvent {
-    func toEffect() -> BluetoothEffect {
+    func toEffect() -> Effect {
         switch self {
         case let .systemState(systemState):
             SystemStateEffect(systemState)

@@ -1,6 +1,6 @@
 import Bluetooth
 
-public struct CharacteristicEffect: BluetoothEffect {
+public struct CharacteristicEffect: Effect {
     let name: EffectName
 
     public let peripheral: AnyPeripheral

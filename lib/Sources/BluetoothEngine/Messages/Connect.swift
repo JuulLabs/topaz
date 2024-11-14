@@ -1,4 +1,5 @@
 import Bluetooth
+import Effector
 import Foundation
 import JsMessage
 
@@ -24,15 +25,13 @@ struct ConnectResponse: JsMessageEncodable {
 struct Connector: BluetoothAction {
     let request: ConnectRequest
 
-    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> ConnectResponse {
+    func execute(state: BluetoothState, effector: Effector) async throws -> ConnectResponse {
         try await effector.bluetoothReadyState()
         let peripheral = try await state.getPeripheral(request.peripheralId)
         if case .connected = peripheral.connectionState {
             return ConnectResponse()
         }
-        try await effector.runEffect(action: .connect, uuid: peripheral.identifier) { client in
-            client.connect(peripheral)
-        }
+        _ = try await effector.connect(peripheral)
         return ConnectResponse()
     }
 }
