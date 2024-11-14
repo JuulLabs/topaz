@@ -20,12 +20,13 @@ public struct AppContentView: View {
         WebLoadingView(model: model.loadingModel)
         .task {
             // TODO: a more rigourous DI mechanism
+            let state = BluetoothState()
             let selector = DeviceSelector()
 #if targetEnvironment(simulator)
             let client: BluetoothClient = .clientWithMockAds(selector: selector)
-            model.injectDependencies(bluetoothClient: client, selector: selector)
+            model.injectDependencies(state: state, bluetoothClient: client, selector: selector)
 #else
-            model.injectDependencies(bluetoothClient: bluetoothClient, selector: selector)
+            model.injectDependencies(state: state, bluetoothClient: bluetoothClient, selector: selector)
 #endif
         }
     }

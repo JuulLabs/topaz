@@ -11,7 +11,7 @@ import WebView
 public class AppModel {
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     var deviceSelector: DeviceSelector = .init()
-    var bluetoothEngine: BluetoothEngine = .init(deviceSelector: DeviceSelector(), client: .testValue)
+    var bluetoothEngine: BluetoothEngine = .init(state: BluetoothState(), deviceSelector: DeviceSelector(), client: .testValue)
 
     let freshPageModel: FreshPageModel
     let loadingModel: WebLoadingModel
@@ -55,11 +55,13 @@ public class AppModel {
     }
 
     func injectDependencies(
+        state: BluetoothState,
         bluetoothClient: BluetoothClient,
         selector: DeviceSelector
     ) {
         deviceSelector = selector
         bluetoothEngine = BluetoothEngine(
+            state: state,
             deviceSelector: selector,
             client: bluetoothClient
         )

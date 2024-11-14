@@ -45,6 +45,7 @@ private func previewModel() -> WebContainerModel {
     let client: BluetoothClient = .testValue
 #endif
     let bluetoothEngine = BluetoothEngine(
+        state: BluetoothState(),
         deviceSelector: selector,
         client: client
     )

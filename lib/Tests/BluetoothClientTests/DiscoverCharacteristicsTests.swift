@@ -30,7 +30,7 @@ struct DiscoverCharacteristicsTests {
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -41,8 +41,8 @@ struct DiscoverCharacteristicsTests {
             request.discoverCharacteristics = { [events] peripheral, _ in
                 events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
             }
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
         let response = try await sut.process(message: message)
@@ -71,7 +71,7 @@ struct DiscoverCharacteristicsTests {
                 "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -82,8 +82,8 @@ struct DiscoverCharacteristicsTests {
             request.discoverCharacteristics = { [events] peripheral, _ in
                 events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
             }
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
         let response = try await sut.process(message: message)
@@ -112,7 +112,7 @@ struct DiscoverCharacteristicsTests {
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { request, response, _ in
+        let sut: BluetoothEngine = await withClient { state, request, response, _ in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
@@ -124,8 +124,8 @@ struct DiscoverCharacteristicsTests {
                 let service = fakeServices.first(where: { $0.uuid == filter.service })!
                 events!.yield(.discoveredCharacteristics(peripheral, service, nil))
             }
+            await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
-        await sut.addPeripheral(fake.eraseToAnyPeripheral())
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
         let response = try await sut.process(message: message)

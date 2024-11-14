@@ -56,6 +56,29 @@ struct DiscoverCharacteristicsResponse: JsMessageEncodable {
     }
 }
 
+struct DiscoverCharacteristics: BluetoothAction {
+    let request: DiscoverCharacteristicsRequest
+
+    func execute(state: BluetoothState, effector: some BluetoothEffector) async throws -> DiscoverCharacteristicsResponse {
+        try await effector.bluetoothReadyState()
+        let peripheral = try await state.getPeripheral(request.peripheralId)
+        // todo: error response if not connected
+        try await effector.runEffect(action: .discoverCharacteristics, uuid: peripheral.identifier) { client in
+            client.discoverCharacteristics(peripheral, request.toCharacteristicDiscoveryFilter())
+        }
+        let characteristics = peripheral.services.first(where: { $0.uuid == request.serviceUuid })?.characteristics ?? []
+        switch request.query {
+        case let .first(characteristicUuid):
+            guard let characteristic = characteristics.first else {
+                throw BluetoothError.noSuchCharacteristic(service: request.serviceUuid, characteristic: characteristicUuid)
+            }
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: [characteristic])
+        case .all:
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: characteristics)
+        }
+    }
+}
+
 fileprivate extension Characteristic {
     func asDictionary() -> [String: JsConvertable] {
         return [
@@ -79,5 +102,12 @@ fileprivate extension CharacteristicProperties {
             "write": self.contains(.write),
             "writeWithoutResponse": self.contains(.writeWithoutResponse),
         ]
+    }
+}
+
+fileprivate extension DiscoverCharacteristicsRequest {
+    func toCharacteristicDiscoveryFilter() -> CharacteristicDiscoveryFilter {
+        let characteristics = query.characteristicUuid.map { [$0] }
+        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
     }
 }

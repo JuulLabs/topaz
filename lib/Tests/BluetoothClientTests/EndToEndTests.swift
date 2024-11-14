@@ -26,7 +26,7 @@ struct EndToEndBluetoothEngineTests {
     @Test func process_requestDevice_returnsDeviceWhenSelected() async throws {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
         let selectorSut = await DeviceSelector()
-        let engineSut: BluetoothEngine = await withClient { request, response, selector in
+        let engineSut: BluetoothEngine = await withClient { _, request, response, selector in
             var events: AsyncStream<DelegateEvent>.Continuation!
             response.events = AsyncStream { continuation in
                 events = continuation
