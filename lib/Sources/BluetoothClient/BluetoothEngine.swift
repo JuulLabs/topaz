@@ -54,8 +54,9 @@ public actor BluetoothEngine: JsMessageProcessor {
             resolveAction(.discoverServices, for: peripheral.identifier, with: error)
         case let .discoveredCharacteristics(peripheral, _, error):
             resolveAction(.discoverCharacteristics, for: peripheral.identifier, with: error)
-        case .updatedCharacteristic:
-            fatalError("not implemented")
+        case let .characteristicChanged(peripheral, characteristic, error):
+            await sendEvent(CharacteristicChangedEvent(peripheralId: peripheral.identifier, characteristicUuid: characteristic.uuid, characteristicInstance: characteristic.instance, data: characteristic.value))
+            resolveAction(.readCharacteristic, for: peripheral.identifier, with: error)
         }
     }
 
@@ -103,6 +104,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         case .discoverCharacteristics: try await processAction(message: message)
 
         // GATT Characteristic
+        case .readCharacteristic: try await processAction(message: message)
+
         // TODO: moar descriptors, start/stop notifications, read/write value
         }
     }
@@ -199,11 +202,11 @@ public actor BluetoothEngine: JsMessageProcessor {
 }
 
 extension BluetoothEngine: BluetoothEffector {
-    func runEffect(action: Message.Action, uuid: UUID, effect: @Sendable (RequestClient) -> Void) async throws {
+    func runEffect(action: Message.Action, uuid: UUID, effect: @Sendable (RequestClient) throws -> Void) async throws {
         guard let promise = promiseRegistry?.register(action, for: uuid) else {
             throw BluetoothError.unavailable
         }
-        effect(client.request)
+        try effect(client.request)
         try await promise.awaitResolved()
     }
 }

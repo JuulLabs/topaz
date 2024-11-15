@@ -96,4 +96,19 @@ class Coordinator: @unchecked Sendable {
             native.discoverCharacteristics(uuids, for: service)
         }
     }
+
+    func readCharacteristic(peripheral: AnyPeripheral, service: UUID, characteristic: UUID, instance: UInt32) throws {
+        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
+        let serviceUuid = CBUUID(nsuuid: service)
+        let characteristicUuid = CBUUID(nsuuid: characteristic)
+        guard let nativeService = native.services?.first(where: { $0.uuid == serviceUuid }) else {
+            throw BluetoothError.noSuchService(service)
+        }
+        guard let nativeCharacteristic = nativeService.characteristics?.first(where: { $0.uuid == characteristicUuid && $0.instanceId == instance }) else {
+            throw BluetoothError.noSuchCharacteristic(service: service, characteristic: characteristic)
+        }
+        queue.sync {
+            native.readValue(for: nativeCharacteristic)
+        }
+    }
 }

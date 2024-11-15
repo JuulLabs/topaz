@@ -21,6 +21,7 @@ private func liveRequestClient(coordinator: Coordinator) -> RequestClient {
         connect: { coordinator.connect(peripheral: $0) },
         disconnect: { coordinator.disconnect(peripheral: $0) },
         discoverServices: { coordinator.discoverServices(peripheral: $0, filter: $1) },
-        discoverCharacteristics: { coordinator.discoverCharacteristics(peripheral: $0, filter: $1) }
+        discoverCharacteristics: { coordinator.discoverCharacteristics(peripheral: $0, filter: $1) },
+        readCharacteristic: { try coordinator.readCharacteristic(peripheral: $0, service: $1, characteristic: $2, instance: $3) }
     )
 }
