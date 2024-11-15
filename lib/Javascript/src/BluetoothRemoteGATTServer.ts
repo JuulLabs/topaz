@@ -2,6 +2,7 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { store } from "./Store";
+import { BluetoothUUID } from "./BluetoothUUID";
 
 type ConnectRequest = {
     uuid: string;
@@ -79,12 +80,12 @@ export class BluetoothRemoteGATTServer {
      *                        child type="GATT Primary Service")
      * ```
      */
-    private GetGATTChildren = async (single: boolean, service?: string): Promise<Array<BluetoothRemoteGATTService>> => {
+    private GetGATTChildren = async (single: boolean, service?: string | number): Promise<Array<BluetoothRemoteGATTService>> => {
         const response = await bluetoothRequest<DiscoverServicesRequest, DiscoverServicesResponse>(
             'discoverServices',
             {
                 device: this.device.uuid,
-                service: service,
+                service: service ? BluetoothUUID.getService(service) : null,
                 single: single
             }
         );
@@ -92,7 +93,7 @@ export class BluetoothRemoteGATTServer {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTServer/getPrimaryService
-    getPrimaryService = async (bluetoothServiceUUID?: string): Promise<BluetoothRemoteGATTService> => {
+    getPrimaryService = async (bluetoothServiceUUID?: string | number): Promise<BluetoothRemoteGATTService> => {
         if (typeof bluetoothServiceUUID === "undefined") {
             throw new TypeError("Missing 'bluetoothServiceUUID' parameter.")
         }

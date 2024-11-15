@@ -3,6 +3,7 @@ import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
 import { store } from "./Store";
+import { BluetoothUUID } from "./BluetoothUUID";
 
 type DiscoverCharacteristicsRequest = {
     device: string;
@@ -62,13 +63,13 @@ export class BluetoothRemoteGATTService extends EventTarget {
      *                        child type="GATT Characteristic")
      * ```
      */
-    private GetGATTChildren = async (single: boolean, characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic[]> => {
+    private GetGATTChildren = async (single: boolean, characteristic?: string | number): Promise<BluetoothRemoteGATTCharacteristic[]> => {
         const response = await bluetoothRequest<DiscoverCharacteristicsRequest, DiscoverCharacteristicsResponse>(
             'discoverCharacteristics',
             {
                 device: this.device.uuid,
                 service: this.uuid,
-                characteristic: characteristic,
+                characteristic: characteristic ? BluetoothUUID.getCharacteristic(characteristic) : null,
                 single: single
             }
         );
@@ -78,7 +79,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTService/getCharacteristic
-    getCharacteristic = async (characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic> => {
+    getCharacteristic = async (characteristic?: string | number): Promise<BluetoothRemoteGATTCharacteristic> => {
         if (typeof characteristic === "undefined") {
             throw new TypeError("Missing 'characteristic' UUID parameter.")
         }
@@ -87,7 +88,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTService/getCharacteristics
-    getCharacteristics = async (characteristic?: string): Promise<BluetoothRemoteGATTCharacteristic[]> => {
+    getCharacteristics = async (characteristic?: string | number): Promise<BluetoothRemoteGATTCharacteristic[]> => {
         return this.GetGATTChildren(false, characteristic)
     }
 
