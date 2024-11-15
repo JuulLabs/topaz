@@ -6,7 +6,7 @@ import Foundation
 import JsMessage
 import Testing
 
-@Suite(.timeLimit(.minutes(1)), .disabled("Temporarily disabled for refactor"))
+@Suite(.timeLimit(.minutes(1)))
 struct EndToEndBluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
@@ -28,10 +28,9 @@ struct EndToEndBluetoothEngineTests {
         let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
         let scanner = MockScanner()
         let selectorSut = await DeviceSelector()
-        let engineSut: BluetoothEngine = await withClient { state, client, selector in
-            client.onEnable = { [events = client.eventsContinuation] in
-                events.yield(SystemStateEvent(.poweredOn))
-            }
+        let engineSut = await withClient { _, client, selector in
+            client.onEnable = { }
+            client.onSystemState = { SystemStateEvent(.poweredOn) }
             client.onScan = { _ in scanner }
             selector = selectorSut
         }

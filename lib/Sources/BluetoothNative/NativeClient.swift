@@ -42,8 +42,12 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func disable() async {
-        await server.cancelAllEvents(with: BluetoothError.cancelled)
         coordinator.disable()
+        await cancelPendingRequests()
+    }
+
+    func cancelPendingRequests() async {
+        await server.cancelAllEvents(with: BluetoothError.cancelled)
     }
 
     func systemState() async throws -> SystemStateEvent {

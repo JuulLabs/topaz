@@ -42,4 +42,3 @@ public actor EventService {
         }
     }
 }
-

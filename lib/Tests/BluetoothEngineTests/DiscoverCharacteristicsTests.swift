@@ -5,7 +5,7 @@ import Foundation
 import JsMessage
 import Testing
 
-@Suite(.timeLimit(.minutes(1)), .disabled("Temporarily disabled for refactor"))
+@Suite(.timeLimit(.minutes(1)))
 struct DiscoverCharacteristicsTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
@@ -32,12 +32,9 @@ struct DiscoverCharacteristicsTests {
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
-            client.onEnable = { [events = client.eventsContinuation] in
-                events.yield(SystemStateEvent(.poweredOn))
-            }
-            client.onDiscoverCharacteristics = { peripheral, _ in
-                return PeripheralEvent(.discoverCharacteristics, peripheral)
-            }
+            client.onEnable = { }
+            client.onDiscoverCharacteristics = { peripheral, _ in PeripheralEvent(.discoverCharacteristics, peripheral) }
+            await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
@@ -69,12 +66,9 @@ struct DiscoverCharacteristicsTests {
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
-            client.onEnable = { [events = client.eventsContinuation] in
-                events.yield(SystemStateEvent(.poweredOn))
-            }
-            client.onDiscoverCharacteristics = { peripheral, _ in
-                return PeripheralEvent(.discoverCharacteristics, peripheral)
-            }
+            client.onEnable = { }
+            client.onDiscoverCharacteristics = { peripheral, _ in PeripheralEvent(.discoverCharacteristics, peripheral) }
+            await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)
@@ -106,13 +100,12 @@ struct DiscoverCharacteristicsTests {
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
-            client.onEnable = { [events = client.eventsContinuation] in
-                events.yield(SystemStateEvent(.poweredOn))
-            }
+            client.onEnable = { }
             client.onDiscoverCharacteristics = { peripheral, filter in
                 _ = try #require(fakeServices.first(where: { $0.uuid == filter.service }))
                 return PeripheralEvent(.discoverCharacteristics, peripheral)
             }
+            await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
         await sut.didAttach(to: context)

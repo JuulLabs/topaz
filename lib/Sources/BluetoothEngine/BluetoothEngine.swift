@@ -64,6 +64,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         // TODO: keep track of how many active contexts are using BLE and when it becomes zero:
         // await client.disable()
         // self.isEnabled = false
+        // TODO: support multiple active web page contexts because this cancels all web pages
+        await client.cancelPendingRequests()
         self.context = nil
     }
 
