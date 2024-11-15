@@ -9,7 +9,7 @@ public enum DelegateEvent: Equatable, Sendable {
     case disconnected(AnyPeripheral, DelegateEventError?)
     case discoveredServices(AnyPeripheral, DelegateEventError?)
     case discoveredCharacteristics(AnyPeripheral, Service, DelegateEventError?)
-    case updatedCharacteristic(AnyPeripheral, Characteristic, DelegateEventError?)
+    case characteristicChanged(AnyPeripheral, Characteristic, DelegateEventError?)
 }
 
 public enum DelegateEventError: Error, Sendable {

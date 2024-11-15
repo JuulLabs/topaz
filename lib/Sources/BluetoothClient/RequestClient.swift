@@ -10,6 +10,7 @@ public struct RequestClient: Sendable {
     public var disconnect: @Sendable (AnyPeripheral) -> Void
     public var discoverServices: @Sendable (AnyPeripheral, ServiceDiscoveryFilter) -> Void
     public var discoverCharacteristics: @Sendable (AnyPeripheral, CharacteristicDiscoveryFilter) -> Void
+    public var readCharacteristic: @Sendable (AnyPeripheral, _ service: UUID, _ characteristic: UUID, _ instance: UInt32) throws -> Void
 
     public init(
         enable: @Sendable @escaping () -> Void,
@@ -19,7 +20,8 @@ public struct RequestClient: Sendable {
         connect: @Sendable @escaping (AnyPeripheral) -> Void,
         disconnect: @Sendable @escaping (AnyPeripheral) -> Void,
         discoverServices: @Sendable @escaping (AnyPeripheral, ServiceDiscoveryFilter) -> Void,
-        discoverCharacteristics: @Sendable @escaping (AnyPeripheral, CharacteristicDiscoveryFilter) -> Void
+        discoverCharacteristics: @Sendable @escaping (AnyPeripheral, CharacteristicDiscoveryFilter) -> Void,
+        readCharacteristic: @Sendable @escaping (AnyPeripheral, _ service: UUID, _ characteristic: UUID, _ instance: UInt32) throws -> Void
     ) {
         self.enable = enable
         self.disable = disable
@@ -29,6 +31,7 @@ public struct RequestClient: Sendable {
         self.disconnect = disconnect
         self.discoverServices = discoverServices
         self.discoverCharacteristics = discoverCharacteristics
+        self.readCharacteristic = readCharacteristic
     }
 }
 
@@ -41,6 +44,7 @@ extension RequestClient {
         connect: { _ in fatalError("Not implemented") },
         disconnect: { _ in fatalError("Not implemented") },
         discoverServices: { _, _ in fatalError("Not implemented") },
-        discoverCharacteristics: { _, _ in fatalError("Not implemented") }
+        discoverCharacteristics: { _, _ in fatalError("Not implemented") },
+        readCharacteristic: { _, _, _, _ in fatalError("Not implemented") }
     )
 }
