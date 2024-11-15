@@ -1,9 +1,10 @@
 import Bluetooth
 import BluetoothClient
+import BluetoothMessage
 import Foundation
 import JsMessage
 
-struct DisconnectRequest: JsMessageDecodable, PeripheralIdentifiable {
+struct DisconnectRequest: JsMessageDecodable {
     let peripheralId: UUID
 
     static func decode(from data: [String: JsType]?) -> Self? {

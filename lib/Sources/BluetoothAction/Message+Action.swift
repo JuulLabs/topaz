@@ -1,28 +1,11 @@
 import Bluetooth
 import BluetoothClient
+import BluetoothMessage
 import DevicePicker
-import Effector
 import JsMessage
 
-protocol BluetoothAction: Sendable {
-    associatedtype Request: Sendable, JsMessageDecodable
-    associatedtype Response: Sendable, JsMessageEncodable
-
-    var requiresReadyState: Bool { get }
-
-    init(request: Request)
-
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> Response
-}
-
-extension BluetoothAction {
-    static func create(from message: Message) -> Result<any BluetoothAction, Error> {
-        Request.decode(from: message).map(Self.init)
-    }
-}
-
 extension Message {
-    func buildAction(client: BluetoothClient, selector: any InteractiveDeviceSelector) -> Result<any BluetoothAction, Error> {
+    public func buildAction(client: BluetoothClient, selector: any InteractiveDeviceSelector) -> Result<any BluetoothAction, Error> {
         switch action {
         case .getAvailability:
             return Availability.create(from: self)

@@ -1,6 +1,6 @@
 import Bluetooth
 import BluetoothClient
-import Effector
+import BluetoothMessage
 import JsMessage
 
 struct AvailabilityRequest: JsMessageDecodable {

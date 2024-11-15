@@ -1,8 +1,8 @@
 import Bluetooth
 import BluetoothClient
 @testable import BluetoothEngine
+import BluetoothMessage
 import DevicePicker
-import Effector
 
 func withClient(
     modify: (

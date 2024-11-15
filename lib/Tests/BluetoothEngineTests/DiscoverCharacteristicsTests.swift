@@ -1,6 +1,8 @@
 import Bluetooth
+@testable import BluetoothAction
 import BluetoothClient
 @testable import BluetoothEngine
+import BluetoothMessage
 import Foundation
 import JsMessage
 import Testing

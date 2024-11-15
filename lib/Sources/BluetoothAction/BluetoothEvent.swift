@@ -1,8 +1,9 @@
 import Bluetooth
 import BluetoothClient
+import BluetoothMessage
 
 extension BluetoothEvent {
-    func toJsEvent() -> JsEventEncodable? {
+    public func toJsEvent() -> JsEventEncodable? {
         switch self {
         case let event as SystemStateEvent:
             AvailabilityEvent(state: event.systemState)

@@ -1,9 +1,12 @@
 import Bluetooth
 import Foundation
 
+/**
+ Represents the current state of the bluetooth system.
+ */
 public actor BluetoothState: Sendable {
     private(set) var peripherals: [UUID: AnyPeripheral]
-    private(set) var systemState: SystemState
+    public private(set) var systemState: SystemState
 
     public init(
         systemState: SystemState = .unknown,
@@ -15,15 +18,15 @@ public actor BluetoothState: Sendable {
         }
     }
 
-    func setSystemState(_ systemState: SystemState) {
+    public func setSystemState(_ systemState: SystemState) {
         self.systemState = systemState
     }
 
-    func putPeripheral(_ peripheral: AnyPeripheral) {
+    public func putPeripheral(_ peripheral: AnyPeripheral) {
         peripherals[peripheral.identifier] = peripheral
     }
 
-    func getPeripheral(_ uuid: UUID) throws -> AnyPeripheral {
+    public func getPeripheral(_ uuid: UUID) throws -> AnyPeripheral {
         guard let peripheral = peripherals[uuid] else {
             throw BluetoothError.noSuchDevice(uuid)
         }

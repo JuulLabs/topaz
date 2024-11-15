@@ -1,9 +1,10 @@
 import Bluetooth
 import BluetoothClient
+import BluetoothMessage
 import Foundation
 import JsMessage
 
-struct DiscoverServicesRequest: JsMessageDecodable, PeripheralIdentifiable {
+struct DiscoverServicesRequest: JsMessageDecodable {
     let peripheralId: UUID
     let query: Query
 

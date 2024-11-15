@@ -1,19 +1,19 @@
 import JsMessage
 
-protocol JsMessageDecodable {
+public protocol JsMessageDecodable: Sendable {
     static func decode(from data: [String: JsType]?) -> Self?
 }
 
 extension JsMessageDecodable {
-    static func decode(from message: Message) -> Result<Self, Error> {
+    public static func decode(from message: Message) -> Result<Self, Error> {
         return message.decode(Self.self)
     }
 }
 
-protocol JsMessageEncodable: Sendable {
+public protocol JsMessageEncodable: Sendable {
     func toJsMessage() -> JsMessageResponse
 }
 
-protocol JsEventEncodable: Sendable {
+public protocol JsEventEncodable: Sendable {
     func toJsEvent() -> JsEvent
 }

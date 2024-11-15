@@ -8,8 +8,8 @@ import JsMessage
  beyond our process boundary. Here in native-land we can only model the messaging surface. We mimic
  the API and replace parameterized objects with serializable references (e.g. UUIDs mostly).
  */
-struct Message {
-    enum Action: String, CaseIterable {
+public struct Message {
+    public enum Action: String, CaseIterable {
         // General
         case getAvailability
         case requestDevice
@@ -26,20 +26,20 @@ struct Message {
         // TODO: moar descriptors, start/stop notifications, read/write value
     }
 
-    let action: Action
-    let requestBody: [String: JsType]
+    public let action: Action
+    private let requestBody: [String: JsType]
 
-    init(action: Action, requestBody: [String: JsType] = [:]) {
+    public init(action: Action, requestBody: [String: JsType] = [:]) {
         self.action = action
         self.requestBody = requestBody
     }
 
-    init(action: Action, request: JsMessageRequest) {
+    public init(action: Action, request: JsMessageRequest) {
         self.action = action
         self.requestBody = request.body
     }
 
-    func decode<T: JsMessageDecodable>(_ type: T.Type) -> Result<T, Error> {
+    public func decode<T: JsMessageDecodable>(_ type: T.Type) -> Result<T, Error> {
         let data = requestBody["data"]?.dictionary
         guard let decoded = T.decode(from: data) else {
             return .failure(MessageDecodeError.bodyDecodeFailed("\(T.self)"))
@@ -48,17 +48,19 @@ struct Message {
     }
 }
 
-func extractMessage(from request: JsMessageRequest) -> Result<Message, any Error> {
-    guard let actionString = request.body["action"]?.string else {
-        return .failure(MessageDecodeError.badRequest)
+extension JsMessageRequest {
+    public func extractMessage() -> Result<Message, any Error> {
+        guard let actionString = body["action"]?.string else {
+            return .failure(MessageDecodeError.badRequest)
+        }
+        guard let action = Message.Action.from(string: actionString) else {
+            return .failure(MessageDecodeError.actionNotFound(actionString))
+        }
+        return .success(Message(action: action, requestBody: body))
     }
-    guard let action = Message.Action.from(string: actionString) else {
-        return .failure(MessageDecodeError.actionNotFound(actionString))
-    }
-    return .success(Message(action: action, requestBody: request.body))
 }
 
-extension Message.Action {
+fileprivate extension Message.Action {
     static func from(string: String) -> Message.Action? {
         allCases.first(where: { $0.rawValue == string })
     }

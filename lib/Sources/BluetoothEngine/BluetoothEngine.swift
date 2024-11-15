@@ -1,13 +1,13 @@
 import Bluetooth
+import BluetoothAction
 import BluetoothClient
+import BluetoothMessage
 import DevicePicker
-import Effector
 import Foundation
-import Helpers
 import JsMessage
 
 /**
- Main engine - keeps state, replays web API onto native API
+ Main engine - owns state, integrates web API with native API
  */
 public actor BluetoothEngine: JsMessageProcessor {
     private var isEnabled: Bool = false
@@ -79,7 +79,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             isEnabled = true
         }
         do {
-            let message = try extractMessage(from: request).get()
+            let message = try request.extractMessage().get()
             let response = try await processAction(message: message)
             return response.toJsMessage()
         } catch {
@@ -117,16 +117,5 @@ public actor BluetoothEngine: JsMessageProcessor {
         let currentState = await self.state.systemState
         guard try predicate(currentState) == false else { return }
         _ = try await client.awaitSystemState(predicate: predicate)
-    }
-}
-
-extension BluetoothClient {
-    func awaitSystemState(predicate: @Sendable (SystemState) throws -> Bool) async throws -> SystemState {
-        var result: SystemState = .unknown
-        repeat {
-            try Task.checkCancellation()
-            result = try await self.systemState().systemState
-        } while try predicate(result) == false
-        return result
     }
 }

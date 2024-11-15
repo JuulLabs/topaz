@@ -1,5 +1,6 @@
 import Bluetooth
 import BluetoothClient
+import BluetoothMessage
 import DevicePicker
 import Foundation
 import JsMessage

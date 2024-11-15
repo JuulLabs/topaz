@@ -1,5 +1,6 @@
 import BluetoothClient
 import BluetoothEngine
+import BluetoothMessage
 import DevicePicker
 import SwiftUI
 import WebKit

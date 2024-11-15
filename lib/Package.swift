@@ -12,8 +12,10 @@ let package = Package(
     products: [
         .library(name: "App", targets: ["App"]),
         .library(name: "Bluetooth", targets: ["Bluetooth"]),
+        .library(name: "BluetoothAction", targets: ["BluetoothAction"]),
         .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
         .library(name: "BluetoothEngine", targets: ["BluetoothEngine"]),
+        .library(name: "BluetoothMessage", targets: ["BluetoothMessage"]),
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
         .library(name: "Design", targets: ["Design"]),
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
@@ -48,6 +50,17 @@ let package = Package(
         ),
 
         .target(
+            name: "BluetoothAction",
+            dependencies: [
+                "Bluetooth",
+                "BluetoothClient",
+                "BluetoothMessage",
+                "DevicePicker",
+                "JsMessage",
+            ]
+        ),
+
+        .target(
             name: "BluetoothClient",
             dependencies: [
                 "Bluetooth",
@@ -58,7 +71,9 @@ let package = Package(
             name: "BluetoothEngine",
             dependencies: [
                 "Bluetooth",
+                "BluetoothAction",
                 "BluetoothClient",
+                "BluetoothMessage",
                 "DevicePicker",
                 "JsMessage",
             ]
@@ -66,6 +81,16 @@ let package = Package(
         .testTarget(
             name: "BluetoothEngineTests",
             dependencies: ["BluetoothEngine"]
+        ),
+
+        .target(
+            name: "BluetoothMessage",
+            dependencies: [
+                "Bluetooth",
+                "BluetoothClient",
+                "DevicePicker",
+                "JsMessage",
+            ]
         ),
 
         .target(
