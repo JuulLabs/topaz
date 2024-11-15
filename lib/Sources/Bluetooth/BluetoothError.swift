@@ -18,11 +18,11 @@ extension BluetoothError: LocalizedError {
         case let .causedBy(error):
             error.localizedDescription
         case let .noSuchDevice(uuid):
-            "No such device \(uuid.uuidString)"
+            "No such device \(uuid.uuidString.lowercased())"
         case let .noSuchService(uuid):
-            "No such service \(uuid.uuidString)"
+            "No such service \(uuid.uuidString.lowercased())"
         case let .noSuchCharacteristic(serviceUuid, characteristicUuid):
-            "No such characteristic \(characteristicUuid.uuidString) under service \(serviceUuid.uuidString)"
+            "No such characteristic \(characteristicUuid.uuidString.lowercased()) under service \(serviceUuid.uuidString.lowercased())"
         case .unavailable:
             "Bluetooth not available"
         case .unknown:

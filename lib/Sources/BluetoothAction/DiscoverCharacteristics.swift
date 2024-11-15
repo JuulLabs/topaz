@@ -87,7 +87,7 @@ struct DiscoverCharacteristics: BluetoothAction {
 fileprivate extension Characteristic {
     func asDictionary() -> [String: JsConvertable] {
         return [
-            "uuid": uuid.uuidString,
+            "uuid": uuid,
             "instance": instance,
             "properties": properties.asDictionary(),
         ]
