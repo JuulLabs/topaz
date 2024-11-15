@@ -1,4 +1,5 @@
 import Bluetooth
+import Foundation
 
 public protocol BluetoothClient: Sendable {
     var events: AsyncStream<any BluetoothEvent> { get }
@@ -15,5 +16,5 @@ public protocol BluetoothClient: Sendable {
     func discoverServices(_ peripheral: AnyPeripheral, filter: ServiceDiscoveryFilter) async throws -> PeripheralEvent
     func discoverCharacteristics(_ peripheral: AnyPeripheral, filter: CharacteristicDiscoveryFilter) async throws -> PeripheralEvent
     func characteristicNotify(_ peripheral: AnyPeripheral, _ characteristic: Characteristic, enabled: Bool) async throws -> CharacteristicEvent
-    func characteristicRead(_ peripheral: AnyPeripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    func characteristicRead(_ peripheral: AnyPeripheral, serviceUuid: UUID, characteristicUuid: UUID, instance: UInt32) async throws -> CharacteristicEvent
 }

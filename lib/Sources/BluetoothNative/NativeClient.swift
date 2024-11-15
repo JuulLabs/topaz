@@ -85,9 +85,11 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func characteristicRead(_ peripheral: AnyPeripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent {
-        try await server.awaitEvent(key: .characteristic(.characteristicNotify, peripheral, characteristic)) {
-            // TODO:
+    func characteristicRead(_ peripheral: Bluetooth.AnyPeripheral, serviceUuid: UUID, characteristicUuid: UUID, instance: UInt32) async throws -> CharacteristicEvent {
+        // TODO: tidy up the key handling on this
+        let key = EventKey(name: .characteristicValue, peripheral.identifier, characteristicUuid, instance)
+        return try await server.awaitEvent(key:key) {
+            coordinator.readCharacteristic(peripheral: peripheral, service: serviceUuid, characteristic: characteristicUuid, instance: instance)
         }
     }
 }

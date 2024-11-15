@@ -112,4 +112,21 @@ class Coordinator: @unchecked Sendable {
             native.discoverCharacteristics(uuids, for: service)
         }
     }
+
+    func readCharacteristic(peripheral: AnyPeripheral, service: UUID, characteristic: UUID, instance: UInt32) {
+        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
+        let serviceUuid = CBUUID(nsuuid: service)
+        let characteristicUuid = CBUUID(nsuuid: characteristic)
+        guard let nativeService = native.services?.first(where: { $0.uuid == serviceUuid }) else {
+            // TODO: relocate the native object graph traversal to a throwing context to fail this case
+            return
+        }
+        guard let nativeCharacteristic = nativeService.characteristics?.first(where: { $0.uuid == characteristicUuid && $0.instanceId == instance }) else {
+            // TODO: relocate the native object graph traversal to a throwing context to fail this case
+            return
+        }
+        queue.sync {
+            native.readValue(for: nativeCharacteristic)
+        }
+    }
 }

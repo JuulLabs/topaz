@@ -1,4 +1,5 @@
 import Bluetooth
+import Foundation
 
 public struct MockBluetoothClient: BluetoothClient {
     public let events: AsyncStream<any BluetoothEvent>
@@ -14,7 +15,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onDiscoverServices: @Sendable (_ peripheral: AnyPeripheral, _ filter: ServiceDiscoveryFilter) async throws -> PeripheralEvent
     public var onDiscoverCharacteristics: @Sendable (_ peripheral: AnyPeripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> PeripheralEvent
     public var onCharacteristicNotify: @Sendable (_ peripheral: AnyPeripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
-    public var onCharacteristicRead: @Sendable (_ peripheral: AnyPeripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    public var onCharacteristicRead: @Sendable (_ peripheral: AnyPeripheral, _ serviceUuid: UUID, _ characteristicUuid: UUID, _ instance: UInt32) async throws -> CharacteristicEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -30,7 +31,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onDiscoverServices = { _, _ in fatalError("Not implemented") }
         self.onDiscoverCharacteristics = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
-        self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
+        self.onCharacteristicRead = { _, _, _, _ in fatalError("Not implemented") }
     }
 
     public func enable() async {
@@ -73,7 +74,7 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onCharacteristicNotify(peripheral, characteristic, enabled)
     }
 
-    public func characteristicRead(_ peripheral: Bluetooth.AnyPeripheral, _ characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
-        try await onCharacteristicRead(peripheral, characteristic)
+    public func characteristicRead(_ peripheral: Bluetooth.AnyPeripheral, serviceUuid: UUID, characteristicUuid: UUID, instance: UInt32) async throws -> CharacteristicEvent {
+        try await onCharacteristicRead(peripheral, serviceUuid, characteristicUuid, instance)
     }
 }
