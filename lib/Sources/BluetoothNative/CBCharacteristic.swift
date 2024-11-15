@@ -1,5 +1,5 @@
-import Foundation
 import CoreBluetooth
+import Foundation
 
 extension CBCharacteristic {
     var instanceId: UInt32 {

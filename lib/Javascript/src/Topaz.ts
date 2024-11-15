@@ -1,9 +1,9 @@
-import { Bluetooth } from "./Bluetooth";
 import { base64ToDataView } from "./Data";
+import { Bluetooth } from "./Bluetooth";
 import { dispatchEvent, TargetedEvent } from "./EventSink";
+import { mainDispatcher } from "./EventDispatcher";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
-import { mainDispatcher } from "./EventDispatcher";
 
 export class Topaz {
     bluetooth: Bluetooth;

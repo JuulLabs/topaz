@@ -1,6 +1,6 @@
-import { bluetoothRequest } from "./WebKit";
-import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
+import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
+import { bluetoothRequest } from "./WebKit";
 
 type ReadCharacteristicRequest = {
     device: string;

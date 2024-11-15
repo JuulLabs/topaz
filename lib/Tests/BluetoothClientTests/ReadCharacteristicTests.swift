@@ -1,5 +1,5 @@
-import Bluetooth
 @testable import BluetoothClient
+import Bluetooth
 import Foundation
 import JsMessage
 import Testing
