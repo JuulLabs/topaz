@@ -1,5 +1,5 @@
 import Bluetooth
-import Effector
+import BluetoothClient
 import Foundation
 import JsMessage
 
@@ -59,13 +59,13 @@ struct DiscoverServicesResponse: JsMessageEncodable {
 }
 
 struct DiscoverServices: BluetoothAction {
+    let requiresReadyState: Bool = true
     let request: DiscoverServicesRequest
 
-    func execute(state: BluetoothState, effector: Effector) async throws -> DiscoverServicesResponse {
-        try await effector.bluetoothReadyState()
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverServicesResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        _  = try await effector.discoverServices(peripheral, request.filter)
+        _  = try await client.discoverServices(peripheral, filter: request.filter)
         let primaryServices = peripheral.services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):

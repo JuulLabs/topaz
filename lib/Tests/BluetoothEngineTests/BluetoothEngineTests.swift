@@ -26,10 +26,9 @@ struct BluetoothEngineTests {
         SystemState.poweredOn,
     ])
     func process_getAvailability_returnsTrue(state: SystemState) async throws {
-        let sut = await withClient { _, _, request, response, _ in
-            request.enable = { }
-            response.events = AsyncStream { continuation in
-                continuation.yield(.systemState(state))
+        let sut = await withClient { _, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(state))
             }
         }
         let response = try await sut.processAction(message: Message(action: .getAvailability))
@@ -47,10 +46,9 @@ struct BluetoothEngineTests {
         SystemState.poweredOff,
     ])
     func process_getAvailability_returnsFalse(state: SystemState) async throws {
-        let sut = await withClient { _, _, request, response, _ in
-            request.enable = { }
-            response.events = AsyncStream { continuation in
-                continuation.yield(.systemState(state))
+        let sut = await withClient { _, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(state))
             }
         }
         let response = try await sut.processAction(message: Message(action: .getAvailability))
@@ -69,16 +67,12 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.connect = { [events] peripheral in
-                events!.yield(.connected(peripheral))
+            client.onConnect = {peripheral in
+                PeripheralEvent(.connect, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -100,16 +94,12 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake._identifier.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.disconnect = { [events] peripheral in
-                events!.yield(.disconnected(peripheral, nil))
+            client.onDisconnect = {peripheral in
+                PeripheralEvent(.disconnect, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -136,16 +126,12 @@ struct BluetoothEngineTests {
                 "single": .number(true),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverServices = { [events] peripheral, _ in
-                events!.yield(.discoveredServices(peripheral, nil))
+            client.onDiscoverServices = { peripheral, _ in
+                PeripheralEvent(.discoverServices, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -172,16 +158,12 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverServices = { [events] peripheral, _ in
-                events!.yield(.discoveredServices(peripheral, nil))
+            client.onDiscoverServices = { peripheral, _ in
+                PeripheralEvent(.discoverServices, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -208,16 +190,12 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverServices = { [events] peripheral, _ in
-                events!.yield(.discoveredServices(peripheral, nil))
+            client.onDiscoverServices = { peripheral, _ in
+                PeripheralEvent(.discoverServices, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }

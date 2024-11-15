@@ -12,13 +12,19 @@ import WebView
 @Observable
 public class AppModel {
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
-    var deviceSelector: DeviceSelector = .init()
-    var bluetoothEngine: BluetoothEngine = .init(state: BluetoothState(), effector: .testValue, deviceSelector: DeviceSelector(), client: .testValue)
+    let deviceSelector: DeviceSelector
+    let bluetoothEngine: BluetoothEngine
 
     let freshPageModel: FreshPageModel
     let loadingModel: WebLoadingModel
 
-    public init() {
+    public init(
+        state: BluetoothState,
+        client: BluetoothClient,
+        deviceSelector: DeviceSelector
+    ) {
+        self.deviceSelector = deviceSelector
+        self.bluetoothEngine = BluetoothEngine(state: state, client: client, deviceSelector: deviceSelector)
         let searchBarModel = SearchBarModel()
         let freshPageModel = FreshPageModel(searchBarModel: searchBarModel)
         let loadingModel = WebLoadingModel(freshPageModel: freshPageModel)
@@ -54,20 +60,5 @@ public class AppModel {
             // TODO: navigate away due to failure and try again
             print("Unable to load \(error)")
         }
-    }
-
-    func injectDependencies(
-        state: BluetoothState,
-        effector: Effector,
-        bluetoothClient: BluetoothClient,
-        selector: DeviceSelector
-    ) {
-        deviceSelector = selector
-        bluetoothEngine = BluetoothEngine(
-            state: state,
-            effector: effector,
-            deviceSelector: selector,
-            client: bluetoothClient
-        )
     }
 }

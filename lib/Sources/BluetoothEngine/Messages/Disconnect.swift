@@ -1,5 +1,5 @@
 import Bluetooth
-import Effector
+import BluetoothClient
 import Foundation
 import JsMessage
 
@@ -32,15 +32,15 @@ struct DisconnectEvent: JsEventEncodable {
 }
 
 struct Disconnector: BluetoothAction {
+    let requiresReadyState: Bool = true
     let request: DisconnectRequest
 
-    func execute(state: BluetoothState, effector: Effector) async throws -> DisconnectResponse {
-        try await effector.bluetoothReadyState()
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DisconnectResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         if case .disconnected = peripheral.connectionState {
             return DisconnectResponse(peripheralId: peripheral.identifier)
         }
-        _ = try await effector.disconnect(peripheral)
+        _ = try await client.disconnect(peripheral)
         return DisconnectResponse(peripheralId: peripheral.identifier)
     }
 }

@@ -1,7 +1,7 @@
 import Bluetooth
-import Foundation
 
-public struct AdvertisementEffect: Effect {
+public struct AdvertisementEvent: BluetoothEvent {
+    public let name: EventName = .advertisement
     public let peripheral: AnyPeripheral
     public let advertisement: Advertisement
 
@@ -10,11 +10,11 @@ public struct AdvertisementEffect: Effect {
         self.advertisement = advertisement
     }
 
-    public var key: EffectKey {
+    public var key: EventKey {
         .advertisement
     }
 }
 
-extension EffectKey {
-    static let advertisement = EffectKey(name: .advertisement)
+extension EventKey {
+    public static let advertisement = EventKey(name: .advertisement)
 }

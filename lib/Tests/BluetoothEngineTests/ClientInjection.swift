@@ -7,18 +7,21 @@ import Effector
 func withClient(
     modify: (
         _ state: BluetoothState,
-        _ effector: inout Effector,
-        _ request: inout RequestClient,
-        _ response: inout ResponseClient,
-        _ selector: inout any InteractiveDeviceSelector
+        _ client: inout MockBluetoothClient,
+        _ selector: inout InteractiveDeviceSelector
     ) async -> Void
 ) async -> BluetoothEngine {
     let state = BluetoothState()
-    var effector = Effector.testValue
-    var request = RequestClient.testValue
-    var response = ResponseClient.testValue
+    var client = MockBluetoothClient()
     var selector: InteractiveDeviceSelector = await TestDeviceSelector()
-    await modify(state, &effector, &request, &response, &selector)
-    let client = BluetoothClient(request: request, response: response)
-    return BluetoothEngine(state: state, effector: effector, deviceSelector: selector, client: client)
+    await modify(state, &client, &selector)
+    return BluetoothEngine(state: state, client: client, deviceSelector: selector)
+}
+
+func poweredOnMockClient() -> MockBluetoothClient {
+    var client = MockBluetoothClient()
+    client.onEnable = { [events = client.eventsContinuation] in
+        events.yield(SystemStateEvent(.poweredOn))
+    }
+    return client
 }

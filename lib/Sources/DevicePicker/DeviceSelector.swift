@@ -1,6 +1,5 @@
 import Bluetooth
 import Foundation
-import Helpers
 
 // TODO: move to own module with BluetoothEngine
 
@@ -9,11 +8,9 @@ import Helpers
 public class DeviceSelector: InteractiveDeviceSelector {
     private var selectionContinuaton: CheckedContinuation<Result<AnyPeripheral, DeviceSelectionError>, Never>?
     private var advertisingPeripherals: [UUID: (AnyPeripheral, Advertisement)] = [:]
-    private let advertisementsStream = EmissionStream<[Advertisement]>()
+    private let advertisementsContinuation: AsyncStream<[Advertisement]>.Continuation
 
-    public var advertisements: AsyncStream<[Advertisement]> {
-        advertisementsStream.stream
-    }
+    public var advertisements: AsyncStream<[Advertisement]>
 
     // Exposed as a Binding for driving UI presentation state
     // SwiftUI will write false to this when the user swipes away the modal
@@ -28,11 +25,14 @@ public class DeviceSelector: InteractiveDeviceSelector {
     }
 
     public init() {
+        let (stream, continuation) = AsyncStream<[Advertisement]>.makeStream()
+        self.advertisements = stream
+        self.advertisementsContinuation = continuation
     }
 
     public func awaitSelection() async -> Result<Bluetooth.AnyPeripheral, DeviceSelectionError> {
         isSelecting = true
-        advertisementsStream.emit([])
+        advertisementsContinuation.yield([])
         defer {
             advertisingPeripherals = [:]
             isSelecting = false
@@ -53,7 +53,7 @@ public class DeviceSelector: InteractiveDeviceSelector {
     public func showAdvertisement(peripheral: Bluetooth.AnyPeripheral, advertisement: Bluetooth.Advertisement) {
         guard isSelecting else { return }
         advertisingPeripherals[peripheral.identifier] = (peripheral, advertisement)
-        advertisementsStream.emit(advertisingPeripherals.values.map { $0.1 })
+        advertisementsContinuation.yield(advertisingPeripherals.values.map { $0.1 })
     }
 
     public func cancel(with error: DeviceSelectionError = .cancelled) {

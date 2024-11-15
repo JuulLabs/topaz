@@ -68,47 +68,26 @@ struct ConnectorTests {
         FakePeripheral(name: "bob", identifier: uuid, connectionState: connectionState)
             .eraseToAnyPeripheral()
     }
-    private let readyEffector: Effector = {
-        var effector = Effector.testValue
-        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
-        return effector
-    }()
-    private let unReadyEffector: Effector = {
-        var effector = Effector.testValue
-        effector.systemState = { _ in SystemStateEffect(.poweredOff) }
-        return effector
-    }()
-    private let effectorThatThrows: Effector = {
-        var effector = Effector.testValue
-        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
-        effector.connect = { _ in
-            // All the effect machinery either succeeds or throws - simulate the failure case by throwing
+    private let clientThatThrows: BluetoothClient = {
+        var client = MockBluetoothClient()
+        client.onConnect = { _ in
+            // All the client machinery either succeeds or throws - simulate the failure case by throwing
             throw BluetoothError.unknown
         }
-        return effector
+        return client
     }()
-    private let effectorThatConnects = { (state: BluetoothState) throws in
-        var effector = Effector.testValue
-        effector.systemState = { _ in SystemStateEffect(.poweredOn) }
-        effector.connect = { peripheral in
+    private let clientThatConnects = { (state: BluetoothState) throws in
+        var client = MockBluetoothClient()
+        client.onConnect = { peripheral in
             let connectedPeripheral = FakePeripheral(
                 name: peripheral.name!,
                 identifier: peripheral.identifier,
                 connectionState: .connected
             ).eraseToAnyPeripheral()
             state.putPeripheral(connectedPeripheral)
-            return PeripheralEffect(.connect, connectedPeripheral)
+            return PeripheralEvent(.connect, connectedPeripheral)
         }
-        return effector
-    }
-
-    @Test
-    func execute_whenNotReady_throwsAnyError() async {
-        let request = ConnectRequest(peripheralId: zeroUuid)
-        let sut = Connector(request: request)
-        await #expect(throws: (any Error).self) {
-            try await sut.execute(state: BluetoothState(), effector: unReadyEffector)
-        }
+        return client
     }
 
     @Test
@@ -116,7 +95,7 @@ struct ConnectorTests {
         let state = BluetoothState(peripherals: [peripheral(zeroUuid, .connected)])
         let request = ConnectRequest(peripheralId: zeroUuid)
         let sut = Connector(request: request)
-        let response = try await sut.execute(state: state, effector: readyEffector)
+        let response = try await sut.execute(state: state, client: MockBluetoothClient())
         #expect(response.isConnected == true)
     }
 
@@ -125,7 +104,7 @@ struct ConnectorTests {
         let state = BluetoothState(peripherals: [peripheral(zeroUuid, .disconnected)])
         let request = ConnectRequest(peripheralId: zeroUuid)
         let sut = Connector(request: request)
-        let response = try await sut.execute(state: state, effector: effectorThatConnects(state))
+        let response = try await sut.execute(state: state, client: clientThatConnects(state))
         #expect(response.isConnected == true)
     }
 
@@ -135,7 +114,7 @@ struct ConnectorTests {
         let request = ConnectRequest(peripheralId: zeroUuid)
         let sut = Connector(request: request)
         await #expect(throws: (any Error).self) {
-            try await sut.execute(state: state, effector: effectorThatThrows)
+            try await sut.execute(state: state, client: clientThatThrows)
         }
     }
 }

@@ -42,15 +42,14 @@ private func previewModel() -> WebContainerModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
     let selector = DeviceSelector()
 #if targetEnvironment(simulator)
-    let client: BluetoothClient = .clientWithMockAds(selector: selector)
+    let client = MockBluetoothClient.clientWithMockAds(selector: selector)
 #else
-    let client: BluetoothClient = .testValue
+    let client: BluetoothClient = MockBluetoothClient()
 #endif
     let bluetoothEngine = BluetoothEngine(
         state: BluetoothState(),
-        effector: .liveValue(client: client.request),
-        deviceSelector: selector,
-        client: client
+        client: client,
+        deviceSelector: selector
     )
     let webPageModel = WebPageModel(
         tab: 0,
@@ -74,22 +73,24 @@ func previewWebConfig() -> WKWebViewConfiguration {
 }
 
 #if targetEnvironment(simulator)
-extension BluetoothClient {
+extension MockBluetoothClient {
     nonisolated static public func clientWithMockAds(selector: DeviceSelector) -> BluetoothClient {
         var injectionTask: Task<Void, Never>?
-        return .mockClient(
-            systemState: { .poweredOn },
-            startScanning: { _ in
-                Task { @MainActor in
-                    injectionTask = selector.injectMockAds()
-                }
-            },
-            stopScanning: {
+        var client = MockBluetoothClient()
+        client.onSystemState = { SystemStateEvent(.poweredOn) }
+        client.onScan = { _ in
+            Task { @MainActor in
+                injectionTask = selector.injectMockAds()
+            }
+            let scanner = MockScanner()
+            scanner.continuation.onTermination = { _ in
                 Task { @MainActor in
                     injectionTask?.cancel()
                 }
             }
-        )
+            return scanner
+        }
+        return client
     }
 }
 #endif

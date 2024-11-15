@@ -1,16 +1,17 @@
 import App
 import BluetoothClient
+import BluetoothEngine
 import BluetoothNative
+import DevicePicker
 import SwiftUI
 
 @main
 struct TopazMain: App {
-    let appModel = AppModel()
+    @State var appModel = AppModel(state: BluetoothState(), client: liveBluetoothClient, deviceSelector: DeviceSelector())
 
     var body: some Scene {
         WindowGroup {
             AppContentView(model: appModel)
         }
-        .environment(\.bluetoothClient, .liveValue)
     }
 }

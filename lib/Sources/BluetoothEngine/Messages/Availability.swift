@@ -1,4 +1,5 @@
 import Bluetooth
+import BluetoothClient
 import Effector
 import JsMessage
 
@@ -33,13 +34,18 @@ struct AvailabilityEvent: JsEventEncodable {
 }
 
 struct Availability: BluetoothAction {
+    let requiresReadyState: Bool = false
     let request: AvailabilityRequest
 
-    func execute(state: BluetoothState, effector: Effector) async throws -> AvailabilityResponse {
-        let result = try await effector.systemState { state in
-            state != .unknown
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> AvailabilityResponse {
+        let currentState = await state.systemState
+        guard currentState != .unknown else {
+            let result = try await client.awaitSystemState { state in
+                state != .unknown
+            }
+            return AvailabilityResponse(isAvailable: result.isAvailable)
         }
-        return AvailabilityResponse(isAvailable: result.systemState.isAvailable)
+        return AvailabilityResponse(isAvailable: currentState.isAvailable)
     }
 
 }

@@ -17,7 +17,6 @@ let package = Package(
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
         .library(name: "Design", targets: ["Design"]),
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
-        .library(name: "Effector", targets: ["Effector"]),
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "JsMessage", targets: ["JsMessage"]),
         .library(name: "UIHelpers", targets: ["UIHelpers"]),
@@ -52,17 +51,16 @@ let package = Package(
             name: "BluetoothClient",
             dependencies: [
                 "Bluetooth",
-                "DevicePicker",
-                "Helpers",
-                "JsMessage",
             ]
         ),
 
         .target(
             name: "BluetoothEngine",
             dependencies: [
+                "Bluetooth",
                 "BluetoothClient",
-                "Effector",
+                "DevicePicker",
+                "JsMessage",
             ]
         ),
         .testTarget(
@@ -74,7 +72,6 @@ let package = Package(
             name: "BluetoothNative",
             dependencies: [
                 "BluetoothClient",
-                "Helpers",
             ]
         ),
         .testTarget(
@@ -98,13 +95,6 @@ let package = Package(
         .testTarget(
             name: "DevicePickerTests",
             dependencies: ["DevicePicker"]
-        ),
-
-        .target(
-            name: "Effector",
-            dependencies: [
-                "BluetoothClient",
-            ]
         ),
 
         .target(

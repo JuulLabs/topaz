@@ -1,6 +1,7 @@
 import Bluetooth
 
-public struct SystemStateEvent: DelEvent {
+public struct SystemStateEvent: BluetoothEvent {
+    public let name: EventName = .systemState
     public let systemState: SystemState
 
     public init(_ systemState: SystemState) {
@@ -13,5 +14,5 @@ public struct SystemStateEvent: DelEvent {
 }
 
 extension EventKey {
-    static let systemState = EventKey(name: .systemState)
+    public static let systemState = EventKey(name: .systemState)
 }

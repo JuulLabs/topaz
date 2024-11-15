@@ -5,20 +5,12 @@ extension BluetoothError: DomErrorConvertable {
     public var domErrorName: DomErrorName {
         switch self {
         case .cancelled: .abort
-        case .causedBy: .unknown
+        case .causedBy: .operataion
         case .noSuchDevice: .notFound
         case .noSuchService: .notFound
         case .noSuchCharacteristic: .notFound
-        case .unavailable: .unknown
+        case .unavailable: .operataion
         case .unknown: .unknown
-        }
-    }
-}
-
-extension DelegateEventError: DomErrorConvertable {
-    public var domErrorName: DomErrorName {
-        switch self {
-        case .causedBy: .operataion
         }
     }
 }

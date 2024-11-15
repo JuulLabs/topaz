@@ -1,8 +1,7 @@
 import Bluetooth
 
-public struct CharacteristicEvent: DelEvent {
-    let name: EventName
-
+public struct CharacteristicEvent: BluetoothEvent {
+    public let name: EventName
     public let peripheral: AnyPeripheral
     public let characteristic: Characteristic
 
@@ -18,7 +17,7 @@ public struct CharacteristicEvent: DelEvent {
 }
 
 extension EventKey {
-    static func characteristic(_ name: EventName, _ peripheral: AnyPeripheral, _ characteristic: Characteristic) -> Self {
+    public static func characteristic(_ name: EventName, _ peripheral: AnyPeripheral, _ characteristic: Characteristic) -> Self {
         EventKey(name: name, peripheral.identifier, characteristic.uuid, characteristic.instance)
     }
 }

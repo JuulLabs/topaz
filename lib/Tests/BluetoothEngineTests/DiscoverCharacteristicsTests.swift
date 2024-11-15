@@ -31,16 +31,12 @@ struct DiscoverCharacteristicsTests {
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverCharacteristics = { [events] peripheral, _ in
-                events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
+            client.onDiscoverCharacteristics = { peripheral, _ in
+                return PeripheralEvent(.discoverCharacteristics, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -72,16 +68,12 @@ struct DiscoverCharacteristicsTests {
                 "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverCharacteristics = { [events] peripheral, _ in
-                events!.yield(.discoveredCharacteristics(peripheral, fakeServices[0], nil))
+            client.onDiscoverCharacteristics = { peripheral, _ in
+                return PeripheralEvent(.discoverCharacteristics, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }
@@ -113,17 +105,13 @@ struct DiscoverCharacteristicsTests {
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, _, request, response, _ in
-            var events: AsyncStream<DelegateEvent>.Continuation!
-            response.events = AsyncStream { continuation in
-                events = continuation
+        let sut: BluetoothEngine = await withClient { state, client, _ in
+            client.onEnable = { [events = client.eventsContinuation] in
+                events.yield(SystemStateEvent(.poweredOn))
             }
-            request.enable = { [events] in
-                events!.yield(.systemState(.poweredOn))
-            }
-            request.discoverCharacteristics = { [events] peripheral, filter in
-                let service = fakeServices.first(where: { $0.uuid == filter.service })!
-                events!.yield(.discoveredCharacteristics(peripheral, service, nil))
+            client.onDiscoverCharacteristics = { peripheral, filter in
+                _ = try #require(fakeServices.first(where: { $0.uuid == filter.service }))
+                return PeripheralEvent(.discoverCharacteristics, peripheral)
             }
             await state.putPeripheral(fake.eraseToAnyPeripheral())
         }

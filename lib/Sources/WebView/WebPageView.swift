@@ -39,14 +39,12 @@ public struct WebPageView: UIViewRepresentable {
 @MainActor
 private func previewModel() -> WebPageModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-    let client: BluetoothClient = .mockClient(
-        systemState: { .poweredOn }
-    )
+    var client = MockBluetoothClient()
+    client.onSystemState = { SystemStateEvent(.poweredOn) }
     let bluetoothEngine = BluetoothEngine(
         state: BluetoothState(),
-        effector: .liveValue(client: client.request),
-        deviceSelector: DeviceSelector(),
-        client: client
+        client: client,
+        deviceSelector: DeviceSelector()
     )
     return WebPageModel(
         tab: 0,

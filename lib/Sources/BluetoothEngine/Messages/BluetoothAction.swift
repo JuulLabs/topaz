@@ -8,9 +8,11 @@ protocol BluetoothAction: Sendable {
     associatedtype Request: Sendable, JsMessageDecodable
     associatedtype Response: Sendable, JsMessageEncodable
 
+    var requiresReadyState: Bool { get }
+
     init(request: Request)
 
-    func execute(state: BluetoothState, effector: Effector) async throws -> Response
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> Response
 }
 
 extension BluetoothAction {
@@ -20,13 +22,13 @@ extension BluetoothAction {
 }
 
 extension Message {
-    func buildAction(selector: any InteractiveDeviceSelector, client: RequestClient) -> Result<any BluetoothAction, Error> {
+    func buildAction(client: BluetoothClient, selector: any InteractiveDeviceSelector) -> Result<any BluetoothAction, Error> {
         switch action {
         case .getAvailability:
             return Availability.create(from: self)
         case .requestDevice:
             return RequestDeviceRequest.decode(from: self).map {
-                RequestDevice(request: $0, selector: selector, client: client)
+                RequestDevice(request: $0, selector: selector)
             }
         case .connect:
             return Connector.create(from: self)
