@@ -1,13 +1,25 @@
 import CoreBluetooth
 
-func cbToUuid(_ uuid: CBUUID) -> UUID? {
-    let str: String
-    if uuid.uuidString.count <= 8 {
-        let padCount = max(0, 8 - uuid.uuidString.count)
-        let prefix = String(repeating: "0", count: padCount)
-        str = prefix + uuid.uuidString + "-0000-1000-8000-00805F9B34FB"
-    } else {
-        str = uuid.uuidString
+// The Bluetooth SIG reserved base UUID least significant 12 bytes:
+private let baseUuidData = Data([0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0x80, 0x5F, 0x9B, 0x34, 0xFB])
+
+extension CBUUID {
+    var regularUuid: UUID {
+        cbToUuid(self)
     }
-    return UUID(uuidString: str)
+}
+
+func cbToUuid(_ uuid: CBUUID) -> UUID {
+    let data: Data
+    if uuid.data.count <= 4 {
+        let padCount = max(0, 4 - uuid.data.count)
+        let prefix = Data(count: padCount)
+        data = prefix + uuid.data + baseUuidData
+    } else {
+        data = uuid.data
+    }
+    return data.withUnsafeBytes { (pointer: UnsafeRawBufferPointer) -> UUID in
+        let uuid = pointer.load(as: uuid_t.self)
+        return UUID(uuid: uuid)
+    }
 }

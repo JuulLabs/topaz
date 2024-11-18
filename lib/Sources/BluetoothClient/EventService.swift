@@ -29,7 +29,7 @@ public actor EventService {
         }
         try Task.checkCancellation()
         guard let result = result as? T else {
-            throw BluetoothError.unknown // TODO: system error
+            throw EventServiceError.typeMismatch(result.name, expectedType: "\(type(of: T.self))")
         }
         return result
     }

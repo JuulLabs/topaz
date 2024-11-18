@@ -5,7 +5,7 @@ public struct TestDeviceSelector: InteractiveDeviceSelector {
 
     public init() {}
 
-    public func awaitSelection() async -> Result<Bluetooth.AnyPeripheral, DeviceSelectionError> {
+    public func awaitSelection() async -> Result<Bluetooth.Peripheral, DeviceSelectionError> {
         fatalError("Not implemented")
     }
 
@@ -13,7 +13,7 @@ public struct TestDeviceSelector: InteractiveDeviceSelector {
         fatalError("Not implemented")
     }
 
-    public func showAdvertisement(peripheral: Bluetooth.AnyPeripheral, advertisement: Bluetooth.Advertisement) async {
+    public func showAdvertisement(peripheral: Bluetooth.Peripheral, advertisement: Bluetooth.Advertisement) async {
         fatalError("Not implemented")
     }
 

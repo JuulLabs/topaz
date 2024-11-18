@@ -17,22 +17,6 @@ struct AvailabilityResponse: JsMessageEncodable {
     }
 }
 
-struct AvailabilityEvent: JsEventEncodable {
-    let isAvailable: Bool
-
-    init(isAvailable: Bool) {
-        self.isAvailable = isAvailable
-    }
-
-    init(state: SystemState) {
-        self.init(isAvailable: state.isAvailable)
-    }
-
-    func toJsEvent() -> JsEvent {
-        JsEvent(targetId: "bluetooth", eventName: "availabilitychanged", body: isAvailable)
-    }
-}
-
 struct Availability: BluetoothAction {
     let requiresReadyState: Bool = false
     let request: AvailabilityRequest
@@ -48,6 +32,12 @@ struct Availability: BluetoothAction {
         return AvailabilityResponse(isAvailable: currentState.isAvailable)
     }
 
+}
+
+extension SystemStateEvent {
+    public func availabilityChangedEvent() -> JsEvent {
+        JsEvent(targetId: "bluetooth", eventName: "availabilitychanged", body: systemState.isAvailable)
+    }
 }
 
 fileprivate extension SystemState {

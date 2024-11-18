@@ -65,8 +65,7 @@ struct ConnectResponseTests {
 struct ConnectorTests {
     private let zeroUuid: UUID = UUID(n: 0)
     private let peripheral = { (uuid: UUID, connectionState: ConnectionState) in
-        FakePeripheral(name: "bob", identifier: uuid, connectionState: connectionState)
-            .eraseToAnyPeripheral()
+        FakePeripheral(id: uuid, connectionState: connectionState)
     }
     private let clientThatThrows: BluetoothClient = {
         var client = MockBluetoothClient()
@@ -79,11 +78,7 @@ struct ConnectorTests {
     private let clientThatConnects = { (state: BluetoothState) throws in
         var client = MockBluetoothClient()
         client.onConnect = { peripheral in
-            let connectedPeripheral = FakePeripheral(
-                name: peripheral.name!,
-                identifier: peripheral.identifier,
-                connectionState: .connected
-            ).eraseToAnyPeripheral()
+            let connectedPeripheral = FakePeripheral(id: peripheral.id, connectionState: .connected)
             state.putPeripheral(connectedPeripheral)
             return PeripheralEvent(.connect, connectedPeripheral)
         }

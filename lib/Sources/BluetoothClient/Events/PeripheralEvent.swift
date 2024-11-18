@@ -2,9 +2,9 @@ import Bluetooth
 
 public struct PeripheralEvent: BluetoothEvent {
     public let name: EventName
-    public let peripheral: AnyPeripheral
+    public let peripheral: Peripheral
 
-    public init(_ name: EventName, _ peripheral: AnyPeripheral) {
+    public init(_ name: EventName, _ peripheral: Peripheral) {
         self.name = name
         self.peripheral = peripheral
     }
@@ -15,7 +15,7 @@ public struct PeripheralEvent: BluetoothEvent {
 }
 
 extension EventKey {
-    public static func peripheral(_ name: EventName, _ peripheral: AnyPeripheral) -> Self {
-        EventKey(name: name, peripheral.identifier)
+    public static func peripheral(_ name: EventName, _ peripheral: Peripheral) -> Self {
+        EventKey(name: name, peripheral.id)
     }
 }

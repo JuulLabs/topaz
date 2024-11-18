@@ -6,8 +6,8 @@ import Foundation
 @MainActor
 @Observable
 public class DeviceSelector: InteractiveDeviceSelector {
-    private var selectionContinuaton: CheckedContinuation<Result<AnyPeripheral, DeviceSelectionError>, Never>?
-    private var advertisingPeripherals: [UUID: (AnyPeripheral, Advertisement)] = [:]
+    private var selectionContinuaton: CheckedContinuation<Result<Peripheral, DeviceSelectionError>, Never>?
+    private var advertisingPeripherals: [UUID: (Peripheral, Advertisement)] = [:]
     private let advertisementsContinuation: AsyncStream<[Advertisement]>.Continuation
 
     public var advertisements: AsyncStream<[Advertisement]>
@@ -30,7 +30,7 @@ public class DeviceSelector: InteractiveDeviceSelector {
         self.advertisementsContinuation = continuation
     }
 
-    public func awaitSelection() async -> Result<Bluetooth.AnyPeripheral, DeviceSelectionError> {
+    public func awaitSelection() async -> Result<Bluetooth.Peripheral, DeviceSelectionError> {
         isSelecting = true
         advertisementsContinuation.yield([])
         defer {
@@ -50,9 +50,9 @@ public class DeviceSelector: InteractiveDeviceSelector {
         }
     }
 
-    public func showAdvertisement(peripheral: Bluetooth.AnyPeripheral, advertisement: Bluetooth.Advertisement) {
+    public func showAdvertisement(peripheral: Bluetooth.Peripheral, advertisement: Bluetooth.Advertisement) {
         guard isSelecting else { return }
-        advertisingPeripherals[peripheral.identifier] = (peripheral, advertisement)
+        advertisingPeripherals[peripheral.id] = (peripheral, advertisement)
         advertisementsContinuation.yield(advertisingPeripherals.values.map { $0.1 })
     }
 
@@ -60,7 +60,7 @@ public class DeviceSelector: InteractiveDeviceSelector {
         fulfill(returning: .failure(error))
     }
 
-    private func fulfill(returning result: Result<Bluetooth.AnyPeripheral, DeviceSelectionError>) {
+    private func fulfill(returning result: Result<Bluetooth.Peripheral, DeviceSelectionError>) {
         guard let continuation = selectionContinuaton else { return }
         selectionContinuaton = nil
         continuation.resume(returning: result)

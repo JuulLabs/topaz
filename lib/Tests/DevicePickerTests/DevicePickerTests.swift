@@ -70,10 +70,10 @@ struct DevicePickerTests {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
         await bigYield()
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
-        sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
+        let fake = FakePeripheral(id: zeroUuid, name: "bob")
+        sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAd(rssi: 0))
         await bigYield()
-        sut.makeSelection(fake._identifier)
+        sut.makeSelection(fake.id)
         let result = await pendingResult
         switch result {
         case let .success(success):
@@ -88,8 +88,8 @@ struct DevicePickerTests {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
         await bigYield()
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
-        sut.showAdvertisement(peripheral: fake.eraseToAnyPeripheral(), advertisement: fake.fakeAd(rssi: 0))
+        let fake = FakePeripheral(id: zeroUuid)
+        sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAd(rssi: 0))
         await bigYield()
         async let collected = await sut.advertisements.first(where: { !$0.isEmpty })!
         await bigYield()
