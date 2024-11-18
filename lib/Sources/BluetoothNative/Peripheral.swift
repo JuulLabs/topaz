@@ -9,6 +9,7 @@ extension CBPeripheral: @retroactive @unchecked Sendable {}
 /**
  TODO: To satisfy @unchecked Sendable we theoretically should lock-isolate all state when going
  through `PeripheralProtocol`. Accessing getters like name or state is probably fine for now.
+ In practice the only valid choice would be to access on the bluetooth dispatch queue only. :(
  */
 extension CBPeripheral: WrappedPeripheral {
     public var _identifier: UUID {

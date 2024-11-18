@@ -1,55 +1,63 @@
 import Bluetooth
+import BluetoothClient
 import CoreBluetooth
 
-class RelayDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
+class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
-    private let handleEvent: (DelegateEvent) -> Void
-
-    init(handleEvent: @escaping (DelegateEvent) -> Void) {
-        self.handleEvent = handleEvent
-    }
+    var handleEvent: (BluetoothEvent) -> Void = { _ in }
 
     // MARK: - CBCentralManagerDelegate
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        handleEvent(.systemState(central.state.toSystemState()))
+        handleEvent(SystemStateEvent(central.state.toSystemState()))
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
         let advertisement = Advertisement(peripheral: peripheral, rssi: RSSI, data: advertisementData)
-        handleEvent(.advertisement(peripheral.eraseToAnyPeripheral(), advertisement))
+        handleEvent(AdvertisementEvent(peripheral.eraseToAnyPeripheral(), advertisement))
     }
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self // weak owned
-        handleEvent(.connected(peripheral.eraseToAnyPeripheral()))
+        handlePeripheralEvent(.connect, peripheral, nil)
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
         peripheral.delegate = nil
-        handleEvent(.disconnected(peripheral.eraseToAnyPeripheral(), error.toDelegateError()))
+        handlePeripheralEvent(.disconnect, peripheral, error)
     }
 
     // MARK: - CBPeripheralDelegate
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
-        handleEvent(.discoveredServices(peripheral.eraseToAnyPeripheral(), error.toDelegateError()))
+        handlePeripheralEvent(.discoverServices, peripheral, error)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
-        guard let service = service.toService() else { return }
-        handleEvent(.discoveredCharacteristics(peripheral.eraseToAnyPeripheral(), service, error.toDelegateError()))
+        handlePeripheralEvent(.discoverCharacteristics, peripheral, error)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
-        guard let characteristic = characteristic.toCharacteristic() else { return }
-        handleEvent(.characteristicChanged(peripheral.eraseToAnyPeripheral(), characteristic, error.toDelegateError()))
+        handleCharacteristicEvent(.characteristicValue, peripheral, characteristic, error)
     }
-}
 
-fileprivate extension Optional where Wrapped == Error {
-    func toDelegateError() -> DelegateEventError? {
-        map(DelegateEventError.causedBy)
+    private func handlePeripheralEvent(_ event: EventName, _ peripheral: CBPeripheral, _ error: (any Error)?) {
+        let event: BluetoothEvent = if let error {
+            ErrorEvent(event, peripheral.eraseToAnyPeripheral(), BluetoothError.causedBy(error))
+        } else {
+            PeripheralEvent(event, peripheral.eraseToAnyPeripheral())
+        }
+        handleEvent(event)
+    }
+
+    private func handleCharacteristicEvent(_ event: EventName, _ peripheral: CBPeripheral, _ characteristic: CBCharacteristic, _ error: (any Error)?) {
+        guard let characteristic = characteristic.toCharacteristic() else { return }
+        let event: BluetoothEvent = if let error {
+            ErrorEvent(event, peripheral.eraseToAnyPeripheral(), characteristic, BluetoothError.causedBy(error))
+        } else {
+            CharacteristicEvent(event, peripheral.eraseToAnyPeripheral(), characteristic)
+        }
+        handleEvent(event)
     }
 }
 
