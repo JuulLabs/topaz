@@ -9,28 +9,14 @@ public let liveBluetoothClient: BluetoothClient = NativeBluetoothClient()
 struct NativeBluetoothClient: BluetoothClient {
     private let coordinator: Coordinator
     private let server: EventService
-    private let eventsContinuation: AsyncStream<any BluetoothEvent>.Continuation
 
-    let events: AsyncStream<any BluetoothEvent>
-
-    init() {
-        let eventService = EventService()
-        self.coordinator = Coordinator()
-        self.server = eventService
-        let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
-        self.events = stream
-        self.eventsContinuation = continuation
-        Task { [events = coordinator.events, server] in
-            for await event in events {
-                continuation.yield(event)
-                await server.handleEvent(event)
-            }
-        }
+    var events: AsyncStream<any BluetoothEvent> {
+        coordinator.events
     }
 
-    private func handleEvent(_ event: BluetoothEvent) async {
-        eventsContinuation.yield(event)
-        await server.handleEvent(event)
+    init() {
+        self.coordinator = Coordinator()
+        self.server = EventService()
     }
 
     func scan(filter: Filter) -> any BluetoothScanner {
@@ -44,6 +30,10 @@ struct NativeBluetoothClient: BluetoothClient {
     func disable() async {
         coordinator.disable()
         await cancelPendingRequests()
+    }
+
+    func resolvePendingRequests(for event: any BluetoothEvent) async {
+        await server.handleEvent(event)
     }
 
     func cancelPendingRequests() async {

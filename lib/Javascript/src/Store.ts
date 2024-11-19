@@ -21,6 +21,10 @@ const characteristicKey = (uuid: string, instance: number): CharacteristicKey =>
     return uuid + '.' + instance;
 }
 
+export const keyForCharacteristic = (characteristic: BluetoothRemoteGATTCharacteristic): CharacteristicKey => {
+    return characteristicKey(characteristic.uuid, characteristic.instance);
+}
+
 class Store {
     #devices: Map<string, DeviceRecord>;
 
@@ -35,7 +39,13 @@ class Store {
     addDevice = (device: BluetoothDevice) => {
         const deviceRecord = this.#devices.get(device.uuid);
         if (deviceRecord) {
-            mainDispatcher.removeTarget(deviceRecord.device.uuid, 'gattserverdisconnected');
+            mainDispatcher.removeAllTargets(deviceRecord.device.uuid);
+            for (const serviceRecord of deviceRecord.services.values()) {
+                mainDispatcher.removeAllTargets(serviceRecord.uuid);
+                for (const characteristic of serviceRecord.characteristics.values()) {
+                    mainDispatcher.removeAllTargets(keyForCharacteristic(characteristic));
+                }
+            }
         }
         this.#devices.set(device.uuid, { uuid: device.uuid, device, services: new Map() });
     }
@@ -56,12 +66,12 @@ class Store {
         return this.#devices.get(service.device.uuid)?.services.get(service.uuid)?.characteristics.get(characteristicKey(uuid, instance));
     }
 
-    addCharacteristic = (service: BluetoothRemoteGATTService, characteristic: BluetoothRemoteGATTCharacteristic, instance: number) => {
+    addCharacteristic = (service: BluetoothRemoteGATTService, characteristic: BluetoothRemoteGATTCharacteristic) => {
         const serviceRecord = this.#devices.get(service.device.uuid)?.services.get(service.uuid);
         if (!serviceRecord) {
             throw new ReferenceError(`Service ${service.uuid} not found`);
         }
-        serviceRecord.characteristics.set(characteristicKey(characteristic.uuid, instance), characteristic);
+        serviceRecord.characteristics.set(keyForCharacteristic(characteristic), characteristic);
     }
 
     private findCharacteristic = (key: CharacteristicKey): BluetoothRemoteGATTCharacteristic | undefined => {

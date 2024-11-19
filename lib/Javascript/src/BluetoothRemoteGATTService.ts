@@ -2,8 +2,9 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
-import { store } from "./Store";
+import { keyForCharacteristic, store } from "./Store";
 import { BluetoothUUID } from "./BluetoothUUID";
+import { mainDispatcher } from "./EventDispatcher";
 
 type DiscoverCharacteristicsRequest = {
     device: string;
@@ -33,7 +34,8 @@ const getOrCreateCharacteristic = (
         return existingCharacteristic;
     }
     const characteristic = new BluetoothRemoteGATTCharacteristic(service, uuid, properties, instance);
-    store.addCharacteristic(service, characteristic, instance);
+    store.addCharacteristic(service, characteristic);
+    mainDispatcher.addTarget(keyForCharacteristic(characteristic), 'characteristicvaluechanged', characteristic);
     return characteristic;
 }
 
