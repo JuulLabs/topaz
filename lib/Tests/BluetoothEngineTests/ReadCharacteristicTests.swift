@@ -91,7 +91,7 @@ struct ReadCharacteristicRequestTests {
     @Test
     func decode_withEmptyBody_isNil() {
         let body: [String: JsType] = [:]
-        let request = ConnectRequest.decode(from: body)
+        let request = ReadCharacteristicRequest.decode(from: body)
         #expect(request == nil)
     }
 }

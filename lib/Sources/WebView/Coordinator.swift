@@ -71,20 +71,17 @@ public class Coordinator: NSObject {
 extension WKWebView {
     func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
         return JsContext(id: contextId) { [weak self] event in
-            self?.callAsyncJavaScript(
-                "topaz.sendEvent(event)",
-                arguments: [ "event": event.jsValue ],
-                in: nil,
-                in: world) { result in
 #if DEBUG
-                    switch result {
-                    case .success:
-                        print("Did send event \(event.jsValue)")
-                    case let .failure(error):
-                        // TODO: log this somewhere
-                        print("Event send failed: \(error.localizedDescription)")
-                    }
+            print("EVENT: \(event.jsValue)")
 #endif
+            return await withCheckedContinuation { continuation in
+                self?.callAsyncJavaScript(
+                    "topaz.sendEvent(event)",
+                    arguments: [ "event": event.jsValue ],
+                    in: nil,
+                    in: world) { result in
+                        continuation.resume(returning: result.map { _ in () })
+                    }
             }
         }
     }

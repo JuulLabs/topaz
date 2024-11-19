@@ -11,8 +11,6 @@ type ReadCharacteristicRequest = {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic
 export class BluetoothRemoteGATTCharacteristic extends EventTarget {
-    #instance: number;
-
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/value
     public value?: DataView;
 
@@ -20,10 +18,9 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         public service: BluetoothRemoteGATTService,
         public uuid: string,
         public properties: BluetoothCharacteristicProperties,
-        instance: number
+        public instance: number
     ) {
         super();
-        this.#instance = instance;
         this.value = null;
     }
 
@@ -35,7 +32,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
                 device: this.service.device.uuid,
                 service: this.service.uuid,
                 characteristic: this.uuid,
-                instance: this.#instance
+                instance: this.instance
             }
         )
         return copyOf(this.value)

@@ -33,8 +33,10 @@ public actor BluetoothEngine: JsMessageProcessor {
     // MARK: - Bluetooth Events
 
     private func handleDelegateEvent(_ event: BluetoothEvent) async {
+        // Note: order of processing is super important here
         await updateState(for: event)
         await sendJsEvent(for: event)
+        await client.resolvePendingRequests(for: event)
     }
 
     private func updateState(for event: BluetoothEvent) async {
@@ -70,7 +72,12 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     private func sendEvent(_ event: JsEventEncodable) async {
-        await context?.sendEvent(event.toJsEvent())
+        guard let context else { return }
+        let result = await context.sendEvent(event.toJsEvent())
+        if case let .failure(error) = result {
+            // TODO: log this somewhere
+            print("Event send failed: \(error.localizedDescription)")
+        }
     }
 
     public func process(request: JsMessageRequest) async -> JsMessageResponse {

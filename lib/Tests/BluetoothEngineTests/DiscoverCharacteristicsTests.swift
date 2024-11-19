@@ -13,7 +13,7 @@ struct DiscoverCharacteristicsTests {
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
     private let context = JsContext(
         id: JsContextIdentifier(tab: 0, url: URL(string: "https://topaz.com/")!),
-        eventSink: { _ in }
+        eventSink: { _ in .success(()) }
     )
 
     @Test

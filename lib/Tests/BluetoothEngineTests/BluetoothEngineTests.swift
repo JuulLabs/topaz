@@ -14,7 +14,7 @@ struct BluetoothEngineTests {
     private let url: URL! = URL(string: "https://topaz.com/")
     private let context = JsContext(
         id: JsContextIdentifier(tab: 0, url: URL(string: "https://topaz.com/")!),
-        eventSink: { _ in }
+        eventSink: { _ in .success(()) }
     )
 
     private let fakeServices: [Service] = [
