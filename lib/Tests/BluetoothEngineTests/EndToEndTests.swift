@@ -1,10 +1,13 @@
 import Bluetooth
+@testable import BluetoothAction
 import BluetoothClient
 @testable import BluetoothEngine
+import BluetoothMessage
 import DevicePicker
 import Foundation
 import JsMessage
 import Testing
+import XCTest
 
 @Suite(.timeLimit(.minutes(1)))
 struct EndToEndBluetoothEngineTests {
@@ -52,6 +55,41 @@ struct EndToEndBluetoothEngineTests {
         }
         #expect(body["uuid"] as? String == zeroUuid.uuidString)
         #expect(body["name"] as? String == "bob")
+    }
+
+    @Test
+    func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving() async throws {
+        let fake = FakePeripheral(name: "", identifier: UUID(n: 0))
+        let characteristic = Characteristic(
+            uuid: UUID(n: 1),
+            instance: 0,
+            properties: [],
+            value: nil,
+            descriptors: [],
+            isNotifying: false
+        )
+        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake.eraseToAnyPeripheral()])
+
+        let eventExpectation = XCTestExpectation(description: "Receive event")
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
+            #expect(event.eventName == "characteristicvaluechanged")
+            eventExpectation.fulfill()
+            return .success(())
+        }
+
+        var client = MockBluetoothClient()
+        let resolveExpectation = XCTestExpectation(description: "Resolve pending request")
+        client.onResolvePendingRequests = { event in
+            #expect(event.name == .characteristicValue)
+            resolveExpectation.fulfill()
+        }
+
+        let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
+        await sut.didAttach(to: context)
+        client.eventsContinuation.yield(CharacteristicEvent(.characteristicValue, fake.eraseToAnyPeripheral(), characteristic))
+
+        // It is critical that Js sees the `characteristicvaluechanged` event before the promise is resolved
+        await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation], timeout: 1.0, enforceOrder: true)
     }
 
 }
