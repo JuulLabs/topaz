@@ -10,8 +10,8 @@ public struct Characteristic: Equatable, Sendable {
     public let instance: UInt32
     public let properties: CharacteristicProperties
     public let value: Data?
-    public let descriptors: [Descriptor]
     public let isNotifying: Bool
+    public let descriptors: [Descriptor]
 
     public init(
         characteristic: AnyProtectedObject,

@@ -19,13 +19,9 @@ public struct Peripheral: Sendable {
         self.services = services
     }
 
-    public func withLock<T: AnyObject>(block: (T) -> Void) {
-        (peripheral.wrapped as? ProtectedObject<T>)?.withLock(block: block)
-    }
-
     public var connectionState: ConnectionState? {
         var state: ConnectionState?
-        withLock { (peripheral: AnyObject) in
+        peripheral.withLock { (peripheral: AnyObject) in
             state = (peripheral as? PeripheralProtocol)?.connectionState
         }
         return state
