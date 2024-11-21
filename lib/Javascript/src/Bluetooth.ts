@@ -1,6 +1,5 @@
 import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
-import { mainDispatcher } from "./EventDispatcher";
 import { ValueEvent } from "./ValueEvent";
 import { store } from "./Store";
 
@@ -32,8 +31,6 @@ export class Bluetooth extends EventTarget {
 
     constructor() {
         super();
-        // This class is a singleton so do the global event plumbing right here
-        mainDispatcher.addTarget('bluetooth', 'availabilitychanged', this);
         this.addEventListener('availabilitychanged', (event) => {
             this.onavailabilitychanged(event);
         });
