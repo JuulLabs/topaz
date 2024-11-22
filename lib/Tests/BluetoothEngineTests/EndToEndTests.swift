@@ -28,7 +28,7 @@ struct EndToEndBluetoothEngineTests {
     /// 3. user selecting the device from the picker
     /// 4. engine fulfills the selected device promise
     @Test func process_requestDevice_returnsDeviceWhenSelected() async throws {
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
+        let fake = FakePeripheral(id: zeroUuid, name: "bob")
         let scanner = MockScanner()
         let selectorSut = await DeviceSelector()
         let engineSut = await withClient { _, client, selector in
@@ -39,7 +39,7 @@ struct EndToEndBluetoothEngineTests {
         }
 
         async let promise = await engineSut.process(request: requestDeviceRequest)
-        scanner.continuation.yield(AdvertisementEvent(fake.eraseToAnyPeripheral(), fake.fakeAd(rssi: 0)))
+        scanner.continuation.yield(AdvertisementEvent(fake, fake.fakeAd(rssi: 0)))
         let advertisements = await selectorSut.advertisements.first(where: { !$0.isEmpty })
         #expect(advertisements!.count == 1)
 
@@ -59,16 +59,9 @@ struct EndToEndBluetoothEngineTests {
 
     @Test
     func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving() async throws {
-        let fake = FakePeripheral(name: "", identifier: UUID(n: 0))
-        let characteristic = Characteristic(
-            uuid: UUID(n: 1),
-            instance: 0,
-            properties: [],
-            value: nil,
-            descriptors: [],
-            isNotifying: false
-        )
-        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake.eraseToAnyPeripheral()])
+        let fake = FakePeripheral(id: UUID(n: 0))
+        let characteristic = FakeCharacteristic(uuid: UUID(n: 1))
+        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake])
 
         let eventExpectation = XCTestExpectation(description: "Receive event")
         let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
@@ -86,7 +79,9 @@ struct EndToEndBluetoothEngineTests {
 
         let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
-        client.eventsContinuation.yield(CharacteristicEvent(.characteristicValue, fake.eraseToAnyPeripheral(), characteristic))
+        client.eventsContinuation.yield(
+            CharacteristicChangedEvent(peripheralId: fake.id, characteristicId: characteristic.uuid, instance: characteristic.instance, data: nil)
+        )
 
         // It is critical that Js sees the `characteristicvaluechanged` event before the promise is resolved
         await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation], timeout: 1.0, enforceOrder: true)

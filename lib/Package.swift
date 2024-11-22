@@ -42,7 +42,10 @@ let package = Package(
         ),
 
         .target(
-            name: "Bluetooth"
+            name: "Bluetooth",
+            dependencies: [
+                "Helpers",
+            ]
         ),
         .testTarget(
             name: "BluetoothTests",

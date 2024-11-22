@@ -18,9 +18,9 @@ struct BluetoothEngineTests {
     )
 
     private let fakeServices: [Service] = [
-        Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
-        Service(uuid: UUID(uuidString: "00000002-0000-0000-0000-000000000000")!, isPrimary: false),
-        Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+        FakeService(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+        FakeService(uuid: UUID(uuidString: "00000002-0000-0000-0000-000000000000")!, isPrimary: false),
+        FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
     ]
 
     @Test(arguments: [
@@ -61,17 +61,17 @@ struct BluetoothEngineTests {
 
     @Test
     func connect() async throws {
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid)
+        let fake = FakePeripheral(id: zeroUuid)
         let connectRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake._identifier.uuidString),
+                "uuid": .string(fake.id.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
             client.onConnect = { PeripheralEvent(.connect, $0) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .connect, requestBody: connectRequestBody)
@@ -85,17 +85,17 @@ struct BluetoothEngineTests {
 
     @Test
     func disconnect() async throws {
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected)
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected)
         let disconnectRequestBody: [String: JsType] = [
             "data": .dictionary([
-                "uuid": .string(fake._identifier.uuidString),
+                "uuid": .string(fake.id.uuidString),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
             client.onDisconnect = { PeripheralEvent(.disconnect, $0) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .disconnect, requestBody: disconnectRequestBody)
@@ -109,22 +109,22 @@ struct BluetoothEngineTests {
 
     @Test
     func discoverServices_single_withService() async throws {
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected)
         let expectedServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
+            FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "single": .number(true),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in PeripheralEvent(.discoverServices, peripheral) }
+            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -138,22 +138,22 @@ struct BluetoothEngineTests {
 
     @Test
     func discoverServices_withoutService() async throws {
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected)
         let expectedServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
+            FakeService(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
+            FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true),
         ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "single": .number(false),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in PeripheralEvent(.discoverServices, peripheral) }
+            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -167,22 +167,22 @@ struct BluetoothEngineTests {
 
     @Test
     func discoverServices_withService() async throws {
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected)
         let expectedServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
+            FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true)
         ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: expectedServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "single": .number(false),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in PeripheralEvent(.discoverServices, peripheral) }
+            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)

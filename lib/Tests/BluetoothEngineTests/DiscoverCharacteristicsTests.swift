@@ -18,26 +18,26 @@ struct DiscoverCharacteristicsTests {
 
     @Test
     func discoverCharacteristics_single_withCharacteristic() async throws {
+        let fakeService = FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!)
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected, services: [fakeService])
         let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            FakeCharacteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!),
         ]
-        let fakeServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
-        ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(true),
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverCharacteristics = { peripheral, _ in PeripheralEvent(.discoverCharacteristics, peripheral) }
+            client.onDiscoverCharacteristics = { peripheral, filter in
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
+            }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -51,27 +51,29 @@ struct DiscoverCharacteristicsTests {
 
     @Test
     func discoverCharacteristics_withoutCharacteristic() async throws {
-        let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
-            Characteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
-        ]
         let fakeServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
+            FakeService(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!),
+            FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!),
         ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected, services: fakeServices)
+        let expectedCharacteristics = [
+            FakeCharacteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!),
+            FakeCharacteristic(uuid: UUID(uuidString: "00000003-0002-0000-0000-000000000000")!),
+        ]
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
             ]),
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverCharacteristics = { peripheral, _ in PeripheralEvent(.discoverCharacteristics, peripheral) }
+            client.onDiscoverCharacteristics = { peripheral, filter in
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
+            }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -86,17 +88,17 @@ struct DiscoverCharacteristicsTests {
     @Test
     func discoverCharacteristics_withCharacteristic() async throws {
         let expectedCharacteristics = [
-            Characteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!, instance: 0, properties: CharacteristicProperties(), value: nil, descriptors: [], isNotifying: false),
+            FakeCharacteristic(uuid: UUID(uuidString: "00000003-0001-0000-0000-000000000000")!),
         ]
         let fakeServices: [Service] = [
-            Service(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
-            Service(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!, isPrimary: true, characteristics: expectedCharacteristics),
+            FakeService(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!),
+            FakeService(uuid: UUID(uuidString: "00000003-0000-0000-0000-000000000000")!),
         ]
-        let fake = FakePeripheral(name: "bob", identifier: zeroUuid, connectionState: .connected, services: fakeServices)
+        let fake = FakePeripheral(id: zeroUuid, connectionState: .connected, services: fakeServices)
         let requestBody: [String: JsType] = [
             "data": .dictionary([
                 "single": .number(false),
-                "device": .string(fake._identifier.uuidString),
+                "device": .string(fake.id.uuidString),
                 "service": .string("00000003-0000-0000-0000-000000000000"),
                 "characteristic": .string("00000003-0001-0000-0000-000000000000"),
             ]),
@@ -105,10 +107,10 @@ struct DiscoverCharacteristicsTests {
             client.onEnable = { }
             client.onDiscoverCharacteristics = { peripheral, filter in
                 _ = try #require(fakeServices.first(where: { $0.uuid == filter.service }))
-                return PeripheralEvent(.discoverCharacteristics, peripheral)
+                return CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
             }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake.eraseToAnyPeripheral())
+            await state.putPeripheral(fake)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)

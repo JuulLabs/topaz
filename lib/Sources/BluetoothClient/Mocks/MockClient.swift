@@ -11,12 +11,12 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCancelPendingRequests: @Sendable () async -> Void
     public var onScan: @Sendable (_ filter: Filter) async -> BluetoothScanner
     public var onSystemState: @Sendable () async throws -> SystemStateEvent
-    public var onConnect: @Sendable (_ peripheral: AnyPeripheral) async throws -> PeripheralEvent
-    public var onDisconnect: @Sendable (_ peripheral: AnyPeripheral) async throws -> PeripheralEvent
-    public var onDiscoverServices: @Sendable (_ peripheral: AnyPeripheral, _ filter: ServiceDiscoveryFilter) async throws -> PeripheralEvent
-    public var onDiscoverCharacteristics: @Sendable (_ peripheral: AnyPeripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> PeripheralEvent
-    public var onCharacteristicNotify: @Sendable (_ peripheral: AnyPeripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
-    public var onCharacteristicRead: @Sendable (_ peripheral: AnyPeripheral, _ serviceUuid: UUID, _ characteristicUuid: UUID, _ instance: UInt32) async throws -> CharacteristicEvent
+    public var onConnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
+    public var onDisconnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
+    public var onDiscoverServices: @Sendable (_ peripheral: Peripheral, _ filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
+    public var onDiscoverCharacteristics: @Sendable (_ peripheral: Peripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
+    public var onCharacteristicNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
+    public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -33,7 +33,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onDiscoverServices = { _, _ in fatalError("Not implemented") }
         self.onDiscoverCharacteristics = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
-        self.onCharacteristicRead = { _, _, _, _ in fatalError("Not implemented") }
+        self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
     }
 
     public func enable() async {
@@ -52,7 +52,7 @@ public struct MockBluetoothClient: BluetoothClient {
         await onCancelPendingRequests()
     }
 
-    public func scan(filter: Bluetooth.Filter) async -> any BluetoothScanner {
+    public func scan(filter: Filter) async -> any BluetoothScanner {
         await onScan(filter)
     }
 
@@ -60,27 +60,27 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onSystemState()
     }
 
-    public func connect(_ peripheral: Bluetooth.AnyPeripheral) async throws -> PeripheralEvent {
+    public func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
         try await onConnect(peripheral)
     }
 
-    public func disconnect(_ peripheral: Bluetooth.AnyPeripheral) async throws -> PeripheralEvent {
+    public func disconnect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
         try await onDisconnect(peripheral)
     }
 
-    public func discoverServices(_ peripheral: Bluetooth.AnyPeripheral, filter: Bluetooth.ServiceDiscoveryFilter) async throws -> PeripheralEvent {
+    public func discoverServices(_ peripheral: Peripheral, filter: Bluetooth.ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent {
         try await onDiscoverServices(peripheral, filter)
     }
 
-    public func discoverCharacteristics(_ peripheral: Bluetooth.AnyPeripheral, filter: Bluetooth.CharacteristicDiscoveryFilter) async throws -> PeripheralEvent {
+    public func discoverCharacteristics(_ peripheral: Peripheral, filter: Bluetooth.CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent {
         try await onDiscoverCharacteristics(peripheral, filter)
     }
 
-    public func characteristicNotify(_ peripheral: Bluetooth.AnyPeripheral, _ characteristic: Bluetooth.Characteristic, enabled: Bool) async throws -> CharacteristicEvent {
+    public func characteristicNotify(_ peripheral: Peripheral, _ characteristic: Bluetooth.Characteristic, enabled: Bool) async throws -> CharacteristicEvent {
         try await onCharacteristicNotify(peripheral, characteristic, enabled)
     }
 
-    public func characteristicRead(_ peripheral: Bluetooth.AnyPeripheral, serviceUuid: UUID, characteristicUuid: UUID, instance: UInt32) async throws -> CharacteristicEvent {
-        try await onCharacteristicRead(peripheral, serviceUuid, characteristicUuid, instance)
+    public func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
+        try await onCharacteristicRead(peripheral, characteristic)
     }
 }

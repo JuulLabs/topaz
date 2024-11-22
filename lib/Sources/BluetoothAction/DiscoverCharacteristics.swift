@@ -70,16 +70,16 @@ struct DiscoverCharacteristics: BluetoothAction {
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverCharacteristicsResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        _ = try await client.discoverCharacteristics(peripheral, filter: request.filter)
-        let characteristics = peripheral.services.first(where: { $0.uuid == request.serviceUuid })?.characteristics ?? []
+        let result = try await client.discoverCharacteristics(peripheral, filter: request.filter)
+        await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {
         case let .first(characteristicUuid):
-            guard let characteristic = characteristics.first else {
+            guard let characteristic = result.characteristics.first else {
                 throw BluetoothError.noSuchCharacteristic(service: request.serviceUuid, characteristic: characteristicUuid)
             }
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: [characteristic])
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.id, characteristics: [characteristic])
         case .all:
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.identifier, characteristics: characteristics)
+            return DiscoverCharacteristicsResponse(peripheralId: peripheral.id, characteristics: result.characteristics)
         }
     }
 }

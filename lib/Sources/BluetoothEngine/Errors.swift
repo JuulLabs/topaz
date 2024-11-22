@@ -1,4 +1,5 @@
 import Bluetooth
+import BluetoothClient
 import JsMessage
 
 extension BluetoothError: DomErrorConvertable {
@@ -11,6 +12,14 @@ extension BluetoothError: DomErrorConvertable {
         case .noSuchCharacteristic: .notFound
         case .unavailable: .operataion
         case .unknown: .unknown
+        }
+    }
+}
+
+extension EventServiceError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
+        switch self {
+        case .typeMismatch: .operataion
         }
     }
 }
