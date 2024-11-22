@@ -71,9 +71,9 @@ public actor BluetoothEngine: JsMessageProcessor {
         self.context = nil
     }
 
-    private func sendEvent(_ event: JsEventEncodable) async {
+    private func sendEvent(_ event: JsEvent) async {
         guard let context else { return }
-        let result = await context.sendEvent(event.toJsEvent())
+        let result = await context.sendEvent(event)
         if case let .failure(error) = result {
             // TODO: log this somewhere
             print("Event send failed: \(error.localizedDescription)")

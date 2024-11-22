@@ -12,13 +12,13 @@ public struct ErrorEvent: BluetoothEvent {
         self.error = error
     }
 
-    public init(_ name: EventName, _ peripheral: AnyPeripheral, _ error: any Error) {
+    public init(_ name: EventName, _ peripheral: Peripheral, _ error: any Error) {
         let key = EventKey.peripheral(name, peripheral)
         self.init(name, key, error)
     }
 
-    public init(_ name: EventName, _ peripheral: AnyPeripheral, _ characteristic: Characteristic, _ error: any Error) {
-        let key = EventKey.characteristic(name, peripheral, characteristic)
+    public init(_ name: EventName, _ peripheral: Peripheral, _ characteristic: Characteristic, _ error: any Error) {
+        let key = EventKey.characteristic(name, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)
         self.init(name, key, error)
     }
 }

@@ -25,7 +25,6 @@ private func uuids(from dict: [String: Any], for key: String) -> [UUID] {
 
 private func extractServiceData(from dict: [String: Any]) -> [UUID: Data] {
     (dict[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data])?.reduce(into: [:]) { result, pair in
-        guard let key = cbToUuid(pair.key) else { return }
-        result[key] = pair.value
+        result[pair.key.regularUuid] = pair.value
     } ?? [:]
 }

@@ -1,9 +1,11 @@
 import Foundation
+import Helpers
 
 /**
  Shadows CBDescriptor
  */
 public struct Descriptor: Equatable, Sendable {
+    public let descriptor: AnyProtectedObject
     public let uuid: UUID
     public let value: Value
 
@@ -14,7 +16,8 @@ public struct Descriptor: Equatable, Sendable {
         case none
     }
 
-    public init(uuid: UUID, value: Value) {
+    public init(descriptor: AnyProtectedObject, uuid: UUID, value: Value) {
+        self.descriptor = descriptor
         self.uuid = uuid
         self.value = value
     }
