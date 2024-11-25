@@ -66,16 +66,17 @@ struct DiscoverServices: BluetoothAction {
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverServicesResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        _  = try await client.discoverServices(peripheral, filter: request.filter)
-        let primaryServices = peripheral.services.filter { $0.isPrimary }
+        let result = try await client.discoverServices(peripheral, filter: request.filter)
+        await state.setServices(result.services, on: peripheral.id)
+        let primaryServices = result.services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):
             guard let service = primaryServices.first else {
                 throw BluetoothError.noSuchService(serviceUuid)
             }
-            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: [service])
+            return DiscoverServicesResponse(peripheralId: peripheral.id, services: [service])
         case .all:
-            return DiscoverServicesResponse(peripheralId: peripheral.identifier, services: primaryServices)
+            return DiscoverServicesResponse(peripheralId: peripheral.id, services: primaryServices)
         }
     }
 }

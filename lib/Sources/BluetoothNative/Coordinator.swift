@@ -11,14 +11,15 @@ class Coordinator: @unchecked Sendable {
     private let queue: DispatchQueue // TODO: from dependencies
     private var manager: CBCentralManager?
     private let delegate: EventDelegate
-    private var scannerCallback: ((AdvertisementEvent) -> Void)?
+    private var scannerCallback: (@Sendable (AdvertisementEvent) -> Void)?
 
     let events: AsyncStream<BluetoothEvent>
 
     init() {
-        self.queue = DispatchQueue(label: "bluetooth.live")
+        let queue = DispatchQueue(label: "bluetooth.live")
+        self.queue = queue
         self.manager = nil
-        self.delegate = EventDelegate()
+        self.delegate = EventDelegate(locker: QueueLockingStrategy(queue: queue))
         let (stream, contination) = AsyncStream<BluetoothEvent>.makeStream()
         self.events = stream
         delegate.handleEvent = { [weak self] event in
@@ -48,85 +49,75 @@ class Coordinator: @unchecked Sendable {
     }
 
     func disable() {
-        queue.sync {
-            reset()
+        queue.async {
+            self.reset()
         }
     }
 
     func enable() {
-        queue.sync {
-            guard manager == nil else {
+        queue.async {
+            guard self.manager == nil else {
                 // TODO: warning or error for accidental re-enable here
                 return
             }
             let options: [String: Any] = [
                 CBCentralManagerOptionShowPowerAlertKey: false as NSNumber
             ]
-            manager = CBCentralManager(delegate: delegate, queue: queue, options: options)
+            self.manager = CBCentralManager(delegate: self.delegate, queue: self.queue, options: options)
         }
     }
 
-    func startScanning(filter: Filter, callback: @escaping (AdvertisementEvent) -> Void) {
-        let services = filter.services.map(CBUUID.init)
-        queue.sync {
+    func startScanning(filter: Filter, callback: @escaping @Sendable (AdvertisementEvent) -> Void) {
+        queue.async {
+            let services = filter.services.map(CBUUID.init)
             self.scannerCallback = callback
-            manager?.scanForPeripherals(withServices: services, options: filter.options)
+            self.manager?.scanForPeripherals(withServices: services, options: filter.options)
         }
     }
 
     func stopScanning() {
-        queue.sync {
+        queue.async {
             self.scannerCallback = nil
-            manager?.stopScan()
+            self.manager?.stopScan()
         }
     }
 
-    func connect(peripheral: AnyPeripheral) {
-        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
-        queue.sync {
-            manager?.connect(native, options: nil)
+    func connect(peripheral: Peripheral) {
+        queue.async {
+            guard let native = peripheral.rawValue else { return }
+            self.manager?.connect(native, options: nil)
         }
     }
 
-    func disconnect(peripheral: AnyPeripheral) {
-        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
-        queue.sync {
-            manager?.cancelPeripheralConnection(native)
+    func disconnect(peripheral: Peripheral) {
+        queue.async {
+            guard let native = peripheral.rawValue else { return }
+            self.manager?.cancelPeripheralConnection(native)
         }
     }
 
-    func discoverServices(peripheral: AnyPeripheral, filter: ServiceDiscoveryFilter) {
-        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
-        let services = filter.services?.map(CBUUID.init)
-        queue.sync {
-            native.discoverServices(services)
+    func discoverServices(peripheral: Peripheral, uuids serviceUuids: [UUID]?) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            let uuids = serviceUuids?.map(CBUUID.init)
+            nativePeripheral.discoverServices(uuids)
         }
     }
 
-    func discoverCharacteristics(peripheral: AnyPeripheral, filter: CharacteristicDiscoveryFilter) {
-        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
-        let serviceUuid = CBUUID(nsuuid: filter.service)
-        guard let service = native.services?.first(where: {$0.uuid == serviceUuid}) else { return }
-        let uuids = filter.characteristics?.map(CBUUID.init)
-        queue.sync {
-            native.discoverCharacteristics(uuids, for: service)
+    func discoverCharacteristics(peripheral: Peripheral, service: Service, uuids characteristicUuids: [UUID]?) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeService = service.rawValue else { return }
+            let uuids = characteristicUuids?.map(CBUUID.init)
+            nativePeripheral.discoverCharacteristics(uuids, for: nativeService)
         }
     }
 
-    func readCharacteristic(peripheral: AnyPeripheral, service: UUID, characteristic: UUID, instance: UInt32) {
-        guard let native = peripheral.unerase(as: CBPeripheral.self) else { return }
-        let serviceUuid = CBUUID(nsuuid: service)
-        let characteristicUuid = CBUUID(nsuuid: characteristic)
-        guard let nativeService = native.services?.first(where: { $0.uuid == serviceUuid }) else {
-            // TODO: relocate the native object graph traversal to a throwing context to fail this case
-            return
-        }
-        guard let nativeCharacteristic = nativeService.characteristics?.first(where: { $0.uuid == characteristicUuid && $0.instanceId == instance }) else {
-            // TODO: relocate the native object graph traversal to a throwing context to fail this case
-            return
-        }
-        queue.sync {
-            native.readValue(for: nativeCharacteristic)
+    func readCharacteristic(peripheral: Peripheral, characteristic: Characteristic) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.readValue(for: nativeCharacteristic)
         }
     }
 }

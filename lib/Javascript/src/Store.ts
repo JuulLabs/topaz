@@ -1,7 +1,6 @@
 import type { BluetoothDevice } from "./BluetoothDevice";
 import type { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import type { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
-import { mainDispatcher } from "./EventDispatcher";
 
 type CharacteristicKey = string
 
@@ -21,7 +20,7 @@ const characteristicKey = (uuid: string, instance: number): CharacteristicKey =>
     return uuid + '.' + instance;
 }
 
-export const keyForCharacteristic = (characteristic: BluetoothRemoteGATTCharacteristic): CharacteristicKey => {
+const keyForCharacteristic = (characteristic: BluetoothRemoteGATTCharacteristic): CharacteristicKey => {
     return characteristicKey(characteristic.uuid, characteristic.instance);
 }
 
@@ -39,13 +38,7 @@ class Store {
     addDevice = (device: BluetoothDevice) => {
         const deviceRecord = this.#devices.get(device.uuid);
         if (deviceRecord) {
-            mainDispatcher.removeAllTargets(deviceRecord.device.uuid);
-            for (const serviceRecord of deviceRecord.services.values()) {
-                mainDispatcher.removeAllTargets(serviceRecord.uuid);
-                for (const characteristic of serviceRecord.characteristics.values()) {
-                    mainDispatcher.removeAllTargets(keyForCharacteristic(characteristic));
-                }
-            }
+            // Perform any cleanup necessary here
         }
         this.#devices.set(device.uuid, { uuid: device.uuid, device, services: new Map() });
     }
@@ -86,12 +79,13 @@ class Store {
         return undefined;
     }
 
-    updateCharacteristicValue = (key: CharacteristicKey, value: DataView): void => {
+    updateCharacteristicValue = (key: CharacteristicKey, value: DataView): BluetoothRemoteGATTCharacteristic => {
         const characteristic = this.findCharacteristic(key);
         if (!characteristic) {
             throw new ReferenceError(`Characteristic ${key} not found`);
         }
         characteristic.value = value;
+        return characteristic;
     }
 }
 
