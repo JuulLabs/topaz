@@ -3,15 +3,10 @@ import DevicePicker
 import Observation
 import SwiftUI
 import UIHelpers
-import WebView
 
 struct SearchBarView: View {
     @Bindable var model: SearchBarModel
-    @FocusState private var focusedField: FocusedField?
-
-    enum FocusedField {
-        case searchBar
-    }
+    @FocusState private var focusedField: SearchBarModel.FocusedField?
 
     var body: some View {
         HStack(spacing: 8) {
@@ -26,6 +21,7 @@ struct SearchBarView: View {
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .onSubmit {
+                    focusedField = nil
                     model.didSubmitSearchString()
                 }
         }
@@ -34,7 +30,7 @@ struct SearchBarView: View {
         .cornerRadius(24)
         .frame(maxWidth: .infinity, minHeight: 48)
         .onAppear {
-            focusedField = .searchBar
+            focusedField = model.focusedField
         }
     }
 }

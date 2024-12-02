@@ -9,13 +9,16 @@ import WebKit
 public final class WebContainerModel {
     public let webPageModel: WebPageModel
     public let pickerModel: DevicePickerModel
+    public let navBarModel: NavBarModel
     public var selector: DeviceSelector
 
     init(
         webPageModel: WebPageModel,
+        navBarModel: NavBarModel,
         selector: DeviceSelector
     ) {
         self.webPageModel = webPageModel
+        self.navBarModel = navBarModel
         self.selector = selector
         self.pickerModel = DevicePickerModel(
             siteName: webPageModel.hostname,
@@ -33,6 +36,7 @@ public final class WebContainerModel {
     ) async throws -> WebContainerModel {
         let config = try await webConfigLoader.loadConfig()
         let webPageModel = buildWebModel(config)
-        return .init(webPageModel: webPageModel, selector: selector)
+        let navBarModel = NavBarModel(navigator: webPageModel.navigator)
+        return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector)
     }
 }

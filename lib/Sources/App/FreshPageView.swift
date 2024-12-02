@@ -20,6 +20,9 @@ struct FreshPageView: View {
             // Tap outside to dismiss the keyboard
             resignFirstResponder()
         }
+        .onAppear {
+            model.searchBarModel.focusedField = .searchBar
+        }
     }
 
     private var isCompact: Bool {
