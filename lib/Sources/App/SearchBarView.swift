@@ -16,8 +16,7 @@ struct SearchBarView: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.subheadline)
-                .fontWeight(.ultraLight)
+                .font(.subheadline.weight(.ultraLight))
                 .foregroundStyle(Color.steel600)
             TextField("Paste or enter website address", text: $model.searchString)
                 .font(.dogpatch(.subheadline))
