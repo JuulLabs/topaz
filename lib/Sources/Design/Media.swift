@@ -2,6 +2,10 @@ import SwiftUI
 
 public enum MediaImage: String {
     case mainLogo = "topaz_logo"
+    case signalNone = "signal_none"
+    case signalOne = "signal_one"
+    case signalThree = "signal_three"
+    case signalTwo = "signal_two"
 }
 
 extension Image {

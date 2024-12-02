@@ -1,6 +1,7 @@
 import Bluetooth
 import Observation
 import SwiftUI
+import Design
 
 public struct DevicePickerView: View {
 
@@ -11,18 +12,32 @@ public struct DevicePickerView: View {
     }
 
     public var body: some View {
-        List {
-            ForEach(model.advertisements) { advertisement in
-                Button {
-                    model.advertisementTapped(advertisement)
-                } label: {
-                    PickerLineView(model: advertisement)
+        VStack(alignment: .center) {
+            Text("Select a device")
+//                .font(.dogpatch(custom: .launchHeadline, weight: .bold))
+                .font(.dogpatch(.title2))
+                .foregroundStyle(.white)
+            List {
+                ForEach(model.advertisements) { advertisement in
+                    Button {
+                        model.advertisementTapped(advertisement)
+                    } label: {
+                        PickerLineView(model: advertisement)
+                    }
                 }
+                //            .listStyle(.insetGrouped)
+                .listRowBackground(Color.topaz800)
+                .listRowSeparatorTint(Color.interactiveIconPrimary)
+            }
+            .scrollContentBackground(.hidden)
+            .task {
+                model.task()
             }
         }
-        .task {
-            model.task()
-        }
+//        .alignmentGuide(.listRowSeparatorLeading) {
+//            $0[.leading]
+//        }
+        .background(Color.topaz700)
     }
 }
 
@@ -34,8 +49,9 @@ public struct DevicePickerView: View {
     )
     NavigationStack {
         DevicePickerView(model: model)
-            .navigationTitle("Select Device")
+//            .navigationTitle("Select Device")
 #if targetEnvironment(simulator)
+            .forceLoadFontsInPreview()
             .task {
                 await model.selector.injectMockAdsAndStart()
             }

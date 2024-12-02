@@ -13,6 +13,8 @@ extension DeviceSelector {
             "35fc49b",
             "Really smart window",
             "Even smarter light bulb",
+            "Batcomputer",
+            "JUUL3 JFJKDWKFIW",
         ].map { FakePeripheral(id: UUID(), name: $0) }
         return Task {
             while !Task.isCancelled {
