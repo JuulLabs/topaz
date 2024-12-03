@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "JsMessage", targets: ["JsMessage"]),
+        .library(name: "Settings", targets: ["Settings"]),
         .library(name: "UIHelpers", targets: ["UIHelpers"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
@@ -32,6 +33,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 "Design",
+                "Settings",
                 "UIHelpers",
                 "WebView",
             ]
@@ -136,6 +138,14 @@ let package = Package(
             name: "JsMessage",
             dependencies: [
                 "Helpers",
+            ]
+        ),
+
+        .target(
+            name: "Settings",
+            dependencies: [
+                "Design",
+                "UIHelpers",
             ]
         ),
 

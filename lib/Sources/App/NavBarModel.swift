@@ -10,6 +10,7 @@ public final class NavBarModel {
 
     var fullscreenButtonDisabled: Bool = false
     var isFullscreen: Bool = false
+    var isSettingsPresented: Bool = false
 
     init(
         navigator: WebNavigator = WebNavigator()
@@ -38,6 +39,7 @@ public final class NavBarModel {
     }
 
     func settingsButtonTapped() {
+        isSettingsPresented.toggle()
     }
 
     func deriveProgress(loadingState: WebPageLoadingState) -> Float? {
