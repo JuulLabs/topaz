@@ -17,7 +17,7 @@ public struct AppContentView: View {
     }
 
     public var body: some View {
-        WebLoadingView(model: model.loadingModel)
+        WebLoadingView(model: model.loadingModel, searchBarModel: model.freshPageModel.searchBarModel)
     }
 }
 

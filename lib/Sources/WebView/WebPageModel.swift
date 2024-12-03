@@ -20,6 +20,8 @@ public class WebPageModel {
     /// Showing the WKWebView earlier than this will just display a black void
     public var isPerformingInitialContentLoad: Bool = true
 
+    public let navigator: WebNavigator
+
     let messageProcessors: [JsMessageProcessor]
 
     // TODO: dynamically construct this
@@ -40,6 +42,7 @@ public class WebPageModel {
         self.url = url
         self.config = config
         self.messageProcessors = messageProcessors
+        self.navigator = WebNavigator()
     }
 
     public func loadNewPage(url: URL) {

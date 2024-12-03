@@ -7,11 +7,15 @@ import WebKit
 
 struct WebLoadingView: View {
     let model: WebLoadingModel
+    let searchBarModel: SearchBarModel
 
     var body: some View {
         ZStack {
             if let webContainerModel = model.webContainerModel {
-                WebContainerView(model: webContainerModel)
+                WebContainerView(
+                    webContainerModel: webContainerModel,
+                    searchBarModel: searchBarModel
+                )
             }
             if model.shouldShowFreshPageOverlay {
                 FreshPageView(model: model.freshPageModel)
@@ -23,7 +27,8 @@ struct WebLoadingView: View {
 
 #Preview("Empty") {
     WebLoadingView(
-        model: previewModel()
+        model: previewModel(),
+        searchBarModel: SearchBarModel()
     )
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -32,10 +37,13 @@ struct WebLoadingView: View {
 
 #Preview("Loading") {
     let model: WebLoadingModel = previewModel()
-    WebLoadingView(model: model)
-        .task {
-            model.freshPageModel.isLoading = true
-        }
+    WebLoadingView(
+        model: model,
+        searchBarModel: SearchBarModel()
+    )
+    .task {
+        model.freshPageModel.isLoading = true
+    }
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
@@ -43,13 +51,16 @@ struct WebLoadingView: View {
 
 #Preview("Loaded") {
     let model: WebLoadingModel = previewModel()
-    WebLoadingView(model: model)
-        .task {
-            model.freshPageModel.isLoading = true
-            try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
-            let url = URL.init(string: "https://loremipsum.org")!
-            model.webContainerModel = webModel(url: url)
-        }
+    WebLoadingView(
+        model: model,
+        searchBarModel: SearchBarModel()
+    )
+    .task {
+        model.freshPageModel.isLoading = true
+        try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
+        let url = URL.init(string: "https://loremipsum.org")!
+        model.webContainerModel = webModel(url: url)
+    }
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
@@ -70,6 +81,7 @@ private func webModel(url: URL) -> WebContainerModel {
             config: previewWebConfig(),
             messageProcessors: []
         ),
+        navBarModel: NavBarModel(),
         selector: DeviceSelector()
     )
 }

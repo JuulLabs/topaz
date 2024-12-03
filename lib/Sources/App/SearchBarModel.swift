@@ -4,11 +4,17 @@ import SwiftUI
 @MainActor
 @Observable
 public final class SearchBarModel {
+    enum FocusedField {
+        case searchBar
+    }
+
+    var focusedField: FocusedField?
     var searchString: String = ""
     var onSubmit: (URL) -> Void = { _ in }
 
     func didSubmitSearchString() {
         guard let sanitized = sanitizeInput(query: searchString) else { return }
+        self.focusedField = nil
         if let derivedUrl = URL(string: sanitized), derivedUrl.isHttp {
             onSubmit(derivedUrl)
         } else if let derivedUrl = duckduckUrl(query: sanitized) {
