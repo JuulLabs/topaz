@@ -38,4 +38,3 @@ struct NavBarView: View {
         model: NavBarModel()
     )
 }
-
