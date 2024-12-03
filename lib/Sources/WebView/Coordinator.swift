@@ -53,6 +53,7 @@ public class Coordinator: NSObject {
     }
 
     func didBeginNavigation(to url: URL, in webView: WKWebView) {
+        viewModel?.navigator.update(webView: webView)
         detachOldHandler(from: webView)
         self.contextId = contextId.withUrl(url)
         attachNewHandler(to: webView)
@@ -60,11 +61,12 @@ public class Coordinator: NSObject {
     }
 
     func didCommitNavigation(in webView: WKWebView) {
+        viewModel?.navigator.update(webView: webView)
         viewModel?.didCommitNavigation()
     }
 
     func didFinishNavigation(to url: URL, in webView: WKWebView) {
-        // TODO: update history
+        viewModel?.navigator.update(webView: webView)
     }
 }
 

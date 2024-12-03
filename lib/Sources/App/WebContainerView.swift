@@ -8,32 +8,33 @@ import WebView
 import WebKit
 
 struct WebContainerView: View {
-    @Bindable var model: WebContainerModel
+    @Bindable var webContainerModel: WebContainerModel
+    let searchBarModel: SearchBarModel
 
     var body: some View {
-        WebPageView(model: model.webPageModel)
-            .overlay {
-                // TODO: temporary for demo only - move this to the navigation panel
-                if case let .inProgress(progress) = model.webPageModel.loadingState {
-                    ProgressView(value: progress)
-                        .tint(.white)
-                        .frame(minHeight: 40)
-                        .background(Color.topaz600)
-                        .offset(y: 300)
-                }
+        VStack(spacing: 0) {
+            WebPageView(model: webContainerModel.webPageModel)
+            if !webContainerModel.navBarModel.isFullscreen {
+                NavBarView(
+                    loadingState: webContainerModel.webPageModel.loadingState,
+                    searchBarModel: searchBarModel,
+                    model: webContainerModel.navBarModel
+                )
             }
-            .sheet(isPresented: $model.selector.isSelecting) {
-                NavigationStack {
-                    DevicePickerView(model: model.pickerModel)
-                        .navigationTitle("Select Device")
-                }
+        }
+        .sheet(isPresented: $webContainerModel.selector.isSelecting) {
+            NavigationStack {
+                DevicePickerView(model: webContainerModel.pickerModel)
+                    .navigationTitle("Select Device")
             }
+        }
     }
 }
 
 #Preview("DevicePicker") {
     WebContainerView(
-        model: previewModel()
+        webContainerModel: previewModel(),
+        searchBarModel: SearchBarModel()
     )
 }
 
@@ -59,6 +60,7 @@ private func previewModel() -> WebContainerModel {
     )
     return WebContainerModel(
         webPageModel: webPageModel,
+        navBarModel: NavBarModel(),
         selector: selector
     )
 }
