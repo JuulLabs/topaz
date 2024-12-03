@@ -31,7 +31,7 @@ struct WebContainerView: View {
         }
         .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
             NavigationStack {
-                SettingsView(model: SettingsModel())
+                SettingsView(model: webContainerModel.navBarModel.settingsModel)
                     .navigationTitle("Settings")
             }
         }

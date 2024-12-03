@@ -86,6 +86,13 @@ public struct SettingsView: View {
         .foregroundStyle(Color.textPrimary)
         .scrollContentBackground(.hidden)
         .background(Color.topaz700)
+        .toolbar {
+            Button("Done") {
+                model.doneButtonTapped()
+            }
+            .font(.dogpatch(.title2))
+            .foregroundStyle(Color.textPrimary)
+        }
     }
 }
 

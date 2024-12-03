@@ -8,7 +8,13 @@ public final class SettingsModel {
         didSet { bluetoothPermissionsToggled() }
     }
 
+    public var dismiss: () -> Void  = {}
+
     public init() {
+    }
+
+    func doneButtonTapped() {
+        dismiss()
     }
 
     func shareButtonTapped() {

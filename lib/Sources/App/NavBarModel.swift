@@ -1,10 +1,13 @@
 import Observation
+import Settings
 import SwiftUI
 import WebView
 
 @MainActor
 @Observable
 public final class NavBarModel {
+
+    let settingsModel: SettingsModel
 
     let navigator: WebNavigator
 
@@ -16,6 +19,10 @@ public final class NavBarModel {
         navigator: WebNavigator = WebNavigator()
     ) {
         self.navigator = navigator
+        self.settingsModel = SettingsModel()
+        self.settingsModel.dismiss = { [weak self] in
+            self?.isSettingsPresented = false
+        }
     }
 
     var backButtonDisabled: Bool {
