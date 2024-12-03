@@ -34,6 +34,7 @@ public struct DevicePickerView: View {
                 model.task()
             }
         }
+        .padding(.top, 14)
 //        .alignmentGuide(.listRowSeparatorLeading) {
 //            $0[.leading]
 //        }
