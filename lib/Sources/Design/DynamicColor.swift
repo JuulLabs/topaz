@@ -33,6 +33,8 @@ private struct RGBAComponents {
     }
 }
 
+// TODO: Replace this once we are targeting ios18+
+// https://developer.apple.com/documentation/SwiftUI/Color/mix(with:by:in:)
 private func mix(_ color: Color, with otherColor: Color, weight: CGFloat) -> Color {
     guard let color1 = RGBAComponents(color), let color2 = RGBAComponents(otherColor) else {
         return color
