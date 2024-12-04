@@ -3,6 +3,7 @@ import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
 import Observation
+import Settings
 import SwiftUI
 import WebView
 import WebKit
@@ -26,6 +27,12 @@ struct WebContainerView: View {
             NavigationStack {
                 DevicePickerView(model: webContainerModel.pickerModel)
                     .navigationTitle("Select Device")
+            }
+        }
+        .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
+            NavigationStack {
+                SettingsView(model: webContainerModel.navBarModel.settingsModel)
+                    .navigationTitle("Settings")
             }
         }
     }

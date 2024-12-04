@@ -9,7 +9,7 @@ import WebKit
 public final class WebContainerModel {
     public let webPageModel: WebPageModel
     public let pickerModel: DevicePickerModel
-    public let navBarModel: NavBarModel
+    public var navBarModel: NavBarModel
     public var selector: DeviceSelector
 
     init(
