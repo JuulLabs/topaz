@@ -14,7 +14,6 @@ public struct DevicePickerView: View {
     public var body: some View {
         VStack(alignment: .center) {
             Text("Select a device")
-//                .font(.dogpatch(custom: .launchHeadline, weight: .bold))
                 .font(.dogpatch(.title2))
                 .foregroundStyle(.white)
             List {
@@ -25,7 +24,6 @@ public struct DevicePickerView: View {
                         PickerLineView(model: advertisement)
                     }
                 }
-                //            .listStyle(.insetGrouped)
                 .listRowBackground(Color.topaz800)
                 .listRowSeparatorTint(Color.borderActive)
             }
@@ -35,9 +33,6 @@ public struct DevicePickerView: View {
             }
         }
         .padding(.top, 14)
-//        .alignmentGuide(.listRowSeparatorLeading) {
-//            $0[.leading]
-//        }
         .background(Color.topaz700)
     }
 }
@@ -50,7 +45,6 @@ public struct DevicePickerView: View {
     )
     NavigationStack {
         DevicePickerView(model: model)
-//            .navigationTitle("Select Device")
 #if targetEnvironment(simulator)
             .forceLoadFontsInPreview()
             .task {
