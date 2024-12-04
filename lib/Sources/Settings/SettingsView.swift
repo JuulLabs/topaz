@@ -32,8 +32,9 @@ public struct SettingsView: View {
                     model.setDefaultHomeButtonTapped()
                 }
 
-                Toggle(isOn: $model.bluetoothEnabled) {
-                    Text("Bluetooth® permissions")
+                LabeledContent("Bluetooth® permissions") {
+                    CustomToggle(isOn: $model.bluetoothEnabled)
+                        .padding(.vertical, 2)
                 }
                 .listRowBackground(Color.topaz800)
 

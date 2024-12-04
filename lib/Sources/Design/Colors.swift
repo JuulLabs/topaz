@@ -1,28 +1,36 @@
 import SwiftUI
 
-extension Color {
+public extension Color {
 
-    public static var borderActive: Color {
+    static var borderActive: Color {
         Color(hex: "#F8F8F8")!
     }
 
-    public static var steel600: Color {
+    static var steel600: Color {
         Color(hex: "#1A1A1A")!
     }
 
-    public static var textPrimary: Color {
+    static var textPrimary: Color {
         Color(hex: "#F9F9F9")!
     }
 
-    public static var topaz600: Color {
+    static var topaz050: Color {
+        Color(hex: "#EAEDF7")!
+    }
+
+    static var topaz300: Color {
+        Color(hex: "#5068BD")!
+    }
+
+    static var topaz600: Color {
         Color(hex: "#314DB1")!
     }
 
-    public static var topaz700: Color {
+    static var topaz700: Color {
         Color(hex: "#2C459F")!
     }
 
-    public static var topaz800: Color {
+    static var topaz800: Color {
         Color(hex: "#273E8E")!
     }
 }
