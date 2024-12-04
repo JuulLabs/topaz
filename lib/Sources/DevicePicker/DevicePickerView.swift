@@ -27,7 +27,7 @@ public struct DevicePickerView: View {
                 }
                 //            .listStyle(.insetGrouped)
                 .listRowBackground(Color.topaz800)
-                .listRowSeparatorTint(Color.interactiveIconPrimary)
+                .listRowSeparatorTint(Color.borderActive)
             }
             .scrollContentBackground(.hidden)
             .task {

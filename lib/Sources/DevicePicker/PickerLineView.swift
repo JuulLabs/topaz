@@ -8,7 +8,7 @@ struct PickerLineView: View {
         HStack {
             Text(model.name)
                 .font(.dogpatch(.headline))
-                .foregroundStyle(Color.interactiveTextPrimary)
+                .foregroundStyle(Color.textPrimary)
 //            Text("Power: \(model.ad.rssi)")
 //                .font(.footnote)
             Spacer()
