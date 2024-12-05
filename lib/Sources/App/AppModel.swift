@@ -1,3 +1,4 @@
+import Bluetooth
 import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
@@ -37,17 +38,19 @@ public class AppModel {
             } else {
                 Task {
                     freshPageModel.isLoading = true
-                    await loadWebContainerModel(tab: 0, url: url)
+                    await loadWebContainerModel(tab: 0, url: url, bleStateStream: state.stateStream)
                 }
             }
         }
     }
 
-    private func loadWebContainerModel(tab: Int, url: URL) async {
+    private func loadWebContainerModel(tab: Int, url: URL, bleStateStream: AsyncStream<SystemState>) async {
         do {
+            //pass along async stream from bluetooth engine
             self.loadingModel.webContainerModel = try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
-                webConfigLoader: webConfigLoader
+                webConfigLoader: webConfigLoader,
+                bleStateStream: bleStateStream
             ) { config in
                 WebPageModel(
                     tab: tab,

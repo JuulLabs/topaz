@@ -1,10 +1,11 @@
 //
-
+import Bluetooth
 import SwiftUI
 
 struct BLEErrorView: View {
 
-    let model: BLEStatusModelable
+//    let model: BLEStatusModelable
+    let state: SystemState
 
     var body: some View {
         HStack(spacing: 16) {
@@ -13,13 +14,13 @@ struct BLEErrorView: View {
                     .foregroundStyle(Color.borderActive)
                     .frame(width: 24, height: 24)
                 //                .font(.system(size: 24))
-                Text(determineErrorText(for: model.bleStatus))
+                Text(determineErrorText(for: state))
                     .font(.dogpatch(.headline))
                     .foregroundStyle(Color.textPrimary)
                     .fixedSize()
                     .lineLimit(1)
             }
-            if model.bleStatus == .denied {
+            if state == .unauthorized {
                 Button {
 
                 } label: {
@@ -30,7 +31,7 @@ struct BLEErrorView: View {
                 .frame(maxWidth: .infinity, minHeight: 36)
                 .background(.white)
                 .cornerRadius(24)
-            }
+            } 
         }
         .frame(maxWidth: .infinity)
         .padding([.leading, .trailing], 16)
@@ -38,17 +39,17 @@ struct BLEErrorView: View {
         .background(Color.topaz800)
     }
 
-    private func determineErrorText(for bleStatus: BLEStatus) -> String {
+    private func determineErrorText(for bleStatus: SystemState) -> String {
         switch bleStatus {
-        case .denied: "Bluetooth® permissions disabled"
-        case .off: "Bluetooth® is turned off"
+        case .unauthorized: "Bluetooth® permissions disabled"
+        case .poweredOff: "Bluetooth® is turned off"
         default: ""
         }
     }
 }
 
 #Preview {
-    BLEErrorView(model: MockBLEStatusModel())
+    BLEErrorView(state: .poweredOff)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

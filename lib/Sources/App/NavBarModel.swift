@@ -1,3 +1,4 @@
+import Bluetooth
 import Observation
 import Settings
 import SwiftUI
@@ -11,15 +12,19 @@ public final class NavBarModel {
 
     let navigator: WebNavigator
 
+    let bleStateStream: AsyncStream<SystemState>
+
     var fullscreenButtonDisabled: Bool = false
     var isFullscreen: Bool = false
     var isSettingsPresented: Bool = false
 
     init(
-        navigator: WebNavigator = WebNavigator()
+        navigator: WebNavigator = WebNavigator(),
+        bleStateStream: AsyncStream<SystemState> = AsyncStream<SystemState>.makeStream().stream
     ) {
         self.navigator = navigator
         self.settingsModel = SettingsModel()
+        self.bleStateStream = bleStateStream
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }
