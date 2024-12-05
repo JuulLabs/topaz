@@ -13,7 +13,7 @@ struct PickerLineView: View {
             Image(media: determineSignalImage(basedOn: model.ad.rssi))
         }
         .alignmentGuide(.listRowSeparatorLeading) { _ in
-            return -16 //Fills the width of the list
+            return -16 // Fills the width of the list
         }
     }
 
