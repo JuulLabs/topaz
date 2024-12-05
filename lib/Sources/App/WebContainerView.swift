@@ -26,7 +26,6 @@ struct WebContainerView: View {
         .sheet(isPresented: $webContainerModel.selector.isSelecting) {
             NavigationStack {
                 DevicePickerView(model: webContainerModel.pickerModel)
-                    .navigationTitle("Select Device")
             }
         }
         .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {

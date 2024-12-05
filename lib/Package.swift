@@ -119,6 +119,7 @@ let package = Package(
             name: "DevicePicker",
             dependencies: [
                 "Bluetooth",
+                "Design",
                 "Helpers",
             ]
         ),
