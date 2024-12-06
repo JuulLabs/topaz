@@ -27,10 +27,15 @@ public final class DevicePickerModel: Identifiable {
             for await advertisements in selector.advertisements {
                 withAnimation {
                     self?.advertisements = advertisements
-                        .sorted { lhs, rhs in
-                            lhs.rssi > rhs.rssi
-                        }
                         .map(PickerLineModel.init)
+                        .sorted { lhs, rhs in
+                            // Pushes unnamed devices to the bottom of the list
+                            if lhs.name == PickerLineModel.defaultName {
+                                return false
+                            } else {
+                                return lhs.name.lowercased() < rhs.name.lowercased()
+                            }
+                        }
                 }
             }
         }

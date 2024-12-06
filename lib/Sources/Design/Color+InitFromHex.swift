@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Color {
+public extension Color {
     init?(hex: String) {
         guard hex.first == "#" else { return nil }
         let red = hex[1..<3]?.hexToDouble()?.scaledByte()
