@@ -46,7 +46,6 @@ public class AppModel {
 
     private func loadWebContainerModel(tab: Int, url: URL, bleStateStream: AsyncStream<SystemState>) async {
         do {
-            //pass along async stream from bluetooth engine
             self.loadingModel.webContainerModel = try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
                 webConfigLoader: webConfigLoader,

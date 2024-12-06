@@ -42,7 +42,7 @@ public final class WebContainerModel {
     ) async throws -> WebContainerModel {
         let config = try await webConfigLoader.loadConfig()
         let webPageModel = buildWebModel(config)
-        let navBarModel = NavBarModel(navigator: webPageModel.navigator, bleStateStream: bleStateStream) // pass along async stream from bluetooth engine
+        let navBarModel = NavBarModel(navigator: webPageModel.navigator, bleStateStream: bleStateStream)
         return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector, bleStateStream: bleStateStream)
     }
 }

@@ -83,6 +83,7 @@ private func webModel(url: URL) -> WebContainerModel {
             messageProcessors: []
         ),
         navBarModel: NavBarModel(),
-        selector: DeviceSelector(), bleStateStream: AsyncStream<SystemState>.makeStream().stream
+        selector: DeviceSelector(),
+        bleStateStream: AsyncStream<SystemState>.makeStream().stream
     )
 }

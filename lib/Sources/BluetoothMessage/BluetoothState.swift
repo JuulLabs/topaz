@@ -6,27 +6,14 @@ import Foundation
  */
 public actor BluetoothState: Sendable {
 
-//    lazy var stream: AsyncStream<CLLocation> = {
-//            AsyncStream { (continuation: AsyncStream<CLLocation>.Continuation) -> Void in
-//                self.continuation = continuation
-//            }
-//        }()
-//        var continuation: AsyncStream<CLLocation>.Continuation?
-
-    lazy public var stateStream: AsyncStream<SystemState> = {
-        AsyncStream { (continuation: AsyncStream<SystemState>.Continuation) -> Void in
-            self.continuation = continuation
-        }
-    }()
-    private var continuation: AsyncStream<SystemState>.Continuation?
+    public let (stateStream, continuation) = AsyncStream<SystemState>.makeStream()
 
     public private(set) var systemState: SystemState {
         didSet {
-            continuation?.yield(systemState)
+            continuation.yield(systemState)
         }
     }
-        // did set here. yield new value
-    // add public async stream for the state here
+    
     private(set) var peripherals: [UUID: Peripheral]
 
     public init(

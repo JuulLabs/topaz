@@ -4,7 +4,6 @@ import SwiftUI
 
 struct BLEErrorView: View {
 
-//    let model: BLEStatusModelable
     let state: SystemState
 
     @Environment(\.openURL) private var openURL
@@ -16,7 +15,6 @@ struct BLEErrorView: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(Color.borderActive)
                         .frame(width: 24, height: 24)
-                    //                .font(.system(size: 24))
                     Text(determineErrorText(for: state))
                         .font(.dogpatch(.headline))
                         .foregroundStyle(Color.textPrimary)
@@ -60,18 +58,4 @@ struct BLEErrorView: View {
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
-}
-
-enum BLEStatus {
-    case ready
-    case off
-    case denied
-}
-
-protocol BLEStatusModelable {
-    var bleStatus: BLEStatus { get }
-}
-
-struct MockBLEStatusModel: BLEStatusModelable {
-    var bleStatus: BLEStatus = .off
 }
