@@ -7,35 +7,42 @@ struct BLEErrorView: View {
 //    let model: BLEStatusModelable
     let state: SystemState
 
-    var body: some View {
-        HStack(spacing: 16) {
-            HStack(spacing: 4) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(Color.borderActive)
-                    .frame(width: 24, height: 24)
-                //                .font(.system(size: 24))
-                Text(determineErrorText(for: state))
-                    .font(.dogpatch(.headline))
-                    .foregroundStyle(Color.textPrimary)
-                    .fixedSize()
-                    .lineLimit(1)
-            }
-            if state == .unauthorized {
-                Button {
+    @Environment(\.openURL) private var openURL
 
-                } label: {
-                    Text("Enable")
-                        .font(.dogpatch(.body, weight: .bold))
-                        .foregroundStyle(Color.topaz800)
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(Color.borderActive)
+                        .frame(width: 24, height: 24)
+                    //                .font(.system(size: 24))
+                    Text(determineErrorText(for: state))
+                        .font(.dogpatch(.headline))
+                        .foregroundStyle(Color.textPrimary)
+                        .fixedSize()
+                        .lineLimit(1)
                 }
-                .frame(maxWidth: .infinity, minHeight: 36)
-                .background(.white)
-                .cornerRadius(24)
-            } 
+                if state == .unauthorized {
+                    Button {
+                        openURL(URL(string: UIApplication.openSettingsURLString)!)
+                    } label: {
+                        Text("Enable")
+                            .font(.dogpatch(.body, weight: .bold))
+                            .foregroundStyle(Color.topaz800)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .background(.white)
+                    .cornerRadius(24)
+                }
+            }
+            .padding([.leading, .trailing], 16)
+            .padding([.top, .bottom], 12)
+            Rectangle()
+                .frame(maxWidth: .infinity, maxHeight: 0.5, alignment: .bottom)
+                .foregroundStyle(Color.black)
         }
         .frame(maxWidth: .infinity)
-        .padding([.leading, .trailing], 16)
-        .padding([.top, .bottom], 12)
         .background(Color.topaz800)
     }
 
