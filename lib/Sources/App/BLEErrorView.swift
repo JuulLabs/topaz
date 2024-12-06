@@ -19,7 +19,6 @@ struct BLEErrorView: View {
                         .font(.dogpatch(.headline))
                         .foregroundStyle(Color.textPrimary)
                         .fixedSize()
-                        .lineLimit(1)
                 }
                 if state == .unauthorized {
                     Button {
