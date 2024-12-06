@@ -36,7 +36,7 @@ struct BLEErrorView: View {
             .padding([.leading, .trailing], 16)
             .padding([.top, .bottom], 12)
             Rectangle()
-                .frame(maxWidth: .infinity, maxHeight: 0.5, alignment: .bottom)
+                .frame(maxWidth: .infinity, maxHeight: 0.5)
                 .foregroundStyle(Color.black)
         }
         .frame(maxWidth: .infinity)
