@@ -13,7 +13,7 @@ public actor BluetoothState: Sendable {
             continuation.yield(systemState)
         }
     }
-    
+
     private(set) var peripherals: [UUID: Peripheral]
 
     public init(
