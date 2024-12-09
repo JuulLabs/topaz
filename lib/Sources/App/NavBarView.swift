@@ -35,7 +35,7 @@ struct NavBarView: View {
         }
         .background(Color.topaz600)
         .task {
-            await listenToBleState()
+            await listenToBluetoothState()
         }
     }
 
