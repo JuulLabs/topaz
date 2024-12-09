@@ -24,7 +24,7 @@ public final class NavBarModel {
     ) {
         self.navigator = navigator
         self.settingsModel = SettingsModel()
-        self.bluetoothStateStream = bleStateStream
+        self.bluetoothStateStream = bluetoothStateStream
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }
