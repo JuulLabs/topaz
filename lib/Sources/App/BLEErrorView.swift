@@ -2,7 +2,7 @@
 import Bluetooth
 import SwiftUI
 
-struct BLEErrorView: View {
+struct BluetoothErrorView: View {
 
     let state: SystemState
 
