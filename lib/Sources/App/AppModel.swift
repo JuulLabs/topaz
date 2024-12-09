@@ -38,7 +38,7 @@ public class AppModel {
             } else {
                 Task {
                     freshPageModel.isLoading = true
-                    await loadWebContainerModel(tab: 0, url: url, bleStateStream: state.stateStream)
+                    await loadWebContainerModel(tab: 0, url: url, bluetoothStateStream: state.stateStream)
                 }
             }
         }
