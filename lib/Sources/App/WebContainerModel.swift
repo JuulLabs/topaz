@@ -19,7 +19,7 @@ public final class WebContainerModel {
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
         selector: DeviceSelector,
-        bleStateStream: AsyncStream<SystemState>
+        bluetoothStateStream: AsyncStream<SystemState>
     ) {
         self.webPageModel = webPageModel
         self.navBarModel = navBarModel
