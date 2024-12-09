@@ -44,12 +44,12 @@ public class AppModel {
         }
     }
 
-    private func loadWebContainerModel(tab: Int, url: URL, bleStateStream: AsyncStream<SystemState>) async {
+    private func loadWebContainerModel(tab: Int, url: URL, bluetoothStateStream: AsyncStream<SystemState>) async {
         do {
             self.loadingModel.webContainerModel = try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
                 webConfigLoader: webConfigLoader,
-                bleStateStream: bleStateStream
+                bleStateStream: bluetoothStateStream
             ) { config in
                 WebPageModel(
                     tab: tab,

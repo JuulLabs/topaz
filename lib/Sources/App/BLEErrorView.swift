@@ -43,7 +43,7 @@ struct BluetoothErrorView: View {
     }
 
     private func determineErrorText(for bluetoothStatus: SystemState) -> String {
-        switch bleStatus {
+        switch bluetoothStatus {
         case .unauthorized: "Bluetooth® permissions disabled"
         case .poweredOff: "Bluetooth® is turned off"
         default: ""
@@ -52,7 +52,7 @@ struct BluetoothErrorView: View {
 }
 
 #Preview {
-    BLEErrorView(state: .poweredOff)
+    BluetoothErrorView(state: .poweredOff)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
