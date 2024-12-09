@@ -13,7 +13,7 @@ public final class WebContainerModel {
     public var navBarModel: NavBarModel
     public var selector: DeviceSelector
 
-    private let bleStateStream: AsyncStream<SystemState>
+    private let bluetoothStateStream: AsyncStream<SystemState>
 
     init(
         webPageModel: WebPageModel,
