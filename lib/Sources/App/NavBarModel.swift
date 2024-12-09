@@ -12,7 +12,7 @@ public final class NavBarModel {
 
     let navigator: WebNavigator
 
-    let bleStateStream: AsyncStream<SystemState>
+    let bluetoothStateStream: AsyncStream<SystemState>
 
     var fullscreenButtonDisabled: Bool = false
     var isFullscreen: Bool = false
