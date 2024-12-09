@@ -69,7 +69,7 @@ private func previewModel() -> WebContainerModel {
         webPageModel: webPageModel,
         navBarModel: NavBarModel(),
         selector: selector,
-        bleStateStream: AsyncStream<SystemState>.makeStream().stream
+        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
     )
 }
 
