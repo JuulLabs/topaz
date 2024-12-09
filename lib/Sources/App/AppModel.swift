@@ -49,7 +49,7 @@ public class AppModel {
             self.loadingModel.webContainerModel = try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
                 webConfigLoader: webConfigLoader,
-                bleStateStream: bluetoothStateStream
+                bluetoothStateStream: bluetoothStateStream
             ) { config in
                 WebPageModel(
                     tab: tab,
