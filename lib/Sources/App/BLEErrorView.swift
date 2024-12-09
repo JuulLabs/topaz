@@ -42,7 +42,7 @@ struct BluetoothErrorView: View {
         .background(Color.topaz800)
     }
 
-    private func determineErrorText(for bleStatus: SystemState) -> String {
+    private func determineErrorText(for bluetoothStatus: SystemState) -> String {
         switch bleStatus {
         case .unauthorized: "Bluetooth® permissions disabled"
         case .poweredOff: "Bluetooth® is turned off"
