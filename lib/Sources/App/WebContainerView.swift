@@ -16,14 +16,21 @@ struct WebContainerView: View {
     var body: some View {
         VStack(spacing: 0) {
             WebPageView(model: webContainerModel.webPageModel)
+                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
+                    PullDrawerView {
+                        webContainerModel.navBarModel.fullscreenButtonTapped()
+                    }
+                }
             if !webContainerModel.navBarModel.isFullscreen {
                 NavBarView(
                     loadingState: webContainerModel.webPageModel.loadingState,
                     searchBarModel: searchBarModel,
                     model: webContainerModel.navBarModel
                 )
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
         .sheet(isPresented: $webContainerModel.selector.isSelecting) {
             NavigationStack {
                 DevicePickerView(model: webContainerModel.pickerModel)

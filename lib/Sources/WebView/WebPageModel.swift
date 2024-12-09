@@ -7,6 +7,7 @@ import WebKit
 @MainActor
 @Observable
 public class WebPageModel {
+    @ObservationIgnored
     private var kvoStore: [NSKeyValueObservation] = []
 
     public let config: WKWebViewConfiguration
@@ -51,6 +52,11 @@ public class WebPageModel {
 
     func didInitializeWebView(_ webView: WKWebView) {
         monitorLoadingProgress(of: webView)
+    }
+
+    func deinitialize(webView: WKWebView) {
+        kvoStore.forEach { $0.invalidate() }
+        kvoStore.removeAll()
     }
 
     func didCommitNavigation() {

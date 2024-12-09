@@ -3,6 +3,7 @@ import SwiftUI
 public enum MediaImage: String {
     case mainLogo = "topaz_logo"
 
+    case exitFullscreen = "exit_fullscreen"
     case fullscreenIcon = "fullscreen_icon"
     case settingsIcon = "settings_icon"
 
