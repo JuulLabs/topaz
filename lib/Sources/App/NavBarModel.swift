@@ -20,7 +20,7 @@ public final class NavBarModel {
 
     init(
         navigator: WebNavigator = WebNavigator(),
-        bleStateStream: AsyncStream<SystemState> = AsyncStream<SystemState>.makeStream().stream
+        bluetoothStateStream: AsyncStream<SystemState> = AsyncStream<SystemState>.makeStream().stream
     ) {
         self.navigator = navigator
         self.settingsModel = SettingsModel()
