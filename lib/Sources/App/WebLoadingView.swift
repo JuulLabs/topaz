@@ -84,6 +84,6 @@ private func webModel(url: URL) -> WebContainerModel {
         ),
         navBarModel: NavBarModel(),
         selector: DeviceSelector(),
-        bleStateStream: AsyncStream<SystemState>.makeStream().stream
+        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
     )
 }
