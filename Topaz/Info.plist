@@ -9,5 +9,7 @@
 		<key>UIColorName</key>
 		<string>LaunchBackground</string>
 	</dict>
+	<key>NFCReaderUsageDescription</key>
+	<string>Read the NFC tag from devices</string>
 </dict>
 </plist>

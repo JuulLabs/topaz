@@ -21,6 +21,7 @@ let package = Package(
         .library(name: "DevicePicker", targets: ["DevicePicker"]),
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "JsMessage", targets: ["JsMessage"]),
+        .library(name: "NFC", targets: ["NFC"]),
         .library(name: "Settings", targets: ["Settings"]),
         .library(name: "UIHelpers", targets: ["UIHelpers"]),
         .library(name: "WebView", targets: ["WebView"]),
@@ -33,6 +34,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 "Design",
+                "NFC",
                 "Settings",
                 "UIHelpers",
                 "WebView",
@@ -137,6 +139,13 @@ let package = Package(
 
         .target(
             name: "JsMessage",
+            dependencies: [
+                "Helpers",
+            ]
+        ),
+
+        .target(
+            name: "NFC",
             dependencies: [
                 "Helpers",
             ]

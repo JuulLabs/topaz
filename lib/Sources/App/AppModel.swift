@@ -4,6 +4,7 @@ import BluetoothMessage
 import DevicePicker
 import Helpers
 import JsMessage
+import NFC
 import Observation
 import SwiftUI
 import WebView
@@ -17,6 +18,8 @@ public class AppModel {
 
     let freshPageModel: FreshPageModel
     let loadingModel: WebLoadingModel
+
+    let nfcEngine = NFCEngine()
 
     public init(
         state: BluetoothState,
@@ -53,7 +56,7 @@ public class AppModel {
                     tab: tab,
                     url: url,
                     config: config,
-                    messageProcessors: [self.bluetoothEngine, jsLogger]
+                    messageProcessors: [self.bluetoothEngine, jsLogger, self.nfcEngine]
                 )
             }
         } catch {

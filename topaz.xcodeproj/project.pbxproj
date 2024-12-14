@@ -30,6 +30,7 @@
 
 /* Begin PBXFileReference section */
 		0B4109EE2CB49D71004B4F37 /* lib */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = lib; sourceTree = "<group>"; };
+		0B9130F72D0B9BE4007EB4B1 /* topaz.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = topaz.entitlements; path = topaz/topaz.entitlements; sourceTree = "<group>"; };
 		0BB6F08D2CB496C9003C34A1 /* topaz.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = topaz.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BB6F09D2CB496CA003C34A1 /* topazTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = topazTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		0BB6F0A72CB496CA003C34A1 /* topazUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = topazUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,6 +97,7 @@
 		0BB6F0842CB496C9003C34A1 = {
 			isa = PBXGroup;
 			children = (
+				0B9130F72D0B9BE4007EB4B1 /* topaz.entitlements */,
 				0BB6F08F2CB496C9003C34A1 /* Topaz */,
 				0BB6F0A02CB496CA003C34A1 /* TopazTests */,
 				0BB6F0AA2CB496CA003C34A1 /* TopazUITests */,
@@ -425,6 +427,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = topaz/topaz.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"topaz/Preview Content\"";
@@ -459,6 +462,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = topaz/topaz.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"topaz/Preview Content\"";

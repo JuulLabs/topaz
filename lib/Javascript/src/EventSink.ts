@@ -1,12 +1,27 @@
 import { base64ToDataView } from "./Data";
+import { getReader } from "./NDEFReader";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
+import { appLog } from "./WebKit";
 
 export type TargetedEvent = {
     id: string;
     name: string;
     data?: any;
 }
+
+class NFCEvent extends Event {
+    message: any;
+    serialNumber: any;
+
+    constructor(
+        data: any,
+    ) {
+        super('reading');
+        this.message = data.message;
+        this.serialNumber = data.serialNumber;
+    }
+};
 
 export const processEvent = (event: TargetedEvent) => {
     let eventToSend: Event;
@@ -27,6 +42,14 @@ export const processEvent = (event: TargetedEvent) => {
         const characteristic = store.updateCharacteristicValue(event.id, data);
         targets.push(characteristic);
         eventToSend = new ValueEvent(event.name, { value: data });
+    } else if (event.name === 'reading') {
+        appLog('reading event');
+        const reader = getReader(event.id);
+        if (reader) {
+            appLog('found reader');
+            targets.push(reader);
+            eventToSend = new NFCEvent(event.data);
+        }
     }
 
     if (!eventToSend) {
@@ -35,6 +58,7 @@ export const processEvent = (event: TargetedEvent) => {
     }
 
     for (const target of targets) {
+        appLog('send to target');
         target.dispatchEvent(eventToSend);
     }
 }

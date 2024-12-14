@@ -4,6 +4,7 @@ import { rethrowAsDOMException } from "./Error";
 declare namespace window.webkit.messageHandlers {
     const bluetooth: Channel<BluetoothMessage>;
     const logging: Channel<LogMessage>;
+    const nfc: Channel<NFCMessage>;
 }
 
 interface Channel<Message> {
@@ -41,3 +42,22 @@ export const appLog = function (msg: string): Promise<void> {
         msg: msg
     }).catch(rethrowAsDOMException);
 }
+
+
+// NFC Channel
+
+type NFCMessage = {
+    action: string;
+    data?: any;
+  }
+  
+  export const nfcRequest = function <Request, Response>(
+    action: string,
+    data?: Request,
+  ): Promise<Response> {
+      return window.webkit.messageHandlers.nfc.postMessage<Response>({
+          action: action,
+          data: data
+      }).catch(rethrowAsDOMException);
+  }
+  

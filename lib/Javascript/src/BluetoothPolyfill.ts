@@ -2,6 +2,7 @@
 
 import { Topaz } from "./Topaz";
 import { BluetoothUUID } from "./BluetoothUUID";
+import { NDEFReader } from "./NDEFReader";
 
 if (typeof((navigator as any).bluetooth) === 'undefined') {
     globalThis.topaz = new Topaz();
@@ -11,4 +12,9 @@ if (typeof((navigator as any).bluetooth) === 'undefined') {
 if (typeof((window as any).BluetoothUUID) === 'undefined') {
     globalThis.BluetoothUUID = BluetoothUUID;
     (window as any).BluetoothUUID = globalThis.BluetoothUUID;
+}
+
+if (typeof((window as any).NDEFReader) === 'undefined') {
+    globalThis.NDEFReader = NDEFReader;
+    (window as any).NDEFReader = NDEFReader;
 }
