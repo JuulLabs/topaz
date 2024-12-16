@@ -7,12 +7,10 @@ struct NavBarView: View {
     let searchBarModel: SearchBarModel
     let model: NavBarModel
 
-    @State var bluetoothState: SystemState = .unknown
-
     var body: some View {
         VStack(spacing: 0) {
-            if bluetoothState != .unknown && bluetoothState != .poweredOn {
-                BluetoothErrorView(state: bluetoothState)
+            if model.shouldShowErrorState {
+                BluetoothErrorView(state: model.bluetoothState)
             }
             if let progress = model.deriveProgress(loadingState: loadingState) {
                 ProgressView(value: progress)
@@ -35,13 +33,7 @@ struct NavBarView: View {
         }
         .background(Color.topaz600)
         .task {
-            await listenToBluetoothState()
-        }
-    }
-
-    func listenToBluetoothState() async {
-        for await state in model.bluetoothStateStream {
-            bluetoothState = state
+            await model.listenToBluetoothState()
         }
     }
 }

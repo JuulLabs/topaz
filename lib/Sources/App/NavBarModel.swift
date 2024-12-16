@@ -17,6 +17,10 @@ public final class NavBarModel {
     var fullscreenButtonDisabled: Bool = false
     var isFullscreen: Bool = false
     var isSettingsPresented: Bool = false
+    var bluetoothState: SystemState = .unknown
+    var shouldShowErrorState: Bool {
+        bluetoothState != .unknown && bluetoothState != .poweredOn
+    }
 
     init(
         navigator: WebNavigator = WebNavigator(),
@@ -62,6 +66,12 @@ public final class NavBarModel {
             return progress
         case .complete:
             return nil
+        }
+    }
+
+    func listenToBluetoothState() async {
+        for await state in bluetoothStateStream {
+            bluetoothState = state
         }
     }
 }
