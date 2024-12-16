@@ -13,7 +13,7 @@ struct BluetoothErrorView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(Color.borderActive)
-                        .frame(width: 24, height: 24)
+                        .font(.headline)
                     Text(determineErrorText(for: state))
                         .font(.dogpatch(.headline))
                         .foregroundStyle(Color.textPrimary)
