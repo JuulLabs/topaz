@@ -17,7 +17,6 @@ struct BluetoothErrorView: View {
                     Text(determineErrorText(for: state))
                         .font(.dogpatch(.headline))
                         .foregroundStyle(Color.textPrimary)
-                        .fixedSize()
                 }
                 if state == .unauthorized {
                     Button {
@@ -27,7 +26,7 @@ struct BluetoothErrorView: View {
                             .font(.dogpatch(.body, weight: .bold))
                             .foregroundStyle(Color.topaz800)
                     }
-                    .frame(maxWidth: .infinity, minHeight: 36)
+                    .frame(maxWidth: 88, minHeight: 36)
                     .background(.white)
                     .cornerRadius(24)
                 }
@@ -52,7 +51,7 @@ struct BluetoothErrorView: View {
 }
 
 #Preview {
-    BluetoothErrorView(state: .poweredOff)
+    BluetoothErrorView(state: .unauthorized)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
