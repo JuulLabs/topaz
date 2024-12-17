@@ -1,3 +1,4 @@
+import Bluetooth
 import BluetoothClient
 import DevicePicker
 import Observation
@@ -82,6 +83,7 @@ private func webModel(url: URL) -> WebContainerModel {
             messageProcessors: []
         ),
         navBarModel: NavBarModel(),
-        selector: DeviceSelector()
+        selector: DeviceSelector(),
+        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
     )
 }

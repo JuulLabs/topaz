@@ -1,3 +1,4 @@
+import Bluetooth
 import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
@@ -67,7 +68,8 @@ private func previewModel() -> WebContainerModel {
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: NavBarModel(),
-        selector: selector
+        selector: selector,
+        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
     )
 }
 

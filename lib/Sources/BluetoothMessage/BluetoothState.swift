@@ -5,7 +5,15 @@ import Foundation
  Represents the current state of the bluetooth system.
  */
 public actor BluetoothState: Sendable {
-    public private(set) var systemState: SystemState
+
+    public let (stateStream, continuation) = AsyncStream<SystemState>.makeStream()
+
+    public private(set) var systemState: SystemState {
+        didSet {
+            continuation.yield(systemState)
+        }
+    }
+
     private(set) var peripherals: [UUID: Peripheral]
 
     public init(
