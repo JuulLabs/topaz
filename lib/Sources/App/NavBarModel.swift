@@ -1,3 +1,4 @@
+import Bluetooth
 import Observation
 import Settings
 import SwiftUI
@@ -11,15 +12,23 @@ public final class NavBarModel {
 
     let navigator: WebNavigator
 
+    let bluetoothStateStream: AsyncStream<SystemState>
+
     var fullscreenButtonDisabled: Bool = false
     var isFullscreen: Bool = false
     var isSettingsPresented: Bool = false
+    var bluetoothState: SystemState = .unknown
+    var shouldShowErrorState: Bool {
+        bluetoothState != .unknown && bluetoothState != .poweredOn
+    }
 
     init(
-        navigator: WebNavigator = WebNavigator()
+        navigator: WebNavigator = WebNavigator(),
+        bluetoothStateStream: AsyncStream<SystemState> = AsyncStream<SystemState>.makeStream().stream
     ) {
         self.navigator = navigator
         self.settingsModel = SettingsModel()
+        self.bluetoothStateStream = bluetoothStateStream
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }
@@ -57,6 +66,12 @@ public final class NavBarModel {
             return progress
         case .complete:
             return nil
+        }
+    }
+
+    func listenToBluetoothState() async {
+        for await state in bluetoothStateStream {
+            bluetoothState = state
         }
     }
 }

@@ -1,3 +1,4 @@
+import Bluetooth
 import SwiftUI
 import WebView
 
@@ -8,6 +9,9 @@ struct NavBarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            if model.shouldShowErrorState {
+                BluetoothErrorView(state: model.bluetoothState)
+            }
             if let progress = model.deriveProgress(loadingState: loadingState) {
                 ProgressView(value: progress)
                     .tint(.white)
@@ -28,6 +32,9 @@ struct NavBarView: View {
             .padding(.bottom, 12)
         }
         .background(Color.topaz600)
+        .task {
+            await model.listenToBluetoothState()
+        }
     }
 }
 
