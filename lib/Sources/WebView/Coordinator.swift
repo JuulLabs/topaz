@@ -3,7 +3,6 @@ import Foundation
 import JsMessage
 import WebKit
 
-
 @MainActor
 public class Coordinator: NSObject {
     private let world: WKContentWorld = .page
