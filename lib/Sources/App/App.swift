@@ -14,6 +14,7 @@ public struct AppContentView: View {
     ) {
         self.model = model
         registerFonts()
+        UINavigationBar.applyCustomizations()
     }
 
     public var body: some View {
