@@ -6,12 +6,20 @@ public extension Color {
         Color(hex: "#F8F8F8")!
     }
 
+    static var canvasHighContrast: Color {
+        Color(hex: "#1C1C23")!
+    }
+
     static var steel600: Color {
         Color(hex: "#1A1A1A")!
     }
 
     static var textPrimary: Color {
         Color(hex: "#F9F9F9")!
+    }
+
+    static var textSecondary: Color {
+        Color(hex: "#BABABA")!
     }
 
     static var topaz050: Color {
