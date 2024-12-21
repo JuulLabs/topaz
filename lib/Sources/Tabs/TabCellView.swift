@@ -2,7 +2,7 @@ import Design
 import SwiftUI
 
 struct TabCellView: View {
-    let tab: Tab
+    let tab: TabModel
     let action: () -> Void
     let delete: () -> Void
 

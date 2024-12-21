@@ -21,7 +21,7 @@ struct FreshPageView: View {
             resignFirstResponder()
         }
         .onAppear {
-            model.searchBarModel.focusedField = .searchBar
+            model.onAppear()
         }
     }
 

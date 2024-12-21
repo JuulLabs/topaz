@@ -6,7 +6,15 @@ import UIHelpers
 
 struct SearchBarView: View {
     @Bindable var model: SearchBarModel
-    @FocusState private var focusedField: SearchBarModel.FocusedField?
+    @FocusState private var focusedField: SearchBarModel.FocusedField? {
+        didSet {
+            if focusedField == nil {
+                print("did clear")
+            } else {
+                print("did set")
+            }
+        }
+    }
 
     var body: some View {
         HStack(spacing: 8) {

@@ -1,12 +1,12 @@
 import Foundation
 
-struct Tab: Equatable {
-    let index: Int
-    let url: URL
+public struct TabModel: Equatable {
+    public let index: Int
+    public let url: URL
 }
 
 enum TabCell: Equatable {
-    case tab(Tab)
+    case tab(TabModel)
     case new
 }
 

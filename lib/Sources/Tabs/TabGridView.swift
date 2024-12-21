@@ -1,27 +1,31 @@
 import Design
 import SwiftUI
 
-struct TabGridView: View {
+public struct TabGridView: View {
     let model: TabGridModel
 
     private let columns = [
         GridItem(.adaptive(minimum: TabCellLayout.minSize.width), spacing: 16)
     ]
 
-    var body: some View {
+    public init(model: TabGridModel) {
+        self.model = model
+    }
+
+    public var body: some View {
         ScrollView(.vertical) {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(model.tabCells) { tabCell in
                     switch tabCell {
                     case let .tab(tab):
                         TabCellView(tab: tab) {
-                            print("TODO: open \(tab.url.absoluteString)")
+                            model.tabButtonTapped(tab: tab)
                         } delete: {
                             model.deleteButtonTapped(tab: tab)
                         }
                     case .new:
                         NewTabCellView {
-                            print("TODO: open new tab")
+                            model.newTabButtonTapped()
                         }
                     }
                 }
