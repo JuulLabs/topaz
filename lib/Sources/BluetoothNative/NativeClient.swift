@@ -5,7 +5,6 @@ import Foundation
 
 public let liveBluetoothClient: BluetoothClient = NativeBluetoothClient()
 
-
 struct NativeBluetoothClient: BluetoothClient {
     private let coordinator: Coordinator
     private let server: EventService

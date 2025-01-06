@@ -28,6 +28,7 @@ public class Coordinator: NSObject {
     }
 
     func deinitialize(webView: WKWebView) {
+        viewModel?.deinitialize(webView: webView)
         viewModel = nil
         detachOldHandler(from: webView)
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
