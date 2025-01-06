@@ -78,3 +78,36 @@ extension Font {
         return .custom(dogpatch.rawValue, size: scale.size, relativeTo: scale.relativeTo)
     }
 }
+
+extension UIFont {
+    public static func dogpatch(_ style: Font.TextStyle, design: Dogpatch.Design? = nil, weight: Dogpatch.Weight? = nil) -> UIFont {
+        let design = design ?? .sans
+        let weight = weight ?? .regular
+        let dogpatch = Dogpatch.with(weight: weight, design: design)
+        let size = dogpatch.scaleMapping(for: style)
+        guard let font = UIFont(name: dogpatch.rawValue, size: size) else {
+            // TODO: log this fault for developers somewhere
+            print("ERROR: font \(dogpatch.rawValue) not found")
+            return UIFont.preferredFont(forTextStyle: style.toUIFontTextStyle())
+        }
+        return font
+    }
+}
+
+private extension Font.TextStyle {
+    func toUIFontTextStyle() -> UIFont.TextStyle {
+        switch self {
+        case .largeTitle:   .largeTitle
+        case .title:        .title1
+        case .title2:       .title2
+        case .title3:       .title3
+        case .headline:     .headline
+        case .subheadline:  .subheadline
+        case .callout:      .callout
+        case .caption:      .caption1
+        case .caption2:     .caption2
+        case .footnote:     .footnote
+        default:            .body
+        }
+    }
+}
