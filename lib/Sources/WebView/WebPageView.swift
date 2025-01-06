@@ -5,31 +5,58 @@ import DevicePicker
 import SwiftUI
 import WebKit
 
-public struct WebPageView: UIViewRepresentable {
+public struct WebPageView: View {
+    @State private var scrollView: UIScrollView?
 
     private let model: WebPageModel
 
-    public init (model: WebPageModel) {
+    public init(model: WebPageModel) {
         self.model = model
     }
 
-    public func makeUIView(context: Context) -> WKWebView {
-        let webView = WKWebView(frame: .zero, configuration: model.config)
-        webView.allowsBackForwardNavigationGestures = true
-        context.coordinator.initialize(webView: webView, model: model)
-        return webView
+    public var body: some View {
+        _WebPageView(model: model, scrollView: $scrollView)
+            .preference(key: WebPageScrollViewKey.self, value: scrollView)
     }
 
-    public func updateUIView(_ uiView: WKWebView, context: Context) {
-        context.coordinator.update(webView: uiView, model: model)
-    }
+    private struct _WebPageView: UIViewRepresentable {
+        @Binding private var scrollView: UIScrollView?
 
-    public static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
-        coordinator.deinitialize(webView: uiView)
-    }
+        private let model: WebPageModel
 
-    public func makeCoordinator() -> Coordinator {
-        Coordinator()
+        init (model: WebPageModel, scrollView: Binding<UIScrollView?>) {
+            self.model = model
+            self._scrollView = scrollView
+        }
+
+        func makeUIView(context: Context) -> WKWebView {
+            let webView = WKWebView(frame: .zero, configuration: model.config)
+            webView.allowsBackForwardNavigationGestures = true
+            context.coordinator.initialize(webView: webView, model: model)
+            Task { @MainActor in
+                scrollView = webView.scrollView
+            }
+            return webView
+        }
+
+        func updateUIView(_ uiView: WKWebView, context: Context) {
+            context.coordinator.update(webView: uiView, model: model)
+        }
+
+        static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
+            coordinator.deinitialize(webView: uiView)
+        }
+
+        func makeCoordinator() -> Coordinator {
+            Coordinator()
+        }
+    }
+}
+
+struct WebPageScrollViewKey: PreferenceKey {
+    static let defaultValue: UIScrollView? = nil
+    static func reduce(value: inout UIScrollView?, nextValue: () -> UIScrollView?) {
+        value = nextValue()
     }
 }
 
