@@ -88,13 +88,12 @@ public class AppModel {
                 webConfigLoader: webConfigLoader,
                 bluetoothStateStream: bluetoothStateStream
             ) { config in
-                let model = WebPageModel(
+                WebPageModel(
                     tab: tab,
                     url: url,
                     config: config,
                     messageProcessors: [self.bluetoothEngine, jsLogger]
                 )
-                return model
             }
             model.navBarModel.settingsModel.tabAction = { [weak self] in
                 self?.activePageModels = nil
