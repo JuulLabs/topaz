@@ -22,6 +22,7 @@ let package = Package(
         .library(name: "Helpers", targets: ["Helpers"]),
         .library(name: "JsMessage", targets: ["JsMessage"]),
         .library(name: "Settings", targets: ["Settings"]),
+        .library(name: "Tabs", targets: ["Tabs"]),
         .library(name: "UIHelpers", targets: ["UIHelpers"]),
         .library(name: "WebView", targets: ["WebView"]),
     ],
@@ -34,6 +35,7 @@ let package = Package(
             dependencies: [
                 "Design",
                 "Settings",
+                "Tabs",
                 "UIHelpers",
                 "WebView",
             ]
@@ -139,6 +141,14 @@ let package = Package(
             name: "JsMessage",
             dependencies: [
                 "Helpers",
+            ]
+        ),
+
+        .target(
+            name: "Tabs",
+            dependencies: [
+                "Design",
+                "UIHelpers",
             ]
         ),
 
