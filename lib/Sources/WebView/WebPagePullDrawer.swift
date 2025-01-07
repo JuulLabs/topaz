@@ -37,7 +37,9 @@ struct WebPagePullDrawer<Drawer: View>: ViewModifier {
         .animation(.smooth, value: drawerId)
         .onPreferenceChange(WebPageScrollViewKey.self) { value in
             guard let scrollView = value else { return }
-            model.observe(scrollView: scrollView)
+            Task { @MainActor in
+                model.observe(scrollView: scrollView)
+            }
         }
     }
 }
