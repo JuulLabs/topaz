@@ -9,6 +9,7 @@ public final class SettingsModel {
     }
 
     public var dismiss: () -> Void  = {}
+    public var tabAction: () -> Void = {}
 
     public init() {
     }
@@ -21,6 +22,7 @@ public final class SettingsModel {
     }
 
     func newTabButtonTapped() {
+        tabAction()
     }
 
     func setDefaultHomeButtonTapped() {
