@@ -8,7 +8,7 @@ public protocol CodableStorage: Sendable {
 public struct JsonDataStorage: CodableStorage {
     private let delegate: DataStorage
 
-    public init(delegate: DataStorage = FileDataStorage()) {
+    public init(_ delegate: DataStorage = FileDataStorage()) {
         self.delegate = delegate
     }
 

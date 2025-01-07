@@ -13,7 +13,7 @@ struct TopazMain: App {
         state: BluetoothState(),
         client: liveBluetoothClient,
         deviceSelector: DeviceSelector(),
-        storage: JsonDataStorage(delegate: FileDataStorage(debounceInterval: .seconds(2)))
+        storage: debouncedJsonFileStorage()
     )
 
     var body: some Scene {
@@ -21,4 +21,8 @@ struct TopazMain: App {
             AppContentView(model: appModel)
         }
     }
+}
+
+private func debouncedJsonFileStorage() -> CodableStorage {
+    DebouncedCodableStorage(JsonDataStorage(FileDataStorage()), debounceInterval: .seconds(2))
 }
