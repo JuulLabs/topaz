@@ -1,54 +1,77 @@
-.PHONY: build test lint lint-fix clean sim-build sim-test _xcode_build
+.PHONY: build test lint lint-fix clean boot-simulator
 
 XCODE_PROJECT := topaz.xcodeproj
-XCODE_TARGET := topaz
-
-IOS_VERSION := 18
-IOS_ARCH := arm64
-IOS_TRIPLE := $(IOS_ARCH)-apple-ios$(IOS_VERSION).0
-
-XCODE_DESTINATION ?= generic/platform=iOS
+XCODE_TARGET ?= topaz
+XCODE_SCHEME ?= topaz
 XCODE_COMMAND ?= build
+XCODE_CONFIG ?= Debug
+XCODE_EXTRA_PARAMS ?= CODE_SIGNING_ALLOWED='NO'
+XCODE_OPTIONS := -skipPackagePluginValidation -skipMacroValidation
 
-build:
-	$(MAKE) XCODE_COMMAND=build _xcode_build
+DERIVED_DATA_PATH = .derivedData/$(CONFIG)
 
-test:
-	$(MAKE) XCODE_COMMAND=test _xcode_build
+PLATFORM_IOS = iOS Simulator,id=$(call udid_for,iOS,iPhone \d\+ Pro [^M])
+PLATFORM_MACOS := macOS
 
-sim-build: $(SIM_ID_CACHE)
-	$(MAKE) XCODE_COMMAND=build XCODE_DESTINATION=$(shell cat $<) _xcode_build
+PLATFORM ?= IOS
 
-sim-test: $(SIM_ID_CACHE)
-	$(MAKE) XCODE_COMMAND=test XCODE_DESTINATION=$(shell cat $<) _xcode_build
+XCODE_DESTINATION = platform="$(PLATFORM_$(PLATFORM))"
+
+PLATFORM_ID = $(shell echo "$(XCODE_DESTINATION)" | sed -E "s/.+,id=(.+)/\1/")
+
+XCODEBUILD_FLAGS = \
+	-configuration $(XCODE_CONFIG) \
+	-derivedDataPath $(DERIVED_DATA_PATH) \
+	-destination $(XCODE_DESTINATION) \
+	-scheme "$(XCODE_SCHEME)" \
+	-project $(XCODE_PROJECT) \
+	$(XCODE_OPTIONS)
+
+XCODEBUILD_COMMAND = xcodebuild $(XCODEBUILD_FLAGS) $(XCODE_COMMAND) $(XCODE_EXTRA_PARAMS)
+
+ifneq ($(strip $(shell which xcbeautify)),)
+	XCODEBUILD = set -o pipefail && $(XCODEBUILD_COMMAND) | xcbeautify
+else
+	XCODEBUILD = $(XCODEBUILD_COMMAND)
+endif
+
+# Extracts the test targets by grokking the folders from within Tests directory:
+TEST_FOLDERS := $(wildcard lib/Tests/*)
+TEST_MODULES := $(patsubst lib/Tests/%,%,$(TEST_FOLDERS))
+
+build: XCODE_COMMAND := build
+build: boot-simulator
+	$(XCODEBUILD)
+
+test: $(TEST_MODULES)
+
+lint:
+	swiftlint lint --strict
+
+lint-fix:
+	swiftlint lint --fix
+
+## TODO: deprecate swiftlint in favor of swift-format
+lint-official:
+	swift format lint --strict -r .
+ 
+lint-fix-official:
+	swift format -i -r .
 
 clean:
-	rm -rf .build build
+	rm -rf .build build $(DERIVED_DATA_PATH)
 
-_xcode_build:
-	xcodebuild \
-		-project $(XCODE_PROJECT) \
-		-target $(XCODE_TARGET) \
-		-sdk iphoneos \
-		-destination $(XCODE_DESTINATION) \
-		$(XCODE_COMMAND) \
-		CODE_SIGNING_ALLOWED='NO'
+%Tests: XCODE_SCHEME = $@
+%Tests: XCODE_COMMAND := test
+%Tests: boot-simulator
+	$(XCODEBUILD)
 
-SCRATCH_PATH := .build/$(IOS_TRIPLE)
-SIM_ID_CACHE := $(SCRATCH_PATH)/simid.txt
+boot-simulator:
+	@test "$(PLATFORM_ID)" != "" \
+		&& xcrun simctl list | grep $(PLATFORM_ID) | grep -q Booted || xcrun simctl boot $(PLATFORM_ID) \
+		&& open -a Simulator --args -CurrentDeviceUDID $(PLATFORM_ID) \
+		|| exit 0
 
-$(SCRATCH_PATH):
-	mkdir -p $@
-
-# Extracts the id string of the first simulator found for this os+version and saves it to SIM_ID_CACHE file
-$(SIM_ID_CACHE): $(SCRATCH_PATH)
-	xcodebuild \
-		-project $(XCODE_PROJECT) \
-		-target $(XCODE_TARGET) \
-		-sdk iphoneos \
-		-destination 'platform=iOS Simulator' \
-		-showdestinations 2>&1 \
-		| grep 'platform:iOS Simulator, id:.*, OS:$(IOS_VERSION).*, name:iPhone 16 Pro' \
-		| head -1 \
-		| sed -e s'/^.*id:\([^,]*\).*,.*$$/\1/' > $@
-
+define udid_for
+$(shell xcrun simctl list devices available '$(1)' | grep '$(2)' | sort -r | head -1 | awk -F '[()]' '{ print $$(NF-3) }')
+endef

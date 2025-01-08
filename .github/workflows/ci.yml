@@ -17,16 +17,11 @@ jobs:
     runs-on: [self-hosted, ConX, macOS]
     steps:
       - uses: actions/checkout@v4
-      - run: make -C lib build
+      - run: xcrun simctl list devices available
+      - run: make build
   test:
     name: Test
     runs-on: [self-hosted, ConX, macOS]
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-      - uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 4
-          max_attempts: 3
-          retry_on: timeout
-          command: make -C lib test
+      - run: make test
