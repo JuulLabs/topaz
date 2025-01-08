@@ -1,4 +1,6 @@
 .DS_Store
+artifacts/
+private_keys/
 .build/
 build/
 /Packages
@@ -9,4 +11,3 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 node_modules/
-
