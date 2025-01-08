@@ -22,6 +22,7 @@ jobs:
   test:
     name: Test
     runs-on: [self-hosted, ConX, macOS]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - run: make test
