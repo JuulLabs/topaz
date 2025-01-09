@@ -38,14 +38,11 @@ on:
     tags:
       - 'release/**'
 
-env:
-  TAG: ${{ github.ref_name }}
-
 jobs:
   publish:
     runs-on: [self-hosted, ConX, macOS, ARM64]
     # Set a timeout to kill if it hangs which can happen if permissions need fixing and it hangs on a GUI prompt
-    timeout-minutes: 30
+    timeout-minutes: 10
     env:
       API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
       API_KEY_DIR: private_keys
@@ -54,6 +51,7 @@ jobs:
       DEV_CERT_BASE64_P12: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12 }}
       DEV_CERT_PASSKEY: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY }}
       KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
+      TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -97,18 +95,12 @@ jobs:
           security find-identity -v -p codesigning
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
-      # TODO: remove this debug
-      - name: DEBUG REF TAG
+      - name: Log Version Info
         run: |
-          echo "#### DEBUGGING" >> $GITHUB_STEP_SUMMARY
-          echo "APP_VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_STEP_SUMMARY
-          echo "GITHUB_REF=${GITHUB_REF}" >> $GITHUB_STEP_SUMMARY
-          echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}" >> $GITHUB_STEP_SUMMARY
-          echo "github.ref=${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "github.ref_name=${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "github.event.release.tag_name=${{ github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "github.run_number=${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
-          echo "TAG=${TAG##*/}" >> $GITHUB_STEP_SUMMARY
+          echo "#### Build Info" >> $GITHUB_STEP_SUMMARY
+          echo "Marketing Version: ${GITHUB_REF/refs\/tags\//}" >> $GITHUB_STEP_SUMMARY
+          echo "Build Number: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "Git Tag: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
 
       - run: make clean
       - run: >
@@ -118,10 +110,7 @@ jobs:
           APP_BUILD='${{ github.run_number }}'
           ipa
       - run: make XCODE_CONFIG=Release validate-ipa
-      # TODO: remove this debug
-      - run: cat artifacts/topaz.xcarchive/Info.plist
-      # TODO: remove the -n flag to actually upload the IPA
-      - run: make -n XCODE_CONFIG=Release upload-ipa
+      - run: make XCODE_CONFIG=Release upload-ipa
 
       # GH recommends manual cleanup of keychains:
       - run: |
