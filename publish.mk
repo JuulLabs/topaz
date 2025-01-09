@@ -1,6 +1,8 @@
-include build.mk
+.PHONY: ipa validate-ipa upload-ipa
 
-.PHONY: ipa validate-ipa upload-ipa upload-dsyms
+XCODE_CONFIG ?= Release
+
+include build.mk
 
 # Some notes about publishing using CLI:
 # https://tarikdahic.com/posts/build-ios-apps-from-the-command-line-using-xcodebuild/
@@ -11,7 +13,7 @@ API_KEY_ID ?= 26CY8KZRBV
 ARTIFACTS_ROOT := artifacts
 IPA_ARTIFACT := $(ARTIFACTS_ROOT)/$(XCODE_TARGET).ipa
 ARCHIVE_ARTIFACT := $(ARTIFACTS_ROOT)/$(XCODE_TARGET).xcarchive
-EXPORT_PLIST := ExportOptions-$(XCODE_SCHEME).plist
+EXPORT_PLIST := Topaz/ExportOptions-$(XCODE_CONFIG).plist
 
 # Using App Store Connect API credentials enables "automatic code signing".
 # The app loader tool requires that the private key be saved to ./private_keys/ and correctly named.
@@ -28,34 +30,31 @@ XCODE_ARCHIVE_OPTIONS = \
 	-authenticationKeyID $(API_KEY_ID) \
 	-authenticationKeyIssuerID $(API_ISSUER_ID)
 
-XCODE_EXPORT_OPTIONS = \
-	$(XCODE_ARTIFACT_OPTIONS) \
-	-exportPath $(ARTIFACTS_ROOT) \
-	-exportOptionsPlist $(EXPORT_PLIST)
-
 $(API_KEY_FILE):
 	@if test -z "$(API_KEY_FILE_ABS)"; then \
 		echo "API key file not found: $(API_KEY_FILE)"; \
 		exit 1; \
 	fi
 
-$(ARTIFACTS_ROOT):
+$(ARCHIVE_ARTIFACT): $(API_KEY_FILE)
 	mkdir -p $(ARTIFACTS_ROOT)
-
-$(ARCHIVE_ARTIFACT): $(ARTIFACTS_ROOT) $(XCODE_PROJECT) $(API_KEY_FILE)
 	$(MAKE) \
 		PLATFORM=GENERIC \
-		XCODE_CONFIG=Release \
 		XCODE_OPTIONS='$(XCODE_ARCHIVE_OPTIONS)' \
 		XCODE_COMMAND=archive \
 		build
 
 $(IPA_ARTIFACT): $(ARCHIVE_ARTIFACT)
-	$(MAKE) \
-		PLATFORM=GENERIC \
-		XCODE_CONFIG=Release \
-		XCODE_OPTIONS='$(XCODE_EXPORT_OPTIONS)' \
-		XCODE_COMMAND=-exportArchive \
-		build
+	xcodebuild \
+		$(XCODE_ARCHIVE_OPTIONS) \
+		-exportPath $(ARTIFACTS_ROOT) \
+		-exportOptionsPlist $(EXPORT_PLIST) \
+		-exportArchive
 
 ipa: $(IPA_ARTIFACT)
+
+validate-ipa: $(IPA_ARTIFACT)
+	xcrun altool --validate-app -f $< -t ios --apiKey $(API_KEY_ID) --apiIssuer $(API_ISSUER_ID)
+
+upload-ipa: $(IPA_ARTIFACT)
+	xcrun altool --upload-app -f $< -t ios --apiKey $(API_KEY_ID) --apiIssuer $(API_ISSUER_ID)

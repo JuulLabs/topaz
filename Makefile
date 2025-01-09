@@ -1,9 +1,12 @@
 include publish.mk
 
-.PHONY: all lint lint-fix clean
+.PHONY: all lint lint-fix clean js
 
 # Default target
 all: build
+
+js:
+	$(MAKE) -C lib/Javascript
 
 lint:
 	swiftlint lint --strict
