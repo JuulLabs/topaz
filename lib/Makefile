@@ -1,9 +1,8 @@
 .PHONY: build test clean
 
 XCODE_DEV_ROOT := $(shell xcode-select -p)
-XCODE_OPTIONS := -skipPackagePluginValidation -skipMacroValidation
 
-SWIFT_TARGET := App
+TARGET ?= App
 
 IOS_VERSION := 18
 IOS_ARCH := arm64
@@ -12,7 +11,7 @@ IOS_SDK_PATH := $(XCODE_DEV_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPh
 
 # Builds just the SPM modules in isolation (way faster than xcodebuild)
 build:
-	swift build --sdk "$(IOS_SDK_PATH)" --triple "$(IOS_TRIPLE)" --scratch-path "$(SCRATCH_PATH)" --target $(SWIFT_TARGET)
+	swift build --sdk "$(IOS_SDK_PATH)" --triple "$(IOS_TRIPLE)" --scratch-path "$(SCRATCH_PATH)" --target $(TARGET)
 
 clean:
 	rm -rf .build build

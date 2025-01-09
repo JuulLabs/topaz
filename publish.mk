@@ -23,7 +23,7 @@ API_KEY_DIR := ./private_keys
 API_KEY_FILE := $(API_KEY_DIR)/AuthKey_$(API_KEY_ID).p8
 
 # xcodebuild requires absolute path to the key file:
-API_KEY_FILE_ABS = $(shell readlink -f $(API_KEY_FILE))
+API_KEY_FILE_ABS := $(shell readlink -f $(API_KEY_FILE))
 
 XCODE_ARCHIVE_OPTIONS = \
 	-archivePath $(ARCHIVE_ARTIFACT) \
