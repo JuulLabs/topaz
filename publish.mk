@@ -1,5 +1,8 @@
 .PHONY: ipa validate-ipa upload-ipa
 
+APP_BUILD ?= 1
+APP_VERSION ?= 1.0.0
+
 XCODE_CONFIG ?= Release
 
 include build.mk
@@ -14,6 +17,7 @@ ARTIFACTS_ROOT := artifacts
 IPA_ARTIFACT := $(ARTIFACTS_ROOT)/$(XCODE_TARGET).ipa
 ARCHIVE_ARTIFACT := $(ARTIFACTS_ROOT)/$(XCODE_TARGET).xcarchive
 EXPORT_PLIST := Topaz/ExportOptions-$(XCODE_CONFIG).plist
+VERSION_FILE := Topaz/version.xcconfig
 
 # Using App Store Connect API credentials enables "automatic code signing".
 # The app loader tool requires that the private key be saved to ./private_keys/ and correctly named.
@@ -38,6 +42,8 @@ $(API_KEY_FILE):
 
 $(ARCHIVE_ARTIFACT): $(API_KEY_FILE)
 	mkdir -p $(ARTIFACTS_ROOT)
+	echo 'CURRENT_PROJECT_VERSION = $(APP_BUILD)' > $(VERSION_FILE)
+	echo 'MARKETING_VERSION = $(APP_VERSION)' >> $(VERSION_FILE)
 	$(MAKE) \
 		PLATFORM=GENERIC \
 		XCODE_OPTIONS='$(XCODE_ARCHIVE_OPTIONS)' \
