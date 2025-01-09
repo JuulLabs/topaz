@@ -22,4 +22,4 @@ lint-fix-official:
 	swift format -i -r .
 
 clean:
-	rm -rf .build build $(DERIVED_DATA_ROOT) $(ARTIFACTS_ROOT)
+	-rm -rf .build build $(DERIVED_DATA_ROOT) $(ARTIFACTS_ROOT)

@@ -1,11 +1,9 @@
+include build.mk
+
 .PHONY: ipa validate-ipa upload-ipa
 
 APP_BUILD ?= 1
 APP_VERSION ?= 1.0.0
-
-XCODE_CONFIG ?= Release
-
-include build.mk
 
 # Some notes about publishing using CLI:
 # https://tarikdahic.com/posts/build-ios-apps-from-the-command-line-using-xcodebuild/
