@@ -65,3 +65,12 @@ To build a specific SPM library module set `TARGET` to the module name e.g.:
 ```sh
 $ make -C lib TARGET=BluetoothEngine
 ```
+
+### Publishing To App Store
+
+To trigger the `publish.yml` GitHub Action push a tag of the form `release/x.y.z` e.g.:
+
+```sh
+$ git tag -a release/1.2.3 -m "Verison 1.2.3 App Store Release"
+$ git push origin release/1.2.3
+```
