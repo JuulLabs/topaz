@@ -8,6 +8,7 @@ IOS_VERSION := 18
 IOS_ARCH := arm64
 IOS_TRIPLE := $(IOS_ARCH)-apple-ios$(IOS_VERSION).0
 IOS_SDK_PATH := $(XCODE_DEV_ROOT)/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
+SCRATCH_PATH := .build/$(IOS_TRIPLE)
 
 # Builds just the SPM modules in isolation (way faster than xcodebuild)
 build:
