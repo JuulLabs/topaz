@@ -5,7 +5,6 @@ import Foundation
 import JsMessage
 
 struct CharacteristicRequest: JsMessageDecodable {
-
     let peripheralId: UUID
     let serviceUuid: UUID
     let characteristicUuid: UUID
