@@ -25,6 +25,8 @@ extension Message {
             return ReadCharacteristic.create(from: self)
         case .startNotifications:
             return StartNotifications.create(from: self)
+        case .stopNotifications:
+            return StopNotifications.create(from: self)
         }
     }
 }

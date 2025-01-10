@@ -24,4 +24,5 @@ public protocol BluetoothClient: Sendable {
     func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent
 
     func startNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
+    func stopNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
 }

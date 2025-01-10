@@ -81,11 +81,14 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: (any Error)?) {
         //call handleEvent
+
+        let eventName: EventName = characteristic.isNotifying ? .startNotifications : .stopNotifications
+
         let event: BluetoothEvent = if let error {
-            ErrorEvent(.start, peripheral.erase(locker: locker), characteristic.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(eventName, peripheral.erase(locker: locker), characteristic.erase(locker: locker), BluetoothError.causedBy(error))
         } else {
 //            CharacteristicChangedEvent(peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId, data: characteristic.value)
-            CharacteristicEvent(.start, peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId)
+            CharacteristicEvent(eventName, peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId)
         }
         handleEvent(event)
     }

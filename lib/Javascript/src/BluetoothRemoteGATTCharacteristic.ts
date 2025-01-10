@@ -51,6 +51,19 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         )
         return this//copyOf(this.value)
     }
+
+    stopNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
+        await bluetoothRequest<ReadCharacteristicRequest, void>(
+            'stopNotifications',
+            {
+                device: this.service.device.uuid,
+                service: this.service.uuid,
+                characteristic: this.uuid,
+                instance: this.instance
+            }
+        )
+        return this
+    }
 }
 
 function copyOf(data: DataView): DataView {

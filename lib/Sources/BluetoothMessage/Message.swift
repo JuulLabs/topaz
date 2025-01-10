@@ -26,6 +26,7 @@ public struct Message {
         case readCharacteristic
 
         case startNotifications
+        case stopNotifications
 
         // TODO: moar descriptors, start/stop notifications, read/write value
     }

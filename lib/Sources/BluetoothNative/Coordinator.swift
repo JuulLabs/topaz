@@ -130,6 +130,14 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
+    func stopNotify(peripheral: Peripheral, characteristic: Characteristic) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.setNotifyValue(false, for: nativeCharacteristic)
+        }
+    }
+
     // add start and stop funcs here. will probably take a periph and a characteristic
 
     // will use nativePeripheral.setNotifyValue(<#T##enabled: Bool##Bool#>, for: <#T##CBCharacteristic#>)

@@ -19,6 +19,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
 
     public var onStartNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    public var onStopNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -38,6 +39,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
 
         self.onStartNotify = {_, _ in fatalError("Not implemented")}
+        self.onStopNotify = {_, _ in fatalError("Not implemented")}
     }
 
     public func enable() async {
@@ -90,5 +92,9 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func startNotify(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
         try await onStartNotify(peripheral, characteristic)
+    }
+
+    public func stopNotify(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
+        try await onStopNotify(peripheral, characteristic)
     }
 }

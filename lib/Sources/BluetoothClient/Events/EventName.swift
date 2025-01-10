@@ -8,5 +8,6 @@ public enum EventName: Sendable {
     case discoverCharacteristics
     case characteristicNotify
     case characteristicValue
-    case start
+    case startNotifications
+    case stopNotifications
 }
