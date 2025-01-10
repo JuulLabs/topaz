@@ -6,11 +6,11 @@ extension BluetoothError: DomErrorConvertable {
     public var domErrorName: DomErrorName {
         switch self {
         case .cancelled: .abort
-        case .causedBy: .operataion
+        case .causedBy: .operation
         case .noSuchDevice: .notFound
         case .noSuchService: .notFound
         case .noSuchCharacteristic: .notFound
-        case .unavailable: .operataion
+        case .unavailable: .operation
         case .unknown: .unknown
         }
     }
@@ -19,7 +19,7 @@ extension BluetoothError: DomErrorConvertable {
 extension EventServiceError: DomErrorConvertable {
     public var domErrorName: DomErrorName {
         switch self {
-        case .typeMismatch: .operataion
+        case .typeMismatch: .operation
         }
     }
 }
