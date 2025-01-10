@@ -11,7 +11,7 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable {
 
     var filter: CharacteristicDiscoveryFilter {
         let characteristics = query.characteristicUuid.map { [$0] }
-        return CharacteristicDiscoveryFilter(service: serviceUuid, characteristics: characteristics)
+        return CharacteristicDiscoveryFilter(characteristics: characteristics)
     }
 
     enum Query {
@@ -70,7 +70,8 @@ struct DiscoverCharacteristics: BluetoothAction {
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverCharacteristicsResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        let result = try await client.discoverCharacteristics(peripheral, filter: request.filter)
+        let service = try await state.getService(peripheralId: request.peripheralId, serviceId: request.serviceUuid)
+        let result = try await client.discoverCharacteristics(peripheral, service, filter: request.filter)
         await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {
         case let .first(characteristicUuid):

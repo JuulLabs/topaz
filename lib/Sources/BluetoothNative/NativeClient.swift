@@ -62,11 +62,8 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func discoverCharacteristics(_ peripheral: Peripheral, filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent {
-        guard let service = peripheral.services.first(where: { $0.uuid == filter.service }) else {
-            throw BluetoothError.noSuchService(filter.service)
-        }
-        return try await server.awaitEvent(key: .characteristicDiscovery(peripheralId: peripheral.id, serviceId: service.uuid)) {
+    func discoverCharacteristics(_ peripheral: Peripheral, _ service: Service, filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent {
+        try await server.awaitEvent(key: .characteristicDiscovery(peripheralId: peripheral.id, serviceId: service.uuid)) {
             coordinator.discoverCharacteristics(peripheral: peripheral, service: service, uuids: filter.characteristics)
         }
     }
