@@ -1,11 +1,13 @@
 .DS_Store
+artifacts/
+private_keys/
 .build/
 build/
 /Packages
 xcuserdata/
 DerivedData/
+.derivedData/
 .swiftpm/configuration/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 node_modules/
-
