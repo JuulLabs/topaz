@@ -22,7 +22,7 @@ clean:
 # Unfortunately `swift test` is not working for simulator target, seems to be a bug :(
 # So below we do a bunch of nonsense to run the SPM tests.
 
-SCRATCH_PATH := .build/$(BUILD_TRIPLE)
+SCRATCH_PATH := .build/$(IOS_TRIPLE)
 SIM_ID_CACHE := $(SCRATCH_PATH)/simid.txt
 
 $(SCRATCH_PATH):

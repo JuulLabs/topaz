@@ -7,6 +7,7 @@ import WebKit
 @MainActor
 @Observable
 public class WebPageModel {
+    @ObservationIgnored
     private var kvoStore: [NSKeyValueObservation] = []
 
     public let config: WKWebViewConfiguration
@@ -31,6 +32,8 @@ public class WebPageModel {
         url.host(percentEncoded: false) ?? "unknown"
     }
 
+    public var onPageLoaded: (URL) -> Void = { _ in }
+
     public init(
         tab: Int,
         url: URL,
@@ -53,6 +56,11 @@ public class WebPageModel {
         monitorLoadingProgress(of: webView)
     }
 
+    func deinitialize(webView: WKWebView) {
+        kvoStore.forEach { $0.invalidate() }
+        kvoStore.removeAll()
+    }
+
     func didCommitNavigation() {
         // Invoked when we start to receive a response from the web server
         withAnimation(.easeInOut(duration: 0.25)) {
@@ -61,7 +69,7 @@ public class WebPageModel {
     }
 
     private func monitorLoadingProgress(of webView: WKWebView) {
-        let loading = webView.observe(\.isLoading, options: .new) { [weak self] _, change in
+        let loading = webView.observe(\.isLoading, options: .new) { [weak self] webView, change in
             guard let isLoading = change.newValue else { return }
             Task { @MainActor in
                 guard let self else { return }
@@ -79,9 +87,15 @@ public class WebPageModel {
                         // Double check state didn't change while we slept
                         if self.loadingState.isProgressComplete {
                             self.loadingState = .complete
+                            if let url = webView.url {
+                                self.onPageLoaded(url)
+                            }
                         }
                     } else {
                         self.loadingState = .complete
+                        if let url = webView.url {
+                            self.onPageLoaded(url)
+                        }
                     }
                 }
             }
