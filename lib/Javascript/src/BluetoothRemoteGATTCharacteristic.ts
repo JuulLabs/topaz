@@ -2,7 +2,7 @@ import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProp
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { bluetoothRequest } from "./WebKit";
 
-type ReadCharacteristicRequest = {
+type CharacteristicRequest = {
     device: string;
     service: string;
     characteristic: string;
@@ -26,7 +26,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/readValue
     readValue = async (): Promise<DataView> => {
-        await bluetoothRequest<ReadCharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, void>(
             'readCharacteristic',
             {
                 device: this.service.device.uuid,
@@ -40,7 +40,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
 
     // add start stop functions here
     startNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
-        await bluetoothRequest<ReadCharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, void>(
             'startNotifications',
             {
                 device: this.service.device.uuid,
@@ -49,11 +49,11 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
                 instance: this.instance
             }
         )
-        return this//copyOf(this.value)
+        return this
     }
 
     stopNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
-        await bluetoothRequest<ReadCharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, void>(
             'stopNotifications',
             {
                 device: this.service.device.uuid,

@@ -3,36 +3,32 @@ import BluetoothMessage
 import Foundation
 import JsMessage
 
-struct StopNotificationsRequest: JsMessageDecodable {
-
-    //
-    let peripheralId: UUID
-    let serviceUuid: UUID
-    let characteristicUuid: UUID
-    let characteristicInstance: UInt32
-
-    static func decode(from data: [String: JsType]?) -> Self? {
-        guard let device = data?["device"]?.string.flatMap(UUID.init(uuidString:)) else {
-            return nil
-        }
-        guard let service = data?["service"]?.string.flatMap(UUID.init(uuidString:)) else {
-            return nil
-        }
-        guard let characteristic = data?["characteristic"]?.string.flatMap(UUID.init(uuidString:)) else {
-            return nil
-        }
-        guard let instance = data?["instance"]?.number?.uint32Value else {
-            return nil
-        }
-        return .init(peripheralId: device, serviceUuid: service, characteristicUuid: characteristic, characteristicInstance: instance)
-    }
-}
-
-struct StopNotificationsResponse: JsMessageEncodable {
-    func toJsMessage() -> JsMessage.JsMessageResponse {
-        .body([:])
-    }
-}
+//struct StopNotificationsRequest: JsMessageDecodable {
+//
+//    //
+//    let peripheralId: UUID
+//    let serviceUuid: UUID
+//    let characteristicUuid: UUID
+//
+//    static func decode(from data: [String: JsType]?) -> Self? {
+//        guard let device = data?["device"]?.string.flatMap(UUID.init(uuidString:)) else {
+//            return nil
+//        }
+//        guard let service = data?["service"]?.string.flatMap(UUID.init(uuidString:)) else {
+//            return nil
+//        }
+//        guard let characteristic = data?["characteristic"]?.string.flatMap(UUID.init(uuidString:)) else {
+//            return nil
+//        }
+//        return .init(peripheralId: device, serviceUuid: service, characteristicUuid: characteristic)
+//    }
+//}
+//
+//struct StopNotificationsResponse: JsMessageEncodable {
+//    func toJsMessage() -> JsMessage.JsMessageResponse {
+//        .body([:])
+//    }
+//}
 
 struct StopNotifications: BluetoothAction {
 
@@ -42,19 +38,19 @@ struct StopNotifications: BluetoothAction {
 
     var requiresReadyState: Bool = false // ?
 
-    let request: StopNotificationsRequest
+    let request: CharacteristicRequest
 
-    init(request: StopNotificationsRequest) {
+    init(request: CharacteristicRequest) {
         self.request = request
     }
 
-    func execute(state: BluetoothMessage.BluetoothState, client: any BluetoothClient) async throws -> StopNotificationsResponse {
+    func execute(state: BluetoothMessage.BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
 
         let peripheral  = try await state.getPeripheral(request.peripheralId)
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid)
         _ = try await client.stopNotify(peripheral, characteristic: characteristic)
 
-        return StopNotificationsResponse()
+        return CharacteristicResponse()
 
 //        let peripheral = try await state.getPeripheral(request.peripheralId)
 //        // todo: error response if not connected

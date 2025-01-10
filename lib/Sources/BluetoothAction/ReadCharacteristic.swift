@@ -6,7 +6,7 @@ import JsMessage
 
 
 // implement a JSMessageDecodable
-struct ReadCharacteristicRequest: JsMessageDecodable {
+struct CharacteristicRequest: JsMessageDecodable {
 
     //
     let peripheralId: UUID
@@ -32,7 +32,7 @@ struct ReadCharacteristicRequest: JsMessageDecodable {
 }
 
 // Response is unused on JavaScript side but needed to have `ReadCharacteristic` conform to `BluetoothAction`.
-struct ReadCharacteristicResponse: JsMessageEncodable {
+struct CharacteristicResponse: JsMessageEncodable {
     func toJsMessage() -> JsMessage.JsMessageResponse {
         .body([:])
     }
@@ -40,18 +40,18 @@ struct ReadCharacteristicResponse: JsMessageEncodable {
 
 struct ReadCharacteristic: BluetoothAction {
     let requiresReadyState: Bool = true
-    let request: ReadCharacteristicRequest
+    let request: CharacteristicRequest
 
 
     // this is the meat and potatoes
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadCharacteristicResponse {
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> CharacteristicResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid)
         // The Js characteristic object's `value` is mutated via an event that is triggered by the read
         // So we ignore the result here and over on the Js side the updated value gets read from the characteristic directly
         _ = try await client.characteristicRead(peripheral, characteristic: characteristic)
-        return ReadCharacteristicResponse()
+        return CharacteristicResponse()
     }
 }
 
