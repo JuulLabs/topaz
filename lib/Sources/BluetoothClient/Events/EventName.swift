@@ -1,4 +1,4 @@
-
+// add start and stop
 public enum EventName: Sendable {
     case systemState
     case advertisement
@@ -8,4 +8,5 @@ public enum EventName: Sendable {
     case discoverCharacteristics
     case characteristicNotify
     case characteristicValue
+    case start
 }

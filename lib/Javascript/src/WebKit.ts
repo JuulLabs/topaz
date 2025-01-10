@@ -18,6 +18,7 @@ type BluetoothMessage = {
   data?: any;
 }
 
+// this will be used in characteristic
 export const bluetoothRequest = function <Request, Response>(
   action: string,
   data?: Request,

@@ -4,7 +4,11 @@ import BluetoothMessage
 import Foundation
 import JsMessage
 
+
+// implement a JSMessageDecodable
 struct ReadCharacteristicRequest: JsMessageDecodable {
+
+    //
     let peripheralId: UUID
     let serviceUuid: UUID
     let characteristicUuid: UUID
@@ -38,6 +42,8 @@ struct ReadCharacteristic: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: ReadCharacteristicRequest
 
+
+    // this is the meat and potatoes
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadCharacteristicResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected

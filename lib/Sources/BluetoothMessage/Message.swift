@@ -25,6 +25,8 @@ public struct Message {
         // GATT Characteristic
         case readCharacteristic
 
+        case startNotifications
+
         // TODO: moar descriptors, start/stop notifications, read/write value
     }
 

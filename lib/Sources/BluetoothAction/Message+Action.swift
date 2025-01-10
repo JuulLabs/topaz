@@ -23,6 +23,8 @@ extension Message {
             return DiscoverCharacteristics.create(from: self)
         case .readCharacteristic:
             return ReadCharacteristic.create(from: self)
+        case .startNotifications:
+            return StartNotifications.create(from: self)
         }
     }
 }
