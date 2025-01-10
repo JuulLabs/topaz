@@ -38,7 +38,6 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         return copyOf(this.value)
     }
 
-    // add start stop functions here
     startNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
         await bluetoothRequest<CharacteristicRequest, void>(
             'startNotifications',

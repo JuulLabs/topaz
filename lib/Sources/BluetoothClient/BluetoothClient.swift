@@ -1,9 +1,6 @@
 import Bluetooth
 import Foundation
 
-
-// add start and stop to this protocol
-// start and stop will return "events" 
 public protocol BluetoothClient: Sendable {
     var events: AsyncStream<any BluetoothEvent> { get }
 
@@ -22,7 +19,6 @@ public protocol BluetoothClient: Sendable {
     func discoverCharacteristics(_ peripheral: Peripheral, filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     func characteristicNotify(_ peripheral: Peripheral, _ characteristic: Characteristic, enabled: Bool) async throws -> CharacteristicEvent
     func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent
-
-    func startNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
-    func stopNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
+    func startNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
+    func stopNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent
 }

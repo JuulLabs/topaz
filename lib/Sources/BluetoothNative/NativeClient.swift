@@ -5,7 +5,6 @@ import Foundation
 
 public let liveBluetoothClient: BluetoothClient = NativeBluetoothClient()
 
-// add stat stop funcs here
 struct NativeBluetoothClient: BluetoothClient {
     private let coordinator: Coordinator
     private let server: EventService
@@ -84,15 +83,15 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func startNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+    func startNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
         try await server.awaitEvent(key: .characteristic(.startNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
-            coordinator.startNotify(peripheral: peripheral, characteristic: characteristic)
+            coordinator.startNotifications(peripheral: peripheral, characteristic: characteristic)
         }
     }
 
-    func stopNotify(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+    func stopNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
         try await server.awaitEvent(key: .characteristic(.stopNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
-            coordinator.stopNotify(peripheral: peripheral, characteristic: characteristic)
+            coordinator.stopNotifications(peripheral: peripheral, characteristic: characteristic)
         }
     }
 }

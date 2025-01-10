@@ -1,4 +1,4 @@
-// add start and stop
+
 public enum EventName: Sendable {
     case systemState
     case advertisement

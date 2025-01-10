@@ -17,9 +17,8 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onDiscoverCharacteristics: @Sendable (_ peripheral: Peripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     public var onCharacteristicNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
-
-    public var onStartNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
-    public var onStopNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    public var onStartNotifications: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    public var onStopNotifications: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -37,9 +36,8 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onDiscoverCharacteristics = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
-
-        self.onStartNotify = {_, _ in fatalError("Not implemented")}
-        self.onStopNotify = {_, _ in fatalError("Not implemented")}
+        self.onStartNotifications = {_, _ in fatalError("Not implemented")}
+        self.onStopNotifications = {_, _ in fatalError("Not implemented")}
     }
 
     public func enable() async {
@@ -90,11 +88,11 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onCharacteristicRead(peripheral, characteristic)
     }
 
-    public func startNotify(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
-        try await onStartNotify(peripheral, characteristic)
+    public func startNotifications(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
+        try await onStartNotifications(peripheral, characteristic)
     }
 
-    public func stopNotify(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
-        try await onStopNotify(peripheral, characteristic)
+    public func stopNotifications(_ peripheral: Bluetooth.Peripheral, characteristic: Bluetooth.Characteristic) async throws -> CharacteristicEvent {
+        try await onStopNotifications(peripheral, characteristic)
     }
 }

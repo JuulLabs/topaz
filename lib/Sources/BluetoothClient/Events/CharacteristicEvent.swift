@@ -1,9 +1,8 @@
 import Bluetooth
 import Foundation
 
-// can be used for start/stop
 public struct CharacteristicEvent: BluetoothEvent {
-    public let name: EventName // add to eventName
+    public let name: EventName
     public let peripheralId: UUID
     public let characteristicId: UUID
     public let instance: UInt32
