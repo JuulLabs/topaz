@@ -26,6 +26,21 @@ $ make js
 
 This will output the compiled artifacts to `lib/Sources/WebView/Resources/Generated`. Submit these changes as part of the PR.
 
+To compile the Javascript in a non-minified form for debugging:
+
+```sh
+$ make js-debug
+```
+
+To switch between the debug and production artifacts, use the `js-clean` target to force a re-build e.g.:
+
+```sh
+# Force re-build for testing:
+$ make js-clean js-debug
+# Force re-build for production:
+$ make js-clean js
+```
+
 ### CLI Build and Test
 
 Installing onto a phone or simulator requires using Xcode. But for CI and local testing convenience there are makefiles for doing most tasks.
@@ -64,6 +79,12 @@ To build a specific SPM library module set `TARGET` to the module name e.g.:
 
 ```sh
 $ make -C lib TARGET=BluetoothEngine
+```
+
+To clean up and delete all build artifacts:
+
+```sh
+$ make clean
 ```
 
 ### Publishing To App Store
