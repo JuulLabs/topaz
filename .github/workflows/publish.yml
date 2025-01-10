@@ -1,0 +1,119 @@
+# Instructions for creating the dependencies for publishing via automatic signing. These steps need to
+# be repeated if the API key or certificate are expired/rotated:
+#
+# 1. Create an API key in App Store Connect via these instructions:
+# https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api
+#
+# 2. Not really secret but put the key ID and issuer ID into the appropriate GitHub secrets. Also put them
+# in the Makefile for running the build process locally. These can be copied from App Store Connect UI directly.
+#
+# 3. Download the API key private key from App Store Connect and save it in the 1Password account. Put it in
+# the local repo checkout under ./private_keys/AuthKey_$API_KEY_ID.p8 temporarily for the next step, and also
+# put it in the appropriate GitHub secret (APPLE_API_KEY_BASE64_P8) as base64:
+# % cat ./private_keys/AuthKey_$API_KEY_ID.p8 | base64 | pbcopy
+#
+# 4. Perform an IPA build locally with the above API credentials in place (make ipa). The Makefile command
+# uses the `allowProvisioningUpdates` option along with the API credentials which asks Xcode to perform cloud
+# based app signing. Critically, this process also involves a certificate + key from the local keychain, and 
+# it will generate this if necessary during the build.
+#
+# 5. Export the certificate + private key (gererated from the previous step) from your local keyhchain. In the
+# KeyChain app go to "My Certificates" and find the "Apple Development" certificate labeled with your organization
+# (Note the label may be on the private key not on the cert itself). Right click the certificate and "export" to
+# save to a local file (note it may land in ~/Documents folder). It will prompt for a password to encrypt the
+# private key - make one up and store it in the appropriate GitHub secret (APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY).
+# 
+# 6. Convert the certificate+key file to base64 and store in the appropriate GitHub secret
+# (APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12). 
+# % cat Certificates.p12 | base64 | pbcopy
+#
+# The API key supposedly never expires, bit certificates expire after one year so only these last two steps need
+# to be repeated and the GitHub secret updated when that happens. Note: when adding the base64 items to GitHub secrets,
+# be careful not to prepend/append any whitespace.
+#
+
+name: 'Publish'
+on:
+  push:
+    tags:
+      - 'release/**'
+
+jobs:
+  publish:
+    runs-on: [self-hosted, ConX, macOS, ARM64]
+    # Set a timeout to kill if it hangs which can happen if permissions need fixing and it hangs on a GUI prompt
+    timeout-minutes: 10
+    env:
+      API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      API_KEY_DIR: private_keys
+      API_KEY_BASE64_P8: ${{ secrets.APPLE_API_KEY_BASE64_P8 }}
+      API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      DEV_CERT_BASE64_P12: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12 }}
+      DEV_CERT_PASSKEY: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY }}
+      KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      # altool requires the private to be in ./private_keys/AuthKey_$API_KEY_ID.p8:
+      - name: Install API Key
+        run: |
+          mkdir $API_KEY_DIR
+          echo -n "$API_KEY_BASE64_P8" | base64 -d > $API_KEY_DIR/AuthKey_$API_KEY_ID.p8
+
+      # Setup our own keychain to avoid polluting (leaking to!) the system.
+      # Note: password is for added security but is arbitrary (create-keychain sets the password).
+      - name: Install Keychain
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+      # xcodebuild will search the keychain for the developer certificate:
+      - name: Install Development Certificate
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          DEV_CERT=private_keys/dev_cert.p12
+          echo -n "$DEV_CERT_BASE64_P12" | base64 -d > $DEV_CERT
+          security import $DEV_CERT -P "$DEV_CERT_PASSKEY" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
+      - name: Set Keychain Partition List
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security show-keychain-info $KEYCHAIN_PATH
+          security find-identity -v -p codesigning
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+      - name: Log Version Info
+        run: |
+          echo "#### Build Info" >> $GITHUB_STEP_SUMMARY
+          echo "Marketing Version: ${GITHUB_REF/refs\/tags\//}" >> $GITHUB_STEP_SUMMARY
+          echo "Build Number: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "Git Tag: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+
+      - run: make clean
+      - run: >
+          make
+          XCODE_CONFIG=Release
+          APP_VERSION="${TAG##*/}"
+          APP_BUILD='${{ github.run_number }}'
+          ipa
+      - run: make XCODE_CONFIG=Release validate-ipa
+      - run: make XCODE_CONFIG=Release upload-ipa
+
+      # GH recommends manual cleanup of keychains:
+      - run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
+          rm -rf $API_KEY_DIR
+        if: always()
