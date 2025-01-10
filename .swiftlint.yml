@@ -13,3 +13,4 @@ cyclomatic_complexity:
 excluded:
   - "**/.build"
   - "**/build"
+  - "**/.derivedData"
