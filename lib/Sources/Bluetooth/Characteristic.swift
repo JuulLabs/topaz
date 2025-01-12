@@ -11,7 +11,7 @@ public struct Characteristic: Equatable, Sendable {
     public let properties: CharacteristicProperties
     public let value: Data?
     public let isNotifying: Bool
-    public let descriptors: [Descriptor]
+    public var descriptors: [Descriptor]
 
     public init(
         characteristic: AnyProtectedObject,
