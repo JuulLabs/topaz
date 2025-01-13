@@ -1,5 +1,3 @@
-include build.mk
-
 .PHONY: ipa validate-ipa upload-ipa
 
 APP_BUILD ?= 1

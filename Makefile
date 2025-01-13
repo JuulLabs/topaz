@@ -1,4 +1,4 @@
-include publish.mk
+include build.mk publish.mk run.mk
 
 .PHONY: all lint lint-fix clean js js-debug js-clean
 
