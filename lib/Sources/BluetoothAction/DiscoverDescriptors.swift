@@ -87,10 +87,10 @@ struct DiscoverDescriptors: BluetoothAction {
         )
         switch request.query {
         case let .first(descriptorUuid):
-            guard let descriptors = result.descriptors.first else {
+            guard let descriptor = result.descriptors.first else {
                 throw BluetoothError.noSuchDescriptor(characteristic: request.characteristicUuid, descriptor: descriptorUuid)
             }
-            return DiscoverDescriptorsResponse(peripheralId: peripheral.id, descriptors: [descriptors])
+            return DiscoverDescriptorsResponse(peripheralId: peripheral.id, descriptors: [descriptor])
         case .all:
             return DiscoverDescriptorsResponse(peripheralId: peripheral.id, descriptors: result.descriptors)
         }
