@@ -32,7 +32,6 @@ struct ReadDescriptorRequest: JsMessageDecodable {
 }
 
 struct ReadDescriptorResponse: JsMessageEncodable {
-
     let data: Data
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
