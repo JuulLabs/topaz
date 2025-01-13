@@ -71,7 +71,7 @@ class Store {
         if (!serviceRecord) {
             throw new ReferenceError(`Service ${service.uuid} not found`);
         }
-        serviceRecord.characteristics.set(keyForCharacteristic(characteristic), { uuid: characteristic.uuid, characteristic: characteristic, descriptors: new Map() });
+        serviceRecord.characteristics.set(keyForCharacteristic(characteristic), { uuid: characteristic.uuid, characteristic, descriptors: new Map() });
     }
 
     private findCharacteristic = (key: CharacteristicKey): BluetoothRemoteGATTCharacteristic | undefined => {
