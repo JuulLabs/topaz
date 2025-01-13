@@ -3,6 +3,10 @@ import Foundation
 import Testing
 import XCTest
 
+extension Tag {
+    @Tag static var descriptors: Self
+}
+@Suite(.tags(.descriptors))
 struct DescriptorDataTests {
 
     /**

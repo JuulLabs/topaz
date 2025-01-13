@@ -7,6 +7,10 @@ import Foundation
 import JsMessage
 import Testing
 
+extension Tag {
+    @Tag static var descriptors: Self
+}
+@Suite(.tags(.descriptors))
 struct ReadDescriptorRequestTests {
     @Test
     func decode_withAllProperties_succeeds() {
@@ -95,6 +99,7 @@ struct ReadDescriptorRequestTests {
     }
 }
 
+@Suite(.tags(.descriptors))
 struct ReadDescriptorResponseTests {
     @Test
     func toJsMessage_withDefaultResponse_hasExpectedBody() throws {
