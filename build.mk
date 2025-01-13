@@ -8,7 +8,9 @@ XCODE_CONFIG ?= Debug
 XCODE_OPTIONS += -skipPackagePluginValidation -skipMacroValidation
 
 ifeq ($(XCODE_CONFIG),Debug)
+ifneq ($(PLATFORM),MACOS)
 	override XCODE_EXTRA_PARAMS += CODE_SIGNING_ALLOWED='NO'
+endif
 endif
 
 DERIVED_DATA_ROOT := .derivedData
@@ -18,8 +20,8 @@ define udid_for
 $(shell xcrun simctl list devices available '$(1)' | grep '$(2)' | sort -r | head -1 | awk -F '[()]' '{ print $$(NF-3) }')
 endef
 
-PLATFORM_IOS := platform="iOS Simulator,id=$(call udid_for,iOS,iPhone \d\+ Pro [^M])"
-PLATFORM_MACOS := platform=macOS
+PLATFORM_IOS := platform=iOS Simulator,id=$(call udid_for,iOS,iPhone \d\+ Pro [^M])
+PLATFORM_MACOS := platform=macOS,arch=arm64,variant=Designed for iPad
 PLATFORM_GENERIC := generic/platform=iOS
 
 PLATFORM ?= IOS
@@ -31,7 +33,7 @@ PLATFORM_ID := $(shell echo "$(XCODE_DESTINATION)" | grep 'id=' | sed -E "s/.+,i
 XCODEBUILD_FLAGS = \
 	-configuration $(XCODE_CONFIG) \
 	-derivedDataPath $(DERIVED_DATA_PATH) \
-	-destination $(XCODE_DESTINATION) \
+	-destination '$(XCODE_DESTINATION)' \
 	-scheme "$(XCODE_SCHEME)" \
 	-project $(XCODE_PROJECT) \
 	$(XCODE_OPTIONS)
