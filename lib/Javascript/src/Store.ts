@@ -1,7 +1,7 @@
 import type { BluetoothDevice } from "./BluetoothDevice";
 import type { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
+import type { BluetoothRemoteGATTDescriptor } from "./BluetoothRemoteGATTDescriptor";
 import type { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
-import {BluetoothRemoteGATTDescriptor} from "./BluetoothRemoteGATTDescriptor";
 
 type CharacteristicKey = string
 
