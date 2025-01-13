@@ -84,11 +84,4 @@ public actor BluetoothState: Sendable {
         }
         self.peripherals[peripheralId]?.services[serviceIndex].characteristics[characteristicIndex].descriptors = descriptors
     }
-
-    public func getDescriptor(peripheralId uuid: UUID, characteristic: Characteristic, descriptorId: UUID) throws -> Descriptor {
-        guard let descriptor = characteristic.descriptors.first(where: { $0.uuid == descriptorId }) else {
-            throw BluetoothError.noSuchDescriptor(characteristic: characteristic.uuid, descriptor: descriptorId)
-        }
-        return descriptor
-    }
 }

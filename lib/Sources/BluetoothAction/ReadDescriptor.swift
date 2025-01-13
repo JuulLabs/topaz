@@ -52,11 +52,7 @@ struct ReadDescriptor: BluetoothAction {
             characteristicId: request.characteristicUuid,
             instance: request.instance
         )
-        let descriptor = try await state.getDescriptor(
-            peripheralId: request.peripheralId,
-            characteristic: characteristic,
-            descriptorId: request.descriptorUuid
-        )
+        let descriptor = try characteristic.getDescriptor(request.descriptorUuid)
         let event = try await client.descriptorRead(peripheral, characteristic: characteristic, descriptor: descriptor)
         return ReadDescriptorResponse(data: event.data)
     }

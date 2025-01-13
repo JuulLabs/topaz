@@ -31,3 +31,12 @@ public struct Characteristic: Equatable, Sendable {
         self.descriptors = descriptors
     }
 }
+
+extension Characteristic {
+    public func getDescriptor(_ descriptorId: UUID) throws -> Descriptor {
+        guard let descriptor = descriptors.first(where: { $0.uuid == descriptorId }) else {
+            throw BluetoothError.noSuchDescriptor(characteristic: uuid, descriptor: descriptorId)
+        }
+        return descriptor
+    }
+}
