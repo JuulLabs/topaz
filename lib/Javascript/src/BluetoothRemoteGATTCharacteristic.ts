@@ -3,6 +3,7 @@ import { BluetoothRemoteGATTDescriptor } from "./BluetoothRemoteGATTDescriptor";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothUUID } from "./BluetoothUUID";
+import { copyOf } from "./Data";
 import { store } from "./Store";
 
 type DiscoverDescriptorsRequest = {
@@ -106,8 +107,4 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         )
         return copyOf(this.value)
     }
-}
-
-function copyOf(data: DataView): DataView {
-    return new DataView(data.buffer.slice(0))
 }

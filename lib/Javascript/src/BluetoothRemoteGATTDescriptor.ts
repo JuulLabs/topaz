@@ -1,6 +1,7 @@
 import { base64ToDataView } from "./Data";
 import { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import { bluetoothRequest } from "./WebKit";
+import { copyOf } from "./Data";
 
 type ReadDescriptorRequest = {
     device: string;
@@ -37,8 +38,4 @@ export class BluetoothRemoteGATTDescriptor {
         this.value = base64ToDataView(response)
         return copyOf(this.value)
     }
-}
-
-function copyOf(data: DataView): DataView {
-    return new DataView(data.buffer.slice(0))
 }
