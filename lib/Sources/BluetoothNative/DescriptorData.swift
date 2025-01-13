@@ -16,15 +16,15 @@ extension CBDescriptorDecodeError: LocalizedError {
     }
 }
 
-/* | Descriptor UUID                               | `value` type      | Core Specification[^1]     | Core Bluetooth documentation                                                                          |
- * |-----------------------------------------------|-------------------|----------------------------|-------------------------------------------------------------------------------------------------------|
- * | CBUUIDCharacteristicExtendedPropertiesString  | NSNumber (2-bits) | v6, Vol 3, Part G, 3.3.3.1 | https://developer.apple.com/documentation/corebluetooth/cbuuidcharacteristicextendedpropertiesstring  |
- * | CBUUIDCharacteristicUserDescriptionString     | NSString (UTF-8)  | v6, Vol 3, Part G, 3.3.3.2 | https://developer.apple.com/documentation/corebluetooth/cbuuidcharacteristicuserdescriptionstring     |
- * | CBUUIDClientCharacteristicConfigurationString | NSNumber (2-bits) | v6, Vol 3, Part G, 3.3.3.3 | https://developer.apple.com/documentation/corebluetooth/cbuuidclientcharacteristicconfigurationstring |
- * | CBUUIDServerCharacteristicConfigurationString | NSNumber (1-bit)  | v6, Vol 3, Part G, 3.3.3.4 | https://developer.apple.com/documentation/corebluetooth/cbuuidservercharacteristicconfigurationstring |
- * | CBUUIDCharacteristicFormatString              | NSData (7-bytes)  | v6, Vol 3, Part G, 3.3.3.5 | https://developer.apple.com/documentation/corebluetooth/cbuuidcharacteristicformatstring              |
- * | CBUUIDCharacteristicAggregateFormatString     | NSData            | v6, Vol 3, Part G, 3.3.3.6 | https://developer.apple.com/documentation/corebluetooth/cbuuidcharacteristicaggregateformatstring     |
- * | CBUUIDL2CAPPSMCharacteristicString            | UInt16            |                            | https://developer.apple.com/documentation/corebluetooth/cbuuidl2cappsmcharacteristicstring            |
+/* | Core Bluetooth Descriptor UUID                | `value` type      | Core Specification v6[^1] |
+ * |-----------------------------------------------|-------------------|---------------------------|
+ * | CBUUIDCharacteristicExtendedPropertiesString  | NSNumber (2-bits) | Vol 3, Part G, 3.3.3.1    |
+ * | CBUUIDCharacteristicUserDescriptionString     | NSString (UTF-8)  | Vol 3, Part G, 3.3.3.2    |
+ * | CBUUIDClientCharacteristicConfigurationString | NSNumber (2-bits) | Vol 3, Part G, 3.3.3.3    |
+ * | CBUUIDServerCharacteristicConfigurationString | NSNumber (1-bit)  | Vol 3, Part G, 3.3.3.4    |
+ * | CBUUIDCharacteristicFormatString              | NSData (7-octets) | Vol 3, Part G, 3.3.3.5    |
+ * | CBUUIDCharacteristicAggregateFormatString     | NSData            | Vol 3, Part G, 3.3.3.6    |
+ * | CBUUIDL2CAPPSMCharacteristicString            | UInt16            |                           |
  *
  * [^1]: https://www.bluetooth.com/specifications/specs/core-specification-6-0/
  */

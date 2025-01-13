@@ -22,7 +22,7 @@ struct DescriptorDataTests {
     }
 
     @Test
-    func descriptorData_withNonUTF8NSString_returnsError() throws {
+    func descriptorData_withNonUTF8NSString_returnsError() {
         let latin1Data: Data = Data([0x48, 0x65, 0x6C, 0x6C, 0xF6]) // "Hellö" in ISO Latin 1
         let string = NSString(data: latin1Data, encoding: String.Encoding.isoLatin1.rawValue)
         let result = descriptorData(string)
