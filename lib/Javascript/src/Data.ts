@@ -18,3 +18,7 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
 export const base64ToDataView = (base64: string): DataView => {
     return new DataView(base64ToUint8Array(base64).buffer);
 }
+
+export function copyOf(data: DataView): DataView {
+    return new DataView(data.buffer.slice(0))
+}

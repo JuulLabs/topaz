@@ -6,6 +6,6 @@ public enum DomErrorName: String, Sendable, Encodable {
     case network = "NetworkError"
     case notFound = "NotFoundError"
     case notSupported = "NotSupportedError"
-    case operataion = "OperationError"
+    case operation = "OperationError"
     case unknown = "UnknownError"
 }

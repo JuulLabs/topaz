@@ -6,6 +6,7 @@ import Foundation
 public let liveBluetoothClient: BluetoothClient = NativeBluetoothClient()
 
 struct NativeBluetoothClient: BluetoothClient {
+
     private let coordinator: Coordinator
     private let server: EventService
 
@@ -71,6 +72,12 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
+    func discoverDescriptors(_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent {
+        try await server.awaitEvent(key: .descriptorDiscovery(peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+            coordinator.discoverDescriptors(peripheral: peripheral, characteristic: characteristic)
+        }
+    }
+
     func characteristicNotify(_ peripheral: Peripheral, _ characteristic: Characteristic, enabled: Bool) async throws -> CharacteristicEvent {
         try await server.awaitEvent(key: .characteristic(.characteristicNotify, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             // TODO:
@@ -80,6 +87,12 @@ struct NativeBluetoothClient: BluetoothClient {
     func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
         return try await server.awaitEvent(key: .characteristic(.characteristicValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             coordinator.readCharacteristic(peripheral: peripheral, characteristic: characteristic)
+        }
+    }
+
+    func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {
+        return try await server.awaitEvent(key: .descriptor(.descriptorValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)) {
+            coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
         }
     }
 

@@ -24,6 +24,10 @@ public struct Message {
 
         // GATT Characteristic
         case readCharacteristic
+        case discoverDescriptors
+
+        // GATT Descriptor
+        case readDescriptor
 
         case startNotifications
         case stopNotifications

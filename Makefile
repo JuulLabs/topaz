@@ -1,54 +1,31 @@
-.PHONY: build test lint lint-fix clean sim-build sim-test _xcode_build
+include build.mk publish.mk run.mk
 
-XCODE_PROJECT := topaz.xcodeproj
-XCODE_TARGET := topaz
+.PHONY: all lint lint-fix clean js js-debug js-clean
 
-IOS_VERSION := 18
-IOS_ARCH := arm64
-IOS_TRIPLE := $(IOS_ARCH)-apple-ios$(IOS_VERSION).0
+# Default target
+all: build
 
-XCODE_DESTINATION ?= generic/platform=iOS
-XCODE_COMMAND ?= build
+js:
+	$(MAKE) -C lib/Javascript build
 
-build:
-	$(MAKE) XCODE_COMMAND=build _xcode_build
+js-debug:
+	$(MAKE) -C lib/Javascript debug
 
-test:
-	$(MAKE) XCODE_COMMAND=test _xcode_build
+js-clean:
+	$(MAKE) -C lib/Javascript clean
 
-sim-build: $(SIM_ID_CACHE)
-	$(MAKE) XCODE_COMMAND=build XCODE_DESTINATION=$(shell cat $<) _xcode_build
+lint:
+	swiftlint lint --strict
 
-sim-test: $(SIM_ID_CACHE)
-	$(MAKE) XCODE_COMMAND=test XCODE_DESTINATION=$(shell cat $<) _xcode_build
+lint-fix:
+	swiftlint lint --fix
+
+## TODO: deprecate swiftlint in favor of swift-format
+lint-official:
+	swift format lint --strict -r .
+ 
+lint-fix-official:
+	swift format -i -r .
 
 clean:
-	rm -rf .build build
-
-_xcode_build:
-	xcodebuild \
-		-project $(XCODE_PROJECT) \
-		-target $(XCODE_TARGET) \
-		-sdk iphoneos \
-		-destination $(XCODE_DESTINATION) \
-		$(XCODE_COMMAND) \
-		CODE_SIGNING_ALLOWED='NO'
-
-SCRATCH_PATH := .build/$(IOS_TRIPLE)
-SIM_ID_CACHE := $(SCRATCH_PATH)/simid.txt
-
-$(SCRATCH_PATH):
-	mkdir -p $@
-
-# Extracts the id string of the first simulator found for this os+version and saves it to SIM_ID_CACHE file
-$(SIM_ID_CACHE): $(SCRATCH_PATH)
-	xcodebuild \
-		-project $(XCODE_PROJECT) \
-		-target $(XCODE_TARGET) \
-		-sdk iphoneos \
-		-destination 'platform=iOS Simulator' \
-		-showdestinations 2>&1 \
-		| grep 'platform:iOS Simulator, id:.*, OS:$(IOS_VERSION).*, name:iPhone 16 Pro' \
-		| head -1 \
-		| sed -e s'/^.*id:\([^,]*\).*,.*$$/\1/' > $@
-
+	-rm -rf .build build $(DERIVED_DATA_ROOT) $(ARTIFACTS_ROOT)

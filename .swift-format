@@ -1,0 +1,16 @@
+{
+  "indentation" : {
+    "spaces" : 4
+  },
+  "tabWidth" : 4,
+  "lineLength" : 240,
+  "lineBreakBeforeEachArgument" : true,
+  "lineBreakBeforeEachGenericRequirement" : true,
+  "lineBreakBetweenDeclarationAttributes" : true,
+  "lineBreakAroundMultilineExpressionChainComponents" : true,
+  "multiElementCollectionTrailingCommas" : true,
+  "prioritizeKeepingFunctionOutputTogether" : true,
+  "rules" : {
+    "OrderedImports": true
+  }
+}

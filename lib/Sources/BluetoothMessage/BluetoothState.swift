@@ -56,13 +56,9 @@ public actor BluetoothState: Sendable {
         self.peripherals[peripheralId]?.services = services
     }
 
-    // TODO: This function should take in an instanceId from JS-land and use it to instantiate the CORRECT
-    // instance of the characteristic. This is a by-product of the BLE spec whereby a device can actually have
-    // multiple valid instances of the same characteristic with different values.
-    // https://juullabs.atlassian.net/browse/CA-4055
-    public func getCharacteristic(peripheralId uuid: UUID, serviceId: UUID, characteristicId: UUID) throws -> Characteristic {
+    public func getCharacteristic(peripheralId uuid: UUID, serviceId: UUID, characteristicId: UUID, instance: UInt32) throws -> Characteristic {
         let service = try getService(peripheralId: uuid, serviceId: serviceId)
-        guard let characteristic = service.characteristics.first(where: { $0.uuid == characteristicId }) else {
+        guard let characteristic = service.characteristics.first(where: { $0.uuid == characteristicId && $0.instance == instance }) else {
             throw BluetoothError.noSuchCharacteristic(service: serviceId, characteristic: characteristicId)
         }
         return characteristic
@@ -77,5 +73,15 @@ public actor BluetoothState: Sendable {
             return
         }
         self.peripherals[peripheralId]?.services[index].characteristics = characteristics
+    }
+
+    public func setDescriptors(_ descriptors: [Descriptor], on peripheralId: UUID, serviceId: UUID, characteristicId: UUID, instance: UInt32) {
+        guard let serviceIndex = self.peripherals[peripheralId]?.services.firstIndex(where: { $0.uuid == serviceId }) else {
+            return
+        }
+        guard let characteristicIndex = self.peripherals[peripheralId]?.services[serviceIndex].characteristics.firstIndex(where: { $0.uuid == characteristicId && $0.instance == instance }) else {
+            return
+        }
+        self.peripherals[peripheralId]?.services[serviceIndex].characteristics[characteristicIndex].descriptors = descriptors
     }
 }
