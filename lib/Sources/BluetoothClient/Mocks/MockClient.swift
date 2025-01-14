@@ -2,6 +2,7 @@ import Bluetooth
 import Foundation
 
 public struct MockBluetoothClient: BluetoothClient {
+
     public let events: AsyncStream<any BluetoothEvent>
     public let eventsContinuation: AsyncStream<any BluetoothEvent>.Continuation
 
@@ -18,6 +19,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onDiscoverDescriptors: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent
     public var onCharacteristicNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
+    public var onCharacteristicWrite: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ value: Data, _ withResponse: Bool) async throws -> CharacteristicEvent
     public var onDescriptorRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor) async throws -> DescriptorChangedEvent
 
     public init() {
@@ -37,6 +39,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onDiscoverDescriptors = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
+        self.onCharacteristicWrite = { _, _, _, _ in fatalError("Not implemented") }
         self.onDescriptorRead = { _, _, _ in fatalError("Not implemented") }
     }
 
@@ -90,6 +93,10 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
         try await onCharacteristicRead(peripheral, characteristic)
+    }
+
+    public func characteristicWrite(_ peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
+        try await onCharacteristicWrite(peripheral, characteristic, value, withResponse)
     }
 
     public func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {

@@ -25,6 +25,8 @@ extension Message {
             return DiscoverDescriptors.create(from: self)
         case .readCharacteristic:
             return ReadCharacteristic.create(from: self)
+        case .writeCharacteristic:
+            return WriteCharacteristic.create(from: self)
         case .readDescriptor:
             return ReadDescriptor.create(from: self)
         }

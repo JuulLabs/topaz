@@ -123,6 +123,29 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         handleEvent(event)
     }
 
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: (any Error)?) {
+        let event: BluetoothEvent = if let error {
+            ErrorEvent(
+                .characteristicWrite,
+                peripheral.erase(locker: locker),
+                characteristic.erase(locker: locker),
+                BluetoothError.causedBy(error)
+            )
+        } else {
+            CharacteristicEvent(
+                .characteristicWrite,
+                peripheralId: peripheral.identifier,
+                characteristicId: characteristic.uuid.regularUuid,
+                instance: characteristic.instanceId
+            )
+        }
+        handleEvent(event)
+    }
+
+    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+        // todo
+    }
+
     private func handlePeripheralEvent(_ event: EventName, _ peripheral: CBPeripheral, _ error: (any Error)?) {
         let event: BluetoothEvent = if let error {
             ErrorEvent(event, peripheral.erase(locker: locker), BluetoothError.causedBy(error))

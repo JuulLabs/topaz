@@ -1,3 +1,4 @@
+import { arrayBufferToBase64 } from "./Data";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
 import { BluetoothRemoteGATTDescriptor } from "./BluetoothRemoteGATTDescriptor";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
@@ -20,6 +21,15 @@ type ReadCharacteristicRequest = {
     service: string;
     characteristic: string;
     instance: number;
+}
+
+type WriteCharacteristicRequest = {
+    device: string;
+    service: string;
+    characteristic: string;
+    instance: number;
+    value: string;
+    withResponse: boolean;
 }
 
 const getOrCreateDescriptor = (
@@ -107,4 +117,30 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         )
         return copyOf(this.value)
     }
+
+    private writeValue = async (value: ArrayBuffer | ArrayBufferView, withResponse: boolean): Promise<void> => {
+        const arrayBuffer = isView(value) ? value.buffer : value;
+        const base64 = arrayBufferToBase64(arrayBuffer)
+        await bluetoothRequest<WriteCharacteristicRequest, void>(
+            'writeCharacteristic',
+            {
+                device: this.service.device.uuid,
+                service: this.service.uuid,
+                characteristic: this.uuid,
+                instance: this.instance,
+                value: base64,
+                withResponse: withResponse
+            }
+        )
+    }
+
+    writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
+        return this.writeValue(value, true)
+    }
+    
+    writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
+        return this.writeValue(value, false)
+    }
 }
+
+const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => (source as ArrayBufferView).buffer !== undefined;
