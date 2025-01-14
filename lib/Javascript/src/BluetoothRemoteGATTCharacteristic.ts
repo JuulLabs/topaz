@@ -22,6 +22,8 @@ type CharacteristicRequest = {
     instance: number;
 }
 
+type EmptyObject = {}
+
 const getOrCreateDescriptor = (
     characteristic: BluetoothRemoteGATTCharacteristic,
     uuid: string
@@ -109,7 +111,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     }
 
     startNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
-        await bluetoothRequest<CharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'startNotifications',
             {
                 device: this.service.device.uuid,
@@ -122,7 +124,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     }
 
     stopNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
-        await bluetoothRequest<CharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'stopNotifications',
             {
                 device: this.service.device.uuid,
