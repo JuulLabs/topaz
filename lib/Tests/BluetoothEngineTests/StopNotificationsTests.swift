@@ -12,6 +12,7 @@ extension Tag {
 private let fakePeripheralId: UUID = UUID(n: 0)
 private let fakeServiceUuid = UUID(n: 1)
 private let fakeCharacteristicId = UUID(n: 2)
+private let fakeCharacteristicInstance: UInt32 = 3
 
 @Suite(.tags(.stopNotifications))
 struct StopNotificationsTests {
@@ -23,7 +24,7 @@ struct StopNotificationsTests {
     private var mockBluetoothClient: MockBluetoothClient = MockBluetoothClient()
 
     init() {
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: 3)
+        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: fakeCharacteristicInstance)
         mockBluetoothClient.onStopNotifications = {_, _ in
             return basicCharacteristic
         }
@@ -32,13 +33,13 @@ struct StopNotificationsTests {
     @Test
     mutating func execute_withBasicPeripheral_callsStopNotifications() async throws {
         let stopNotificationsWasCalledActor = StopNotificationsCalledActor()
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: 3)
+        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: fakeCharacteristicInstance)
         mockBluetoothClient.onStopNotifications = {_, _ in
             await stopNotificationsWasCalledActor.gotCalled()
             return basicCharacteristic
         }
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, properties: [.notify, .indicate]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: 3)
+        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
+        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: fakeCharacteristicInstance)
         let sut = StopNotifications(request: request)
 
         let _ = try await sut.execute(state: state, client: mockBluetoothClient)
@@ -48,8 +49,8 @@ struct StopNotificationsTests {
 
     @Test
     func execute_withNotifiableCharacteristic_noErrorIsThrown() async throws {
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, properties: [.notify, .indicate]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: 3)
+        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
+        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: fakeCharacteristicInstance)
         let sut = StopNotifications(request: request)
 
         await #expect(throws: Never.self) {
@@ -60,8 +61,8 @@ struct StopNotificationsTests {
     @Test
     func execute_characteristicNotFound_throwsNoSuchCharacteristicError() async throws {
         let nonExistentCharacteristicUuid = UUID(n: 7351)
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, properties: [.notify]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: nonExistentCharacteristicUuid, characteristicInstance: 3)
+        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicId, instance: fakeCharacteristicInstance, properties: [.notify]))])
+        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: nonExistentCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
         let sut = StopNotifications(request: request)
 
         do {
