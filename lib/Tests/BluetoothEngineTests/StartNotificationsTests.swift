@@ -42,7 +42,7 @@ struct StartNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: fakeCharacteristicInstance)
         let sut = StartNotifications(request: request)
 
-        let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+        _ = try await sut.execute(state: state, client: mockBluetoothClient)
 
         #expect(await startNotificationsWasCalledActor.wasCalled)
     }
@@ -54,7 +54,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
         }
     }
 
@@ -65,7 +65,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
             Issue.record("Should not reach this line. .deviceNotConnected error should have been thrown.")
         } catch {
             if case BluetoothError.deviceNotConnected = error {
@@ -84,7 +84,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
             Issue.record("Should not reach this line. .noSuchCharacteristic error should have been thrown.")
         } catch {
             if case BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = error {
@@ -103,7 +103,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
             Issue.record("Should not reach this line. .notSupported error should have been thrown.")
         } catch {
             if case BluetoothError.notSupported = error {
@@ -122,7 +122,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
         }
     }
 
@@ -134,7 +134,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
         }
     }
 
@@ -151,7 +151,7 @@ struct StartNotificationsTests {
         let state = BluetoothState(peripherals: [peripheral(.connected, alreadyNotifyingCharacteristic)])
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: 3)
         let sut = StartNotifications(request: request)
-        let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+        _ = try await sut.execute(state: state, client: mockBluetoothClient)
         #expect(await startNotificationsWasCalledActor.wasCalled == false)
     }
 }

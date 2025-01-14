@@ -42,7 +42,7 @@ struct StopNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: fakeCharacteristicInstance)
         let sut = StopNotifications(request: request)
 
-        let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+        _ = try await sut.execute(state: state, client: mockBluetoothClient)
 
         #expect(await stopNotificationsWasCalledActor.wasCalled)
     }
@@ -54,7 +54,7 @@ struct StopNotificationsTests {
         let sut = StopNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
         }
     }
 
@@ -66,7 +66,7 @@ struct StopNotificationsTests {
         let sut = StopNotifications(request: request)
 
         do {
-            let _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient)
             Issue.record("Should not reach this line. .noSuchCharacteristic error should have been thrown.")
         } catch {
             if case BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = error {
@@ -85,4 +85,3 @@ private actor StopNotificationsCalledActor {
         wasCalled = true
     }
 }
-

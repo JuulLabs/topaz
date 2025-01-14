@@ -14,7 +14,7 @@ public enum BluetoothError: Error, Sendable {
     case unknown
 }
 
-//extension BluetoothError: Equatable {
+// extension BluetoothError: Equatable {
 //    public static func == (lhs: BluetoothError, rhs: BluetoothError) -> Bool {
 //        switch (lhs, rhs) {
 //            
@@ -28,7 +28,7 @@ public enum BluetoothError: Error, Sendable {
 //    }
 //    
 //
-//}
+// }
 
 extension BluetoothError: LocalizedError {
     public var errorDescription: String? {
