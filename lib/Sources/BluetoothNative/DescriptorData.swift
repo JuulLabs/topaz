@@ -1,6 +1,7 @@
 import Foundation
 
 enum CBDescriptorDecodeError: Error, Equatable {
+    case noData
     case unableToEncodeStringAsData
     case unsupportedValueType(String)
 }
@@ -8,6 +9,8 @@ enum CBDescriptorDecodeError: Error, Equatable {
 extension CBDescriptorDecodeError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .noData:
+            return "todo"
         case .unableToEncodeStringAsData:
             return "Failed to encode descriptor string value as Data"
         case let .unsupportedValueType(type):
@@ -42,7 +45,9 @@ func descriptorData(_ value: Any?) -> Result<Data, any Error> {
         result = withUnsafeBytes(of: data.uint16Value) { Data($0) }
     case let data as UInt16:
         result = withUnsafeBytes(of: data) { Data($0) }
-    default:
+    case .none:
+        return .failure(CBDescriptorDecodeError.noData)
+    case let .some(value):
         return .failure(CBDescriptorDecodeError.unsupportedValueType(String(describing: value)))
     }
     return .success(result)

@@ -109,13 +109,25 @@ struct DescriptorDataTests {
     }
 
     @Test
+    func descriptorData_withNil_returnsError() throws {
+        let result = descriptorData(nil)
+        switch result {
+        case let .failure(failure):
+            let error = try #require(failure as? CBDescriptorDecodeError)
+            #expect(error == .noData)
+        default:
+            Issue.record("Unexpected result: \(result)")
+        }
+    }
+
+    @Test
     func descriptorData_withUUID_returnsError() throws {
         let input = UUID(uuidString: "5c80529a-aad1-4caf-a0e7-10a2b04478d5")
         let result = descriptorData(input)
         switch result {
         case let .failure(failure):
             let error = try #require(failure as? CBDescriptorDecodeError)
-            #expect(error == .unsupportedValueType("UUID"))
+            #expect(error == .unsupportedValueType("5C80529A-AAD1-4CAF-A0E7-10A2B04478D5"))
         default:
             Issue.record("Unexpected result: \(result)")
         }
