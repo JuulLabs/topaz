@@ -43,7 +43,7 @@ func descriptorData(_ value: Any?) -> Result<Data, any Error> {
     case let data as UInt16:
         result = withUnsafeBytes(of: data) { Data($0) }
     default:
-        return .failure(CBDescriptorDecodeError.unsupportedValueType(String(describing: type(of: value))))
+        return .failure(CBDescriptorDecodeError.unsupportedValueType(String(describing: value)))
     }
     return .success(result)
 }
