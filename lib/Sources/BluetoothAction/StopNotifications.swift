@@ -5,7 +5,7 @@ import JsMessage
 
 struct StopNotifications: BluetoothAction {
 
-    var requiresReadyState: Bool = false // ?
+    var requiresReadyState: Bool = true
     let request: CharacteristicRequest
 
     init(request: CharacteristicRequest) {
