@@ -136,6 +136,10 @@ let package = Package(
                 .product(name: "Semaphore", package: "Semaphore"),
             ]
         ),
+        .testTarget(
+            name: "HelpersTests",
+            dependencies: ["Helpers"]
+        ),
 
         .target(
             name: "JsMessage",
