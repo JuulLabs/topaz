@@ -1,17 +1,17 @@
 import Foundation
 
 enum CBDescriptorDecodeError: Error, Equatable {
-    case unableToEncodeStringAsData(String)
+    case unableToEncodeStringAsData
     case unsupportedValueType(String)
 }
 
 extension CBDescriptorDecodeError: LocalizedError {
     public var errorDescription: String? {
         switch self {
-        case let .unableToEncodeStringAsData(string):
-            "Failed to encode '\(string)' as Data"
+        case .unableToEncodeStringAsData:
+            return "Failed to encode descriptor string value as Data"
         case let .unsupportedValueType(type):
-            "Unsupported descriptor value type: \(type)"
+            return "Unsupported descriptor value type: \(type)"
         }
     }
 }
@@ -35,7 +35,7 @@ func descriptorData(_ value: Any?) -> Result<Data, any Error> {
         result = Data(data)
     case let data as NSString:
         guard let encoded = data.data(using: NSUTF8StringEncoding) else {
-            return .failure(CBDescriptorDecodeError.unableToEncodeStringAsData(String(data)))
+            return .failure(CBDescriptorDecodeError.unableToEncodeStringAsData)
         }
         result = encoded
     case let data as NSNumber:

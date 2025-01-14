@@ -21,14 +21,14 @@ struct DescriptorDataTests {
     }
 
     @Test
-    func descriptorData_withNonUTF8NSString_returnsError() throws {
-        let latin1Data: Data = Data([0x48, 0x65, 0x6C, 0x6C, 0xF6]) // "Hellö" in ISO Latin 1
-        let string = NSString(data: latin1Data, encoding: String.Encoding.isoLatin1.rawValue)
-        let result = descriptorData(string)
+    func descriptorData_withUTF16NSString_returnsError() throws {
+        let utf16data = Data([0xD8, 0x00]) // Raw bytes representing an unpaired high surrogate (0xD800 in UTF-16).
+        let utf16 = NSString(data: utf16data, encoding: String.Encoding.utf16.rawValue)!
+        let result = descriptorData(utf16)
         switch result {
         case let .failure(failure):
             let error = try #require(failure as? CBDescriptorDecodeError)
-            #expect(error == .unableToEncodeStringAsData("Hellö"))
+            #expect(error == .unableToEncodeStringAsData)
         default:
             Issue.record("Unexepected result: \(result)")
         }
