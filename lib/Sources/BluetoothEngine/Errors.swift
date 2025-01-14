@@ -7,9 +7,11 @@ extension BluetoothError: DomErrorConvertable {
         switch self {
         case .cancelled: .abort
         case .causedBy: .operataion
+        case .deviceNotConnected: .network
         case .noSuchDevice: .notFound
         case .noSuchService: .notFound
         case .noSuchCharacteristic: .notFound
+        case .notSupported: .notSupported
         case .unavailable: .operataion
         case .unknown: .unknown
         }
