@@ -21,13 +21,13 @@ struct DescriptorDataTests {
     }
 
     @Test
-    func descriptorData_withNonUTF8NSString_returnsError() {
+    func descriptorData_withNonUTF8NSString_returnsError() throws {
         let latin1Data: Data = Data([0x48, 0x65, 0x6C, 0x6C, 0xF6]) // "Hellö" in ISO Latin 1
         let string = NSString(data: latin1Data, encoding: String.Encoding.isoLatin1.rawValue)
         let result = descriptorData(string)
         switch result {
         case let .failure(failure):
-            let error = #require(failure as? CBDescriptorDecodeError)
+            let error = try #require(failure as? CBDescriptorDecodeError)
             #expect(error == .unableToEncodeStringAsData("Hellö"))
         default:
             Issue.record("Unexepected result: \(result)")
@@ -109,12 +109,12 @@ struct DescriptorDataTests {
     }
 
     @Test
-    func descriptorData_withUUID_returnsError() {
+    func descriptorData_withUUID_returnsError() throws {
         let input = UUID(uuidString: "5c80529a-aad1-4caf-a0e7-10a2b04478d5")
         let result = descriptorData(input)
         switch result {
         case let .failure(failure):
-            let error = #require(failure as? CBDescriptorDecodeError)
+            let error = try #require(failure as? CBDescriptorDecodeError)
             #expect(error == .unsupportedValueType("UUID"))
         default:
             Issue.record("Unexpected result: \(result)")
