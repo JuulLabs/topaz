@@ -41,7 +41,7 @@ struct ReadCharacteristic: BluetoothAction {
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadCharacteristicResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
-        let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid)
+        let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
         // The Js characteristic object's `value` is mutated via an event that is triggered by the read
         // So we ignore the result here and over on the Js side the updated value gets read from the characteristic directly
         _ = try await client.characteristicRead(peripheral, characteristic: characteristic)

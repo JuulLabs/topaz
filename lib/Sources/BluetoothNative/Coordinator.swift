@@ -113,11 +113,27 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
+    func discoverDescriptors(peripheral: Peripheral, characteristic: Characteristic) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.discoverDescriptors(for: nativeCharacteristic)
+        }
+    }
+
     func readCharacteristic(peripheral: Peripheral, characteristic: Characteristic) {
         queue.async {
             guard let nativePeripheral = peripheral.rawValue else { return }
             guard let nativeCharacteristic = characteristic.rawValue else { return }
             nativePeripheral.readValue(for: nativeCharacteristic)
+        }
+    }
+
+    func readDescriptor(peripheral: Peripheral, descriptor: Descriptor) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeDescriptor = descriptor.rawValue else { return }
+            nativePeripheral.readValue(for: nativeDescriptor)
         }
     }
 }

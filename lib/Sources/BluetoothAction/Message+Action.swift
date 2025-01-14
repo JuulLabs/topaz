@@ -21,8 +21,12 @@ extension Message {
             return DiscoverServices.create(from: self)
         case .discoverCharacteristics:
             return DiscoverCharacteristics.create(from: self)
+        case .discoverDescriptors:
+            return DiscoverDescriptors.create(from: self)
         case .readCharacteristic:
             return ReadCharacteristic.create(from: self)
+        case .readDescriptor:
+            return ReadDescriptor.create(from: self)
         }
     }
 }

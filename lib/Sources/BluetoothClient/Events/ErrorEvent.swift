@@ -21,4 +21,9 @@ public struct ErrorEvent: BluetoothEvent {
         let key = EventKey.characteristic(name, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)
         self.init(name, key, error)
     }
+
+    public init(_ name: EventName, _ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor, _ error: any Error) {
+        let key = EventKey.descriptor(name, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)
+        self.init(name, key, error)
+    }
 }

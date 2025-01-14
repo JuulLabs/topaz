@@ -22,6 +22,10 @@ extension CBDescriptor {
             value: wrappedValue
         )
     }
+
+    func valueAsData() -> Result<Data, any Error> {
+        descriptorData(value)
+    }
 }
 
 extension Descriptor {

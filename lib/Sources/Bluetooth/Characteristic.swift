@@ -11,7 +11,7 @@ public struct Characteristic: Equatable, Sendable {
     public let properties: CharacteristicProperties
     public let value: Data?
     public let isNotifying: Bool
-    public let descriptors: [Descriptor]
+    public var descriptors: [Descriptor]
 
     public init(
         characteristic: AnyProtectedObject,
@@ -29,5 +29,14 @@ public struct Characteristic: Equatable, Sendable {
         self.value = value
         self.isNotifying = isNotifying
         self.descriptors = descriptors
+    }
+}
+
+extension Characteristic {
+    public func getDescriptor(_ descriptorId: UUID) throws -> Descriptor {
+        guard let descriptor = descriptors.first(where: { $0.uuid == descriptorId }) else {
+            throw BluetoothError.noSuchDescriptor(characteristic: uuid, descriptor: descriptorId)
+        }
+        return descriptor
     }
 }
