@@ -14,22 +14,6 @@ public enum BluetoothError: Error, Sendable {
     case unknown
 }
 
-// extension BluetoothError: Equatable {
-//    public static func == (lhs: BluetoothError, rhs: BluetoothError) -> Bool {
-//        switch (lhs, rhs) {
-//            
-////                case let (.celsius(leftValue), .celsius(rightValue)):
-////                    return leftValue == rightValue
-////                case let (.fahrenheit(leftValue), .fahrenheit(rightValue)):
-////                    return leftValue == rightValue
-////                default:
-////                    return false
-//        }
-//    }
-//    
-//
-// }
-
 extension BluetoothError: LocalizedError {
     public var errorDescription: String? {
         switch self {
