@@ -12,7 +12,7 @@ extension BluetoothError: DomErrorConvertable {
         case .noSuchService: .notFound
         case .noSuchCharacteristic: .notFound
         case .noSuchDescriptor: .notFound
-        case .notSupported: .notSupported
+        case .characteristicNotificationsNotSupported: .notSupported
         case .nullService: .operation
         case .unavailable: .operation
         case .unknown: .unknown

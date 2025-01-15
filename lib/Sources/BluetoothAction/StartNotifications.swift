@@ -22,7 +22,7 @@ struct StartNotifications: BluetoothAction {
         }
 
         guard characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate) else {
-            throw BluetoothError.notSupported
+            throw BluetoothError.characteristicNotificationsNotSupported(characteristic: request.characteristicUuid)
         }
 
         guard characteristic.isNotifying == false else {

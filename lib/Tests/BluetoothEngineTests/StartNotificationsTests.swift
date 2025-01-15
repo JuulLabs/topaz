@@ -96,7 +96,7 @@ struct StartNotificationsTests {
     }
 
     @Test
-    func execute_characteristicHasNeitherNotifyNorIndicateSet_throwsNotSupportedError() async throws {
+    func execute_characteristicHasNeitherNotifyNorIndicateSet_throwsCharacteristicNotificationsNotSupportedError() async throws {
         let characteristicWithoutNotifyOrIndicateProperties = FakeCharacteristic(uuid: fakeCharacteristicId, instance: fakeCharacteristicInstance, properties: [])
         let state = BluetoothState(peripherals: [peripheral(.connected, characteristicWithoutNotifyOrIndicateProperties)])
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicId, characteristicInstance: fakeCharacteristicInstance)
@@ -106,7 +106,7 @@ struct StartNotificationsTests {
             _ = try await sut.execute(state: state, client: mockBluetoothClient)
             Issue.record("Should not reach this line. .notSupported error should have been thrown.")
         } catch {
-            if case BluetoothError.notSupported = error {
+            if case BluetoothError.characteristicNotificationsNotSupported(characteristic: fakeCharacteristicId) = error {
                 // No op. This is the correct error type
             } else {
                 Issue.record(".notSupported error should have been thrown. \(error) was thrown instead.")
