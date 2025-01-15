@@ -98,7 +98,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/readValue
     readValue = async (): Promise<DataView> => {
-        await bluetoothRequest<CharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'readCharacteristic',
             {
                 device: this.service.device.uuid,
