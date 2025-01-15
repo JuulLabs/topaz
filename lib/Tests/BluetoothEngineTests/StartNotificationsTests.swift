@@ -26,7 +26,7 @@ struct StartNotificationsTests {
     init() {
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         mockBluetoothClient.onStartNotifications = {_, _ in
-            return basicCharacteristic
+            basicCharacteristic
         }
     }
 
