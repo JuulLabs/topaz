@@ -35,7 +35,7 @@ struct StartNotificationsTests {
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         mockBluetoothClient.onStartNotifications = { _, _ in
-            await startNotificationsWasCalledActor.gotCalled()
+            await startNotificationsWasCalledActor.markCalled()
             return basicCharacteristic
         }
         let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
@@ -144,7 +144,7 @@ struct StartNotificationsTests {
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         mockBluetoothClient.onStartNotifications = { _, _ in
-            await startNotificationsWasCalledActor.gotCalled()
+            await startNotificationsWasCalledActor.markCalled()
             return basicCharacteristic
         }
 
@@ -159,7 +159,7 @@ struct StartNotificationsTests {
 private actor StartNotificationsCalledActor {
     var wasCalled = false
 
-    func gotCalled() {
+    func markCalled() {
         wasCalled = true
     }
 }
