@@ -25,7 +25,7 @@ struct StopNotificationsTests {
 
     init() {
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStopNotifications = {_, _ in
+        mockBluetoothClient.onStopNotifications = { _, _ in
             return basicCharacteristic
         }
     }
@@ -34,7 +34,7 @@ struct StopNotificationsTests {
     mutating func execute_withBasicPeripheral_callsStopNotifications() async throws {
         let stopNotificationsWasCalledActor = StopNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicId, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStopNotifications = {_, _ in
+        mockBluetoothClient.onStopNotifications = { _, _ in
             await stopNotificationsWasCalledActor.gotCalled()
             return basicCharacteristic
         }

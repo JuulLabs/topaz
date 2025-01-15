@@ -25,7 +25,7 @@ struct StartNotificationsTests {
 
     init() {
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = {_, _ in
+        mockBluetoothClient.onStartNotifications = { _, _ in
             basicCharacteristic
         }
     }
@@ -34,7 +34,7 @@ struct StartNotificationsTests {
     mutating func execute_withBasicPeripheral_callsStartNotifications() async throws {
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = {_, _ in
+        mockBluetoothClient.onStartNotifications = { _, _ in
             await startNotificationsWasCalledActor.gotCalled()
             return basicCharacteristic
         }
@@ -143,7 +143,7 @@ struct StartNotificationsTests {
         let alreadyNotifyingCharacteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate], isNotifying: true)
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = {_, _ in
+        mockBluetoothClient.onStartNotifications = { _, _ in
             await startNotificationsWasCalledActor.gotCalled()
             return basicCharacteristic
         }
