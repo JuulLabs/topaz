@@ -4,6 +4,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import Testing
+import XCTest
 
 extension Tag {
     @Tag static var stopNotifications: Self
@@ -23,11 +24,11 @@ struct StopNotificationsTests {
 
     @Test
     func execute_withBasicPeripheral_callsStopNotifications() async throws {
-        let stopNotificationsWasCalledActor = StopNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+        let stopInvokedExpectation = XCTestExpectation(description: "onStopNotifications invoked")
         let mockBluetoothClient = mockBluetoothClient {
             $0.onStopNotifications = { _, _ in
-                await stopNotificationsWasCalledActor.markCalled()
+                stopInvokedExpectation.fulfill()
                 return basicCharacteristic
             }
         }
@@ -37,7 +38,8 @@ struct StopNotificationsTests {
 
         _ = try await sut.execute(state: state, client: mockBluetoothClient)
 
-        #expect(await stopNotificationsWasCalledActor.wasCalled)
+        let outcome = await XCTWaiter().fulfillment(of: [stopInvokedExpectation], timeout: 1.0)
+        #expect(outcome == .completed)
     }
 
     @Test
@@ -79,12 +81,4 @@ private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? 
     }
     modify?(&client)
     return client
-}
-
-private actor StopNotificationsCalledActor {
-    var wasCalled = false
-
-    func markCalled() {
-        wasCalled = true
-    }
 }
