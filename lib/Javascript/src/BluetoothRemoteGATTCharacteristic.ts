@@ -4,6 +4,7 @@ import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothUUID } from "./BluetoothUUID";
 import { copyOf } from "./Data";
+import { EmptyObject } from "./EmptyObject";
 import { store } from "./Store";
 
 type DiscoverDescriptorsRequest = {
@@ -21,8 +22,6 @@ type CharacteristicRequest = {
     characteristic: string;
     instance: number;
 }
-
-type EmptyObject = {}
 
 const getOrCreateDescriptor = (
     characteristic: BluetoothRemoteGATTCharacteristic,
