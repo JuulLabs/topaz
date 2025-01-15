@@ -133,7 +133,7 @@ class Coordinator: @unchecked Sendable {
         queue.async {
             guard let nativePeripheral = peripheral.rawValue else { return }
             guard let nativeCharacteristic = characteristic.rawValue else { return }
-            nativePeripheral.writeValue(value, for: nativeCharacteristic, type: writeType(withResponse))
+            nativePeripheral.writeValue(value, for: nativeCharacteristic, type: withResponse ? .withResponse : .withoutResponse)
         }
     }
 
@@ -143,12 +143,5 @@ class Coordinator: @unchecked Sendable {
             guard let nativeDescriptor = descriptor.rawValue else { return }
             nativePeripheral.readValue(for: nativeDescriptor)
         }
-    }
-}
-
-private func writeType(_ withResponse: Bool) -> CBCharacteristicWriteType {
-    switch withResponse {
-    case true: CBCharacteristicWriteType.withResponse
-    case false: CBCharacteristicWriteType.withoutResponse
     }
 }
