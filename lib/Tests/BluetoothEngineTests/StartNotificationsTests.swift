@@ -21,22 +21,15 @@ struct StartNotificationsTests {
         FakePeripheral(id: fakePeripheralId, connectionState: connectionState, services: [FakeService(uuid: fakeServiceUuid, characteristics: [characteristic])])
     }
 
-    private var mockBluetoothClient: MockBluetoothClient = MockBluetoothClient()
-
-    init() {
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = { _, _ in
-            basicCharacteristic
-        }
-    }
-
     @Test
-    mutating func execute_withBasicPeripheral_callsStartNotifications() async throws {
+    func execute_withBasicPeripheral_callsStartNotifications() async throws {
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = { _, _ in
-            await startNotificationsWasCalledActor.markCalled()
-            return basicCharacteristic
+        let mockBluetoothClient = mockBluetoothClient {
+            $0.onStartNotifications = { _, _ in
+                await startNotificationsWasCalledActor.markCalled()
+                return basicCharacteristic
+            }
         }
         let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
@@ -54,7 +47,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
         }
     }
 
@@ -65,7 +58,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
             Issue.record("Should not reach this line. .deviceNotConnected error should have been thrown.")
         } catch {
             if case BluetoothError.deviceNotConnected = error {
@@ -84,7 +77,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
             Issue.record("Should not reach this line. .noSuchCharacteristic error should have been thrown.")
         } catch {
             if case BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = error {
@@ -103,7 +96,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         do {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
             Issue.record("Should not reach this line. .notSupported error should have been thrown.")
         } catch {
             if case BluetoothError.characteristicNotificationsNotSupported(characteristic: fakeCharacteristicUuid) = error {
@@ -122,7 +115,7 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
         }
     }
 
@@ -134,18 +127,20 @@ struct StartNotificationsTests {
         let sut = StartNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
         }
     }
 
     @Test
-    mutating func execute_characteristicIsAlreadyNotifying_clientShouldNotStartNotifications() async throws {
+    func execute_characteristicIsAlreadyNotifying_clientShouldNotStartNotifications() async throws {
         let alreadyNotifyingCharacteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate], isNotifying: true)
         let startNotificationsWasCalledActor = StartNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStartNotifications = { _, _ in
-            await startNotificationsWasCalledActor.markCalled()
-            return basicCharacteristic
+        let mockBluetoothClient = mockBluetoothClient {
+            $0.onStartNotifications = { _, _ in
+                await startNotificationsWasCalledActor.markCalled()
+                return basicCharacteristic
+            }
         }
 
         let state = BluetoothState(peripherals: [peripheral(.connected, alreadyNotifyingCharacteristic)])
@@ -154,6 +149,16 @@ struct StartNotificationsTests {
         _ = try await sut.execute(state: state, client: mockBluetoothClient)
         #expect(await startNotificationsWasCalledActor.wasCalled == false)
     }
+}
+
+private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
+    var client = MockBluetoothClient()
+    let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    client.onStartNotifications = { _, _ in
+        basicCharacteristic
+    }
+    modify?(&client)
+    return client
 }
 
 private actor StartNotificationsCalledActor {

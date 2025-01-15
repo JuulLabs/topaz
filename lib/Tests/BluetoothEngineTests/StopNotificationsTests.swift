@@ -21,22 +21,15 @@ struct StopNotificationsTests {
         FakePeripheral(id: fakePeripheralId, connectionState: connectionState, services: [FakeService(uuid: fakeServiceUuid, characteristics: [characteristic])])
     }
 
-    private var mockBluetoothClient: MockBluetoothClient = MockBluetoothClient()
-
-    init() {
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStopNotifications = { _, _ in
-            basicCharacteristic
-        }
-    }
-
     @Test
-    mutating func execute_withBasicPeripheral_callsStopNotifications() async throws {
+    func execute_withBasicPeripheral_callsStopNotifications() async throws {
         let stopNotificationsWasCalledActor = StopNotificationsCalledActor()
         let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-        mockBluetoothClient.onStopNotifications = { _, _ in
-            await stopNotificationsWasCalledActor.markCalled()
-            return basicCharacteristic
+        let mockBluetoothClient = mockBluetoothClient {
+            $0.onStopNotifications = { _, _ in
+                await stopNotificationsWasCalledActor.markCalled()
+                return basicCharacteristic
+            }
         }
         let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
@@ -54,7 +47,7 @@ struct StopNotificationsTests {
         let sut = StopNotifications(request: request)
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
         }
     }
 
@@ -66,7 +59,7 @@ struct StopNotificationsTests {
         let sut = StopNotifications(request: request)
 
         do {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient)
+            _ = try await sut.execute(state: state, client: mockBluetoothClient())
             Issue.record("Should not reach this line. .noSuchCharacteristic error should have been thrown.")
         } catch {
             if case BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = error {
@@ -76,6 +69,16 @@ struct StopNotificationsTests {
             }
         }
     }
+}
+
+private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
+    var client = MockBluetoothClient()
+    let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    client.onStopNotifications = { _, _ in
+        basicCharacteristic
+    }
+    modify?(&client)
+    return client
 }
 
 private actor StopNotificationsCalledActor {
