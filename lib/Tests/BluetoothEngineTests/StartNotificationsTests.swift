@@ -59,15 +59,13 @@ struct StartNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
         let sut = StartNotifications(request: request)
 
-        do {
+        await #expect {
             _ = try await sut.execute(state: state, client: mockBluetoothClient())
-            Issue.record("Should not reach this line. .deviceNotConnected error should have been thrown.")
-        } catch {
-            if case BluetoothError.deviceNotConnected = error {
-                // No op. This is the correct error type
-            } else {
-                Issue.record(".deviceNotConnected error should have been thrown. \(error) was thrown instead.")
+        } throws: { (error: any Error) in
+            guard case .deviceNotConnected = (error as? BluetoothError) else {
+                return false
             }
+            return true
         }
     }
 
@@ -78,15 +76,13 @@ struct StartNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: nonExistentCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
         let sut = StartNotifications(request: request)
 
-        do {
+        await #expect {
             _ = try await sut.execute(state: state, client: mockBluetoothClient())
-            Issue.record("Should not reach this line. .noSuchCharacteristic error should have been thrown.")
-        } catch {
-            if case BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = error {
-                // No op. This is the correct error type
-            } else {
-                Issue.record(".noSuchCharacteristic error should have been thrown. \(error) was thrown instead.")
+        } throws: { (error: any Error) in
+            guard case .noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = (error as? BluetoothError) else {
+                return false
             }
+            return true
         }
     }
 
@@ -97,15 +93,13 @@ struct StartNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
         let sut = StartNotifications(request: request)
 
-        do {
+        await #expect {
             _ = try await sut.execute(state: state, client: mockBluetoothClient())
-            Issue.record("Should not reach this line. .notSupported error should have been thrown.")
-        } catch {
-            if case BluetoothError.characteristicNotificationsNotSupported(characteristic: fakeCharacteristicUuid) = error {
-                // No op. This is the correct error type
-            } else {
-                Issue.record(".notSupported error should have been thrown. \(error) was thrown instead.")
+        } throws: { (error: any Error) in
+            guard case .characteristicNotificationsNotSupported(characteristic: fakeCharacteristicUuid) = (error as? BluetoothError) else {
+                return false
             }
+            return true
         }
     }
 
