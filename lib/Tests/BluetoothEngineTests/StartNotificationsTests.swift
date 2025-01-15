@@ -9,7 +9,7 @@ extension Tag {
     @Tag static var startNotifications: Self
 }
 
-private let fakePeripheralId: UUID = UUID(n: 0)
+private let fakePeripheralId = UUID(n: 0)
 private let fakeServiceUuid = UUID(n: 1)
 private let fakeCharacteristicId = UUID(n: 2)
 private let fakeCharacteristicInstance: UInt32 = 3
