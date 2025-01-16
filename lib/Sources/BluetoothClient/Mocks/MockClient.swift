@@ -19,6 +19,8 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCharacteristicNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
     public var onDescriptorRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor) async throws -> DescriptorChangedEvent
+    public var onStartNotifications: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
+    public var onStopNotifications: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -38,6 +40,8 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
         self.onDescriptorRead = { _, _, _ in fatalError("Not implemented") }
+        self.onStartNotifications = {_, _ in fatalError("Not implemented")}
+        self.onStopNotifications = {_, _ in fatalError("Not implemented")}
     }
 
     public func enable() async {
@@ -94,5 +98,13 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {
         try await onDescriptorRead(peripheral, characteristic, descriptor)
+    }
+
+    public func startNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+        try await onStartNotifications(peripheral, characteristic)
+    }
+
+    public func stopNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+        try await onStopNotifications(peripheral, characteristic)
     }
 }

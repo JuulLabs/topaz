@@ -3,9 +3,11 @@ import Foundation
 public enum BluetoothError: Error, Sendable {
     case cancelled
     case causedBy(any Error)
+    case deviceNotConnected
     case noSuchDevice(UUID)
     case noSuchService(UUID)
     case noSuchCharacteristic(service: UUID, characteristic: UUID)
+    case characteristicNotificationsNotSupported(characteristic: UUID)
     case noSuchDescriptor(characteristic: UUID, descriptor: UUID)
     case nullService(characteristic: UUID)
     case unavailable
@@ -19,12 +21,16 @@ extension BluetoothError: LocalizedError {
             "The operation was cancelled"
         case let .causedBy(error):
             error.localizedDescription
+        case .deviceNotConnected:
+            "Device is not connected"
         case let .noSuchDevice(uuid):
             "No such device \(uuid.uuidString.lowercased())"
         case let .noSuchService(uuid):
             "No such service \(uuid.uuidString.lowercased())"
         case let .noSuchCharacteristic(serviceUuid, characteristicUuid):
             "No such characteristic \(characteristicUuid.uuidString.lowercased()) under service \(serviceUuid.uuidString.lowercased())"
+        case let .characteristicNotificationsNotSupported(uuid):
+            "Characteristic \(uuid) does not support notifications"
         case let .noSuchDescriptor(characteristicUuid, descriptorUuid):
             "No such descriptor \(descriptorUuid.uuidString.lowercased()) under characteristic \(characteristicUuid.uuidString.lowercased())"
         case let .nullService(characteristicUuid):

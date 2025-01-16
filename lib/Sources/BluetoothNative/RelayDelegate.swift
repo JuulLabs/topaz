@@ -131,6 +131,17 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         }
         handleEvent(event)
     }
+
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: (any Error)?) {
+        let eventName: EventName = characteristic.isNotifying ? .startNotifications : .stopNotifications
+
+        let event: BluetoothEvent = if let error {
+            ErrorEvent(eventName, peripheral.erase(locker: locker), characteristic.erase(locker: locker), BluetoothError.causedBy(error))
+        } else {
+            CharacteristicEvent(eventName, peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId)
+        }
+        handleEvent(event)
+    }
 }
 
 extension CBPeripheral {

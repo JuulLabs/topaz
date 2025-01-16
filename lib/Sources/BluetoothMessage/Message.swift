@@ -29,7 +29,10 @@ public struct Message {
         // GATT Descriptor
         case readDescriptor
 
-        // TODO: moar descriptors, start/stop notifications, read/write value
+        case startNotifications
+        case stopNotifications
+
+        // TODO: moar descriptors, read/write value
     }
 
     public let action: Action
