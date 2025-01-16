@@ -28,7 +28,7 @@ struct DescriptorDataTests {
         switch result {
         case let .failure(failure):
             let error = try #require(failure as? CBDescriptorDecodeError)
-            #expect(error == .unableToEncodeStringAsData)
+            #expect(error == .unableToEncodeStringAsData("efbfbd"))
         default:
             Issue.record("Unexepected result: \(result)")
         }
