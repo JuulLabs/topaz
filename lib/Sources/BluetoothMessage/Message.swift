@@ -24,6 +24,7 @@ public struct Message {
 
         // GATT Characteristic
         case readCharacteristic
+        case writeCharacteristic
         case discoverDescriptors
 
         // GATT Descriptor

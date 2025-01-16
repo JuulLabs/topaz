@@ -129,6 +129,14 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
+    func writeCharacteristic(peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.writeValue(value, for: nativeCharacteristic, type: withResponse ? .withResponse : .withoutResponse)
+        }
+    }
+
     func readDescriptor(peripheral: Peripheral, descriptor: Descriptor) {
         queue.async {
             guard let nativePeripheral = peripheral.rawValue else { return }

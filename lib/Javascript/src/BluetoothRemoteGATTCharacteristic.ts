@@ -1,3 +1,4 @@
+import { arrayBufferToBase64 } from "./Data";
 import { BluetoothCharacteristicProperties } from "./BluetoothCharacteristicProperties";
 import { BluetoothRemoteGATTDescriptor } from "./BluetoothRemoteGATTDescriptor";
 import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
@@ -21,6 +22,15 @@ type CharacteristicRequest = {
     service: string;
     characteristic: string;
     instance: number;
+}
+
+type WriteCharacteristicRequest = {
+    device: string;
+    service: string;
+    characteristic: string;
+    instance: number;
+    value: string;
+    withResponse: boolean;
 }
 
 const getOrCreateDescriptor = (
@@ -134,4 +144,32 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         )
         return this
     }
+
+    private _writeValue = async (value: ArrayBuffer | ArrayBufferView, withResponse: boolean): Promise<void> => {
+        const arrayBuffer = isView(value) ? value.buffer : value;
+        const base64 = arrayBufferToBase64(arrayBuffer)
+        await bluetoothRequest<WriteCharacteristicRequest, EmptyObject>(
+            'writeCharacteristic',
+            {
+                device: this.service.device.uuid,
+                service: this.service.uuid,
+                characteristic: this.uuid,
+                instance: this.instance,
+                value: base64,
+                withResponse: withResponse
+            }
+        )
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/writeValueWithResponse
+    writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
+        return this._writeValue(value, true)
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/writeValueWithoutResponse
+    writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
+        return this._writeValue(value, false)
+    }
 }
+
+const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => (source as ArrayBufferView).buffer !== undefined;
