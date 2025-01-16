@@ -30,6 +30,12 @@ struct HexEncodingTests {
     }
 
     @Test
+    func hexEncodedString_withUpperAndPrefixOption_emitsUppercaseWithPrefix() {
+        let data = Data([0xb0, 0xba])
+        #expect(data.hexEncodedString([.prefix, .upper]) == "0xB0BA")
+    }
+
+    @Test
     func hexEncodedString_withEmptyData_isEmptyString() {
         let data = Data()
         #expect(data.hexEncodedString() == "")
