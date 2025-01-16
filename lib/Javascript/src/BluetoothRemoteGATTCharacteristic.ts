@@ -145,7 +145,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         return this
     }
 
-    private writeValue = async (value: ArrayBuffer | ArrayBufferView, withResponse: boolean): Promise<void> => {
+    private _writeValue = async (value: ArrayBuffer | ArrayBufferView, withResponse: boolean): Promise<void> => {
         const arrayBuffer = isView(value) ? value.buffer : value;
         const base64 = arrayBufferToBase64(arrayBuffer)
         await bluetoothRequest<WriteCharacteristicRequest, EmptyObject>(
@@ -162,11 +162,11 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     }
 
     writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
-        return this.writeValue(value, true)
+        return this._writeValue(value, true)
     }
 
     writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
-        return this.writeValue(value, false)
+        return this._writeValue(value, false)
     }
 }
 
