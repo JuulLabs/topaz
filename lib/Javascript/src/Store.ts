@@ -43,11 +43,11 @@ class Store {
     }
 
     addDevice = (device: BluetoothDevice) => {
-        const deviceRecord = this.#devices.get(device.uuid);
+        const deviceRecord = this.#devices.get(device.id);
         if (deviceRecord) {
             // Perform any cleanup necessary here
         }
-        this.#devices.set(device.uuid, { uuid: device.uuid, device, services: new Map() });
+        this.#devices.set(device.id, { uuid: device.id, device, services: new Map() });
     }
 
     getService = (deviceUuid: string, serviceUuid: string): BluetoothRemoteGATTService | undefined => {
@@ -55,19 +55,19 @@ class Store {
     }
 
     addService = (service: BluetoothRemoteGATTService) => {
-        const deviceRecord = this.#devices.get(service.device.uuid);
+        const deviceRecord = this.#devices.get(service.device.id);
         if (!deviceRecord) {
-            throw new ReferenceError(`Device ${service.device.uuid} not found`);
+            throw new ReferenceError(`Device ${service.device.id} not found`);
         }
         deviceRecord.services.set(service.uuid, { uuid: service.uuid, service, characteristics: new Map() });
     }
 
     getCharacteristic = (service: BluetoothRemoteGATTService, uuid: string, instance: number): BluetoothRemoteGATTCharacteristic | undefined => {
-        return this.#devices.get(service.device.uuid)?.services.get(service.uuid)?.characteristics.get(characteristicKey(uuid, instance))?.characteristic;
+        return this.#devices.get(service.device.id)?.services.get(service.uuid)?.characteristics.get(characteristicKey(uuid, instance))?.characteristic;
     }
 
     addCharacteristic = (service: BluetoothRemoteGATTService, characteristic: BluetoothRemoteGATTCharacteristic) => {
-        const serviceRecord = this.#devices.get(service.device.uuid)?.services.get(service.uuid);
+        const serviceRecord = this.#devices.get(service.device.id)?.services.get(service.uuid);
         if (!serviceRecord) {
             throw new ReferenceError(`Service ${service.uuid} not found`);
         }
@@ -97,7 +97,7 @@ class Store {
 
     getDescriptor = (characteristic: BluetoothRemoteGATTCharacteristic, uuid: string): BluetoothRemoteGATTDescriptor | undefined => {
         return this.#devices
-            .get(characteristic.service.device.uuid)
+            .get(characteristic.service.device.id)
             ?.services
             .get(characteristic.service.uuid)
             ?.characteristics
@@ -108,7 +108,7 @@ class Store {
 
     addDescriptor = (characteristic: BluetoothRemoteGATTCharacteristic, descriptor: BluetoothRemoteGATTDescriptor) => {
         const characteristicRecord = this.#devices
-            .get(characteristic.service.device.uuid)
+            .get(characteristic.service.device.id)
             ?.services
             .get(characteristic.service.uuid)
             ?.characteristics

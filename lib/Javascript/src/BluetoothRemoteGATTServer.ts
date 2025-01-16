@@ -31,7 +31,7 @@ type DiscoverServicesResponse = {
 }
 
 const getOrCreateService = (device: BluetoothDevice, uuid: string, isPrimary: boolean): BluetoothRemoteGATTService => {
-    const existingService = store.getService(device.uuid, uuid);
+    const existingService = store.getService(device.id, uuid);
     if (existingService) {
         return existingService;
     }
@@ -53,7 +53,7 @@ export class BluetoothRemoteGATTServer {
     connect = async (): Promise<BluetoothRemoteGATTServer> => {
         const response = await bluetoothRequest<ConnectRequest, ConnectResponse>(
             'connect',
-            { uuid: this.device.uuid }
+            { uuid: this.device.id }
         );
         this.connected = response.connected;
         return this;
@@ -62,7 +62,7 @@ export class BluetoothRemoteGATTServer {
     disconnect = async (): Promise<void> => {
         const response = await bluetoothRequest<DisconnectRequest, DisconnectResponse>(
             'disconnect',
-            { uuid: this.device.uuid }
+            { uuid: this.device.id }
         );
         this.connected = !response.disconnected;
     }
@@ -84,7 +84,7 @@ export class BluetoothRemoteGATTServer {
         const response = await bluetoothRequest<DiscoverServicesRequest, DiscoverServicesResponse>(
             'discoverServices',
             {
-                device: this.device.uuid,
+                device: this.device.id,
                 service: service ? BluetoothUUID.getService(service) : null,
                 single: single
             }
