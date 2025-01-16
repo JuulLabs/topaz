@@ -25,7 +25,7 @@ struct CharacteristicRequest: JsMessageDecodable {
     }
 }
 
-// Response is unused on JavaScript side but needed to have `ReadCharacteristic` conform to `BluetoothAction`.
+// Response is unused on JavaScript side but needed to have `[Read|Write]Characteristic` conform to `BluetoothAction`.
 struct CharacteristicResponse: JsMessageEncodable {
     func toJsMessage() -> JsMessage.JsMessageResponse {
         .body([:])

@@ -42,18 +42,11 @@ struct WriteCharacteristicRequest: JsMessageDecodable {
     }
 }
 
-// Response is unused on JavaScript side but needed to have `WriteCharacteristic` conform to `BluetoothAction`.
-struct WriteCharacteristicResponse: JsMessageEncodable {
-    func toJsMessage() -> JsMessage.JsMessageResponse {
-        .body([:])
-    }
-}
-
 struct WriteCharacteristic: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: WriteCharacteristicRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> WriteCharacteristicResponse {
+    func execute(state: BluetoothState, client: BluetoothClient) async throws -> CharacteristicResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // todo: error response if not connected
         let characteristic = try await state.getCharacteristic(
@@ -63,6 +56,6 @@ struct WriteCharacteristic: BluetoothAction {
             instance: request.characteristicInstance
         )
         _ = try await client.characteristicWrite(peripheral, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
-        return WriteCharacteristicResponse()
+        return CharacteristicResponse()
     }
 }

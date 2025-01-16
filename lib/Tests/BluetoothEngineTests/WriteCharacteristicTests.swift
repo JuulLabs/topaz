@@ -127,14 +127,3 @@ struct WriteCharacteristicRequestTests {
         #expect(request == nil)
     }
 }
-
-@Suite(.tags(.characteristics))
-struct WriteCharacteristicResponseTests {
-    @Test
-    func toJsMessage_withDefaultResponse_hasExpectedBody() throws {
-        let sut = WriteCharacteristicResponse()
-        let jsMessage = sut.toJsMessage()
-        let body = try #require(jsMessage.extractBody(as: NSDictionary.self))
-        #expect(body == [:])
-    }
-}
