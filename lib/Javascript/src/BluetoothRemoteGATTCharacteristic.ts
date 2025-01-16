@@ -155,7 +155,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     writeValue = async (value: ArrayBuffer | ArrayBufferView, response: string = "optional"): Promise<void> => {
         const arrayBuffer = isView(value) ? value.buffer : value;
         const base64 = arrayBufferToBase64(arrayBuffer)
-        await bluetoothRequest<WriteCharacteristicRequest, void>(
+        await bluetoothRequest<WriteCharacteristicRequest, EmptyObject>(
             'writeCharacteristic',
             {
                 device: this.service.device.uuid,
