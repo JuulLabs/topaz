@@ -5,6 +5,7 @@ import { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
 import { bluetoothRequest } from "./WebKit";
 import { BluetoothUUID } from "./BluetoothUUID";
 import { copyOf } from "./Data";
+import { EmptyObject } from "./EmptyObject";
 import { store } from "./Store";
 
 type DiscoverDescriptorsRequest = {
@@ -16,7 +17,7 @@ type DiscoverDescriptorsRequest = {
     single: boolean;
 }
 
-type ReadCharacteristicRequest = {
+type CharacteristicRequest = {
     device: string;
     service: string;
     characteristic: string;
@@ -106,7 +107,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
 
     // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/readValue
     readValue = async (): Promise<DataView> => {
-        await bluetoothRequest<ReadCharacteristicRequest, void>(
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'readCharacteristic',
             {
                 device: this.service.device.uuid,
@@ -116,6 +117,32 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
             }
         )
         return copyOf(this.value)
+    }
+
+    startNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
+            'startNotifications',
+            {
+                device: this.service.device.uuid,
+                service: this.service.uuid,
+                characteristic: this.uuid,
+                instance: this.instance
+            }
+        )
+        return this
+    }
+
+    stopNotifications = async (): Promise<BluetoothRemoteGATTCharacteristic> => {
+        await bluetoothRequest<CharacteristicRequest, EmptyObject>(
+            'stopNotifications',
+            {
+                device: this.service.device.uuid,
+                service: this.service.uuid,
+                characteristic: this.uuid,
+                instance: this.instance
+            }
+        )
+        return this
     }
 
     /**
@@ -144,7 +171,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
     writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
         return this.writeValue(value, "required")
     }
-    
+
     writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
         return this.writeValue(value, "never")
     }

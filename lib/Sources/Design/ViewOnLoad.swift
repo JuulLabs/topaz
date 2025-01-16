@@ -18,8 +18,7 @@ private struct PreRenderLoader<T>: View where T: View {
 
 extension View {
     public func forceLoadFontsInPreview() -> some View {
-        PreRenderLoader(
-            { registerFonts() },
+        PreRenderLoader({ registerFonts() },
             content: self
         )
     }

@@ -11,4 +11,6 @@ public enum EventName: Sendable {
     case characteristicWrite
     case characteristicValue
     case descriptorValue
+    case startNotifications
+    case stopNotifications
 }

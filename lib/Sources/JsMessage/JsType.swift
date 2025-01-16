@@ -7,8 +7,8 @@ public enum JsType: Sendable {
     case number(NSNumber)
     case string(String)
     case date(Date)
-    case array(Array<JsType>)
-    case dictionary(Dictionary<String, JsType>)
+    case array([JsType])
+    case dictionary([String: JsType])
     case null
 }
 

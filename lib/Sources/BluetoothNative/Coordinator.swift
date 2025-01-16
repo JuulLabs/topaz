@@ -144,4 +144,20 @@ class Coordinator: @unchecked Sendable {
             nativePeripheral.readValue(for: nativeDescriptor)
         }
     }
+
+    func startNotifications(peripheral: Peripheral, characteristic: Characteristic) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.setNotifyValue(true, for: nativeCharacteristic)
+        }
+    }
+
+    func stopNotifications(peripheral: Peripheral, characteristic: Characteristic) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeCharacteristic = characteristic.rawValue else { return }
+            nativePeripheral.setNotifyValue(false, for: nativeCharacteristic)
+        }
+    }
 }

@@ -101,4 +101,16 @@ struct NativeBluetoothClient: BluetoothClient {
             coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
         }
     }
+
+    func startNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+        try await server.awaitEvent(key: .characteristic(.startNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+            coordinator.startNotifications(peripheral: peripheral, characteristic: characteristic)
+        }
+    }
+
+    func stopNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
+        try await server.awaitEvent(key: .characteristic(.stopNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+            coordinator.stopNotifications(peripheral: peripheral, characteristic: characteristic)
+        }
+    }
 }
