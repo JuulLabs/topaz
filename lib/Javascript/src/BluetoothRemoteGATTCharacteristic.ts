@@ -161,10 +161,12 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         )
     }
 
+    // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/writeValueWithResponse
     writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
         return this._writeValue(value, true)
     }
 
+    // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/writeValueWithoutResponse
     writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
         return this._writeValue(value, false)
     }
