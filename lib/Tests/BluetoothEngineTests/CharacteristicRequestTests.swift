@@ -8,7 +8,7 @@ import JsMessage
 import Testing
 
 @Suite(.tags(.connect))
-struct ReadCharacteristicRequestTests {
+struct CharacteristicRequestTests {
     @Test
     func decode_withInstance_succeeds() {
         let deviceUuid = UUID(n: 0)
@@ -21,7 +21,7 @@ struct ReadCharacteristicRequestTests {
             "characteristic": .string(characteristicUuid.uuidString),
             "instance": .number(instance),
         ]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request?.peripheralId == deviceUuid)
         #expect(request?.serviceUuid == serviceUuid)
         #expect(request?.characteristicUuid == characteristicUuid)
@@ -38,7 +38,7 @@ struct ReadCharacteristicRequestTests {
             "service": .string(serviceUuid.uuidString),
             "characteristic": .string(characteristicUuid.uuidString),
         ]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request == nil)
     }
 
@@ -55,7 +55,7 @@ struct ReadCharacteristicRequestTests {
             "instance": .number(instance),
             "bananaCount": .number(42),
         ]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request?.peripheralId == deviceUuid)
         #expect(request?.serviceUuid == serviceUuid)
         #expect(request?.characteristicUuid == characteristicUuid)
@@ -71,7 +71,7 @@ struct ReadCharacteristicRequestTests {
             "service": .string("bananaman"),
             "characteristic": .string(characteristicUuid.uuidString),
         ]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request == nil)
     }
 
@@ -84,23 +84,23 @@ struct ReadCharacteristicRequestTests {
             "service": .string(serviceUuid.uuidString),
             "characteristic": .string("bananaman"),
         ]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request == nil)
     }
 
     @Test
     func decode_withEmptyBody_isNil() {
         let body: [String: JsType] = [:]
-        let request = ReadCharacteristicRequest.decode(from: body)
+        let request = CharacteristicRequest.decode(from: body)
         #expect(request == nil)
     }
 }
 
 @Suite(.tags(.connect))
-struct ReadCharacteristicResponseTests {
+struct CharacteristicResponseTests {
     @Test
     func toJsMessage_withDefaultResponse_hasExpectedBody() throws {
-        let sut = ReadCharacteristicResponse()
+        let sut = CharacteristicResponse()
         let jsMessage = sut.toJsMessage()
         let body = try #require(jsMessage.extractBody(as: NSDictionary.self))
         #expect(body == [:])
