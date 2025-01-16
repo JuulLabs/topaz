@@ -145,14 +145,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         return this
     }
 
-    /**
-     * Deprecated: This feature is no longer recommended. Avoid using it, and update existing code if possible;
-     * use BluetoothRemoteGATTCharacteristic.writeValueWithResponse() or BluetoothRemoteGATTCharacteristic.writeValueWithoutResponse()
-     * instead. Be aware that this feature may cease to work at any time.
-     *
-     * https://developer.mozilla.org/en-US/docs/Web/API/BluetoothRemoteGATTCharacteristic/writeValue
-     */
-    writeValue = async (value: ArrayBuffer | ArrayBufferView, response: string = "optional"): Promise<void> => {
+    private writeValue = async (value: ArrayBuffer | ArrayBufferView, withResponse: boolean): Promise<void> => {
         const arrayBuffer = isView(value) ? value.buffer : value;
         const base64 = arrayBufferToBase64(arrayBuffer)
         await bluetoothRequest<WriteCharacteristicRequest, EmptyObject>(
@@ -163,17 +156,17 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
                 characteristic: this.uuid,
                 instance: this.instance,
                 value: base64,
-                withResponse: response != "never"
+                withResponse: withResponse
             }
         )
     }
 
     writeValueWithResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
-        return this.writeValue(value, "required")
+        return this.writeValue(value, true)
     }
 
     writeValueWithoutResponse = async (value: ArrayBuffer | ArrayBufferView): Promise<void> => {
-        return this.writeValue(value, "never")
+        return this.writeValue(value, false)
     }
 }
 
