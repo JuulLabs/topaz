@@ -6,6 +6,7 @@ public protocol BluetoothClient: Sendable {
 
     func enable() async
     func disable() async
+    func prepareForShutdown(peripherals: [Peripheral]) async
 
     func resolvePendingRequests(for event: BluetoothEvent) async
     func cancelPendingRequests() async

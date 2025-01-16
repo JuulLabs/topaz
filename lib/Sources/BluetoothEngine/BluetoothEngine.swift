@@ -10,24 +10,26 @@ import JsMessage
  Main engine - owns state, integrates web API with native API
  */
 public actor BluetoothEngine: JsMessageProcessor {
+
+    enum RunState { case ready, running(JsContext), shutdown }
+
+    private var runState: RunState = .ready
     private var isEnabled: Bool = false
     private let state: BluetoothState
     private let client: BluetoothClient
     private let deviceSelector: InteractiveDeviceSelector
+    private var task: Task<Void, Never>?
 
     public init(
         state: BluetoothState,
         client: BluetoothClient,
-        deviceSelector: InteractiveDeviceSelector
+        deviceSelector: InteractiveDeviceSelector,
+        enableDebugLogging: Bool = false
     ) {
         self.state = state
         self.client = client
         self.deviceSelector = deviceSelector
-        Task {
-            for await event in self.client.events {
-                await handleDelegateEvent(event)
-            }
-        }
+        self.enableDebugLogging = enableDebugLogging
     }
 
     // MARK: - Bluetooth Events
@@ -42,6 +44,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private func updateState(for event: BluetoothEvent) async {
         switch event {
         case let event as SystemStateEvent:
+            await BluetoothSystemState.shared.updateSystemState(event.systemState)
             await state.setSystemState(event.systemState)
         case let event as PeripheralEvent where event.name == .canSendWriteWithoutResponse:
             await state.setCanSendWriteWithoutResponse(event.peripheral.id, value: true)
@@ -56,25 +59,30 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     // MARK: - JsMessageProcessor
-    public let handlerName: String = "bluetooth"
-    private var context: JsContext?
+    public static let handlerName: String = "bluetooth"
+    public let enableDebugLogging: Bool
 
     public func didAttach(to context: JsContext) async {
-        // TODO: support multiple active web page contexts
-        self.context = context
+        if case .ready = self.runState {
+            self.runState = .running(context)
+            self.task = Task {
+                for await event in self.client.events {
+                    await handleDelegateEvent(event)
+                }
+            }
+        }
     }
 
     public func didDetach(from context: JsContext) async {
-        // TODO: keep track of how many active contexts are using BLE and when it becomes zero:
-        // await client.disable()
-        // self.isEnabled = false
-        // TODO: support multiple active web page contexts because this cancels all web pages
-        await client.cancelPendingRequests()
-        self.context = nil
+        self.runState = .shutdown
+        await cleanup()
+        self.task?.cancel()
+        self.task = nil
+        await client.disable()
     }
 
     private func sendEvent(_ event: JsEvent) async {
-        guard let context else { return }
+        guard case let .running(context) = self.runState else { return }
         let result = await context.sendEvent(event)
         if case let .failure(error) = result {
             // TODO: log this somewhere
@@ -82,10 +90,13 @@ public actor BluetoothEngine: JsMessageProcessor {
         }
     }
 
-    public func process(request: JsMessageRequest) async -> JsMessageResponse {
-        if !isEnabled {
+    public func process(request: JsMessageRequest, in context: JsContext) async -> JsMessageResponse {
+        guard case .running = self.runState else {
+            return .error(BluetoothError.unavailable.toDomError())
+        }
+        if !self.isEnabled {
             await client.enable()
-            isEnabled = true
+            self.isEnabled = true
         }
         do {
             let message = try request.extractMessage().get()
@@ -105,6 +116,10 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     // MARK: - Private Helpers
+
+    private func cleanup() async {
+        await client.prepareForShutdown(peripherals: Array(state.peripherals.values))
+    }
 
     /// Blocks until we are in powered on state
     /// Throws an error if the state is not powered on

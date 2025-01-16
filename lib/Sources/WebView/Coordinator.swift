@@ -6,7 +6,7 @@ import WebKit
 @MainActor
 public class Coordinator: NSObject {
     private let world: WKContentWorld = .page
-    private var messageProcessors: [JsMessageProcessor]!
+    private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
@@ -17,7 +17,7 @@ public class Coordinator: NSObject {
 
     func initialize(webView: WKWebView, model: WebPageModel) {
         self.viewModel = model
-        self.messageProcessors = model.messageProcessors
+        self.messageProcessorFactory = model.messageProcessorFactory
         self.contextId = JsContextIdentifier(tab: model.tab, url: model.url)
 
         webView.customUserAgent = model.customUserAgent
@@ -28,6 +28,8 @@ public class Coordinator: NSObject {
     }
 
     func deinitialize(webView: WKWebView) {
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
         viewModel?.deinitialize(webView: webView)
         viewModel = nil
         detachOldHandler(from: webView)
@@ -42,7 +44,7 @@ public class Coordinator: NSObject {
 
     private func attachNewHandler(to webView: WKWebView) {
         let context = webView.createContext(contextId: contextId, world: world)
-        let newHandler = ScriptHandler(context: context, processors: messageProcessors)
+        let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
@@ -51,6 +53,7 @@ public class Coordinator: NSObject {
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
         webView.detachScriptHandler(scriptHandler, in: world)
+        self.scriptHandler = nil
     }
 
     func didBeginNavigation(to url: URL, in webView: WKWebView) {
@@ -90,14 +93,14 @@ extension WKWebView {
     }
 
     func detachScriptHandler(_ handler: ScriptHandler, in world: WKContentWorld) {
-        handler.allProcessors.forEach { processor in
-            configuration.userContentController.removeScriptMessageHandler(forName: processor.handlerName, contentWorld: world)
+        handler.allHandlerNames.forEach { handlerName in
+            configuration.userContentController.removeScriptMessageHandler(forName: handlerName, contentWorld: world)
         }
     }
 
     func attachScriptHandler(_ handler: ScriptHandler, in world: WKContentWorld) {
-        handler.allProcessors.forEach { processor in
-            configuration.userContentController.addScriptMessageHandler(handler, contentWorld: world, name: processor.handlerName)
+        handler.allHandlerNames.forEach { handlerName in
+            configuration.userContentController.addScriptMessageHandler(handler, contentWorld: world, name: handlerName)
         }
     }
 }

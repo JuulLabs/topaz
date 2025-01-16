@@ -13,13 +13,10 @@ public final class WebContainerModel {
     public var navBarModel: NavBarModel
     public var selector: DeviceSelector
 
-    private let bluetoothStateStream: AsyncStream<SystemState>
-
     init(
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
-        selector: DeviceSelector,
-        bluetoothStateStream: AsyncStream<SystemState>
+        selector: DeviceSelector
     ) {
         self.webPageModel = webPageModel
         self.navBarModel = navBarModel
@@ -31,18 +28,16 @@ public final class WebContainerModel {
                 selector.cancel()
             }
         )
-        self.bluetoothStateStream = bluetoothStateStream
     }
 
     static func loadAsync(
         selector: DeviceSelector,
         webConfigLoader: WebConfigLoader,
-        bluetoothStateStream: AsyncStream<SystemState>,
         buildWebModel: @escaping (WKWebViewConfiguration) -> WebPageModel
     ) async throws -> WebContainerModel {
         let config = try await webConfigLoader.loadConfig()
         let webPageModel = buildWebModel(config)
-        let navBarModel = NavBarModel(navigator: webPageModel.navigator, bluetoothStateStream: bluetoothStateStream)
-        return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector, bluetoothStateStream: bluetoothStateStream)
+        let navBarModel = NavBarModel(navigator: webPageModel.navigator)
+        return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector)
     }
 }

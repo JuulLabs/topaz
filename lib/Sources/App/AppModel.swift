@@ -16,22 +16,19 @@ public class AppModel {
     let storage: CodableStorage
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     let deviceSelector: DeviceSelector
-    let bluetoothEngine: BluetoothEngine
-    let state: BluetoothState
+    let messageProcessorFactory: JsMessageProcessorFactory
     let tabsModel: TabGridModel
 
     var activePageModels: (WebLoadingModel, SearchBarModel)?
 
     public init(
-        state: BluetoothState,
-        client: BluetoothClient,
+        messageProcessorFactory: JsMessageProcessorFactory,
         deviceSelector: DeviceSelector,
         storage: CodableStorage
     ) {
-        self.state = state
+        self.messageProcessorFactory = messageProcessorFactory
         self.storage = storage
         self.deviceSelector = deviceSelector
-        self.bluetoothEngine = BluetoothEngine(state: state, client: client, deviceSelector: deviceSelector)
         let tabsModel = TabGridModel(store: storage)
         self.tabsModel = tabsModel
 
@@ -61,7 +58,7 @@ public class AppModel {
             freshPageModel.isLoading = true
             freshPageModel.searchBarFocusOnLoad = false
             Task {
-                loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, bluetoothStateStream: state.stateStream)
+                loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url)
             }
         }
         searchBarModel.onSubmit = { [weak self] url in
@@ -71,7 +68,7 @@ public class AppModel {
             } else {
                 Task {
                     freshPageModel.isLoading = true
-                    if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, bluetoothStateStream: state.stateStream) {
+                    if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url) {
                         loadingModel.webContainerModel = webContainer
                         tabsModel.update(url: url, at: tabIndex)
                     }
@@ -81,18 +78,17 @@ public class AppModel {
         return (loadingModel, searchBarModel)
     }
 
-    private func loadWebContainerModel(tab: Int, url: URL, bluetoothStateStream: AsyncStream<SystemState>) async -> WebContainerModel? {
+    private func loadWebContainerModel(tab: Int, url: URL) async -> WebContainerModel? {
         do {
             let model = try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
-                webConfigLoader: webConfigLoader,
-                bluetoothStateStream: bluetoothStateStream
-            ) { config in
+                webConfigLoader: webConfigLoader
+            ) { [messageProcessorFactory] config in
                 WebPageModel(
                     tab: tab,
                     url: url,
                     config: config,
-                    messageProcessors: [self.bluetoothEngine, jsLogger]
+                    messageProcessorFactory: messageProcessorFactory
                 )
             }
             model.navBarModel.settingsModel.tabAction = { [weak self] in
