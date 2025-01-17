@@ -85,6 +85,15 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func characteristicWrite(_ peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
+        guard withResponse else {
+            coordinator.writeCharacteristic(peripheral: peripheral, characteristic: characteristic, value: value, withResponse: withResponse)
+            return CharacteristicEvent(
+                .characteristicWrite,
+                peripheralId: peripheral.id,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        }
         return try await server.awaitEvent(key: .characteristic(.characteristicWrite, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             coordinator.writeCharacteristic(peripheral: peripheral, characteristic: characteristic, value: value, withResponse: withResponse)
         }

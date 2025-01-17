@@ -23,6 +23,10 @@ extension CBPeripheral: PeripheralProtocol {
             .disconnected
         }
     }
+
+    public var isReadyToSendWriteWithoutResponse: Bool {
+        self.canSendWriteWithoutResponse
+    }
 }
 
 extension Peripheral {
