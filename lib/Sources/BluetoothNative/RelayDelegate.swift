@@ -143,7 +143,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-        // todo
+        handlePeripheralEvent(.canSendWriteWithoutResponse, peripheral, nil)
     }
 
     private func handlePeripheralEvent(_ event: EventName, _ peripheral: CBPeripheral, _ error: (any Error)?) {

@@ -43,6 +43,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         switch event {
         case let event as SystemStateEvent:
             await state.setSystemState(event.systemState)
+        case let event as PeripheralEvent where event.name == .canSendWriteWithoutResponse:
+            await state.setCanSendWriteWithoutResponse(event.peripheral.id, value: true)
         default:
             break
         }

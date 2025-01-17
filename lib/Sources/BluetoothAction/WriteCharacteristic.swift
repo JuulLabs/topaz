@@ -55,6 +55,13 @@ struct WriteCharacteristic: BluetoothAction {
             characteristicId: request.characteristicUuid,
             instance: request.characteristicInstance
         )
+        if (!request.withResponse) {
+            await peripheral.canSendWriteWithoutResponse.setValue(peripheral.isReadyToSendWriteWithoutResponse)
+            var state: Bool?
+            repeat {
+                state = await peripheral.canSendWriteWithoutResponse.getValue()
+            } while state != nil && state == false
+        }
         _ = try await client.characteristicWrite(peripheral, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
         return CharacteristicResponse()
     }

@@ -9,6 +9,7 @@ public enum EventName: Sendable {
     case discoverDescriptors
     case characteristicNotify
     case characteristicWrite
+    case canSendWriteWithoutResponse
     case characteristicValue
     case descriptorValue
     case startNotifications

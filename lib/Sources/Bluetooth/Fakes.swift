@@ -6,9 +6,11 @@ import Helpers
 
 private class MockPeripheralProtocol: PeripheralProtocol {
     let connectionState: ConnectionState
+    let isReadyToSendWriteWithoutResponse: Bool
 
-    init(connectionState: ConnectionState) {
+    init(connectionState: ConnectionState, isReadyToSendWriteWithoutResponse: Bool = true) {
         self.connectionState = connectionState
+        self.isReadyToSendWriteWithoutResponse = isReadyToSendWriteWithoutResponse
     }
 }
 

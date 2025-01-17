@@ -30,6 +30,14 @@ public actor BluetoothState: Sendable {
         self.systemState = systemState
     }
 
+    public func setCanSendWriteWithoutResponse(_ peripheralId: UUID, value: Bool) async {
+        await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(value)
+    }
+
+    public func getCanSendWriteWithoutResponse(_ peripheral: Peripheral) async throws -> Bool {
+        try await getPeripheral(peripheral.id).canSendWriteWithoutResponse.getValue() ?? false
+    }
+
     public func putPeripheral(_ peripheral: Peripheral) {
         self.peripherals[peripheral.id] = peripheral
     }
