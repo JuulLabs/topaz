@@ -34,8 +34,15 @@ public actor BluetoothState: Sendable {
         await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(value)
     }
 
-    public func getCanSendWriteWithoutResponse(_ peripheral: Peripheral) async throws -> Bool {
-        try await getPeripheral(peripheral.id).canSendWriteWithoutResponse.getValue() ?? false
+    public func getCanSendWriteWithoutResponse(_ peripheralId: UUID) async throws -> Bool {
+        try await getPeripheral(peripheralId).canSendWriteWithoutResponse.getValue()
+    }
+
+    // TODO: we need a cleaner way to manage this dynamic between the CBPeripheral object and the local state copy
+    // Probably switching to using classes/actors for the data is the best approach as the hybrid struct+class objects is problematic
+    public func refreshCanSendWriteWithoutResponse(_ peripheralId: UUID) async throws {
+        let liveValue = try getPeripheral(peripheralId).isReadyToSendWriteWithoutResponse
+        await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(liveValue)
     }
 
     public func putPeripheral(_ peripheral: Peripheral) {
