@@ -22,7 +22,7 @@ public actor StateValue<Value: Sendable>: Sendable {
     }
 
     /**
-     Awaits until there is a value and then returns it.
+     Awaits until a value is set and then returns it.
      May return nil if cancelled before a value arrives.
      */
     public func getValue() async -> Value? {
