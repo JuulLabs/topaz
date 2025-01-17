@@ -78,7 +78,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         const response = await bluetoothRequest<DiscoverDescriptorsRequest, string[]>(
             'discoverDescriptors',
             {
-                device: this.service.device.uuid,
+                device: this.service.device.id,
                 service: this.service.uuid,
                 characteristic: this.uuid,
                 instance: this.instance,
@@ -110,7 +110,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'readCharacteristic',
             {
-                device: this.service.device.uuid,
+                device: this.service.device.id,
                 service: this.service.uuid,
                 characteristic: this.uuid,
                 instance: this.instance
@@ -123,7 +123,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'startNotifications',
             {
-                device: this.service.device.uuid,
+                device: this.service.device.id,
                 service: this.service.uuid,
                 characteristic: this.uuid,
                 instance: this.instance
@@ -136,7 +136,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         await bluetoothRequest<CharacteristicRequest, EmptyObject>(
             'stopNotifications',
             {
-                device: this.service.device.uuid,
+                device: this.service.device.id,
                 service: this.service.uuid,
                 characteristic: this.uuid,
                 instance: this.instance
@@ -151,7 +151,7 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         await bluetoothRequest<WriteCharacteristicRequest, EmptyObject>(
             'writeCharacteristic',
             {
-                device: this.service.device.uuid,
+                device: this.service.device.id,
                 service: this.service.uuid,
                 characteristic: this.uuid,
                 instance: this.instance,

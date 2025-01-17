@@ -67,7 +67,7 @@ export class BluetoothRemoteGATTService extends EventTarget {
         const response = await bluetoothRequest<DiscoverCharacteristicsRequest, DiscoverCharacteristicsResponse>(
             'discoverCharacteristics',
             {
-                device: this.device.uuid,
+                device: this.device.id,
                 service: this.uuid,
                 characteristic: characteristic ? BluetoothUUID.getCharacteristic(characteristic) : null,
                 single: single

@@ -28,7 +28,7 @@ export class BluetoothRemoteGATTDescriptor {
         const response = await bluetoothRequest<ReadDescriptorRequest, string>(
             'readDescriptor',
             {
-                device: this.characteristic.service.device.uuid,
+                device: this.characteristic.service.device.id,
                 service: this.characteristic.service.uuid,
                 characteristic: this.characteristic.uuid,
                 instance: this.characteristic.instance,
