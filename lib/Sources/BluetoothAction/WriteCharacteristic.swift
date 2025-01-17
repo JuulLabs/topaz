@@ -60,7 +60,10 @@ struct WriteCharacteristic: BluetoothAction {
             var state: Bool?
             repeat {
                 state = await peripheral.canSendWriteWithoutResponse.getValue()
-            } while state != nil && state == false
+                guard state != nil else {
+                    throw BluetoothError.cancelled
+                }
+            } while state == false
         }
         _ = try await client.characteristicWrite(peripheral, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
         return CharacteristicResponse()
