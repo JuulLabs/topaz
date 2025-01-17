@@ -8,7 +8,7 @@ else
 	ROLLUP_SCHEME_OPTIONS := --no-strict --plugin terser
 endif
 
-ROLLUP_OPTIONS := --format iife --plugin typescript $(ROLLUP_SCHEME_OPTIONS)
+ROLLUP_OPTIONS := --format es --plugin typescript $(ROLLUP_SCHEME_OPTIONS)
 
 OUTDIR := ../Sources/WebView/Resources/Generated
 ENTRY_SOURCES := src/BluetoothPolyfill.ts
