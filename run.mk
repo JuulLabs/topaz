@@ -1,10 +1,10 @@
-.PHONY: run
+.PHONY: run rebuild
 
 APP_FOLDER_NAME := $(XCODE_TARGET).app
 BUILT_APP_PATH := $(DERIVED_DATA_PATH)/Build/Products/$(XCODE_CONFIG)-iphoneos/$(APP_FOLDER_NAME)
 WRAPPER_PATH := $(DERIVED_DATA_PATH)/Run/$(APP_FOLDER_NAME)
 
-run: $(WRAPPER_PATH)
+run: rebuild $(WRAPPER_PATH)
 	open $(WRAPPER_PATH)
 
 # Structure required to execute iPad app on macOS:
@@ -13,9 +13,11 @@ run: $(WRAPPER_PATH)
 # topaz.app/Wrapper/topaz.app/<actual app files go here>
 #
 $(WRAPPER_PATH): $(BUILT_APP_PATH)
+	-rm -rf $(WRAPPER_PATH)
 	mkdir -p $(WRAPPER_PATH)/Wrapper
 	ln -s Wrapper/$(APP_FOLDER_NAME) $(WRAPPER_PATH)/WrappedBundle
 	ditto $(BUILT_APP_PATH) $(WRAPPER_PATH)/Wrapper/$(APP_FOLDER_NAME)
 
-$(BUILT_APP_PATH):
+rebuild:
+	-pkill topaz
 	$(MAKE) PLATFORM=MACOS build
