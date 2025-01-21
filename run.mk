@@ -19,5 +19,5 @@ $(WRAPPER_PATH): $(BUILT_APP_PATH)
 	ditto $(BUILT_APP_PATH) $(WRAPPER_PATH)/Wrapper/$(APP_FOLDER_NAME)
 
 rebuild:
-	-pkill topaz
+	-pkill $(XCODE_TARGET)
 	$(MAKE) PLATFORM=MACOS build
