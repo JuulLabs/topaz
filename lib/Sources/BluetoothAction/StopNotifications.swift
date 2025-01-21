@@ -5,8 +5,7 @@ import Foundation
 import JsMessage
 
 struct StopNotifications: BluetoothAction {
-
-    var requiresReadyState: Bool = true
+    let requiresReadyState: Bool = true
     let request: CharacteristicRequest
 
     init(request: CharacteristicRequest) {
@@ -16,8 +15,7 @@ struct StopNotifications: BluetoothAction {
     func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
-        _ = try await client.stopNotifications(peripheral, characteristic: characteristic)
-
+        _ = try await client.characteristicNotify(peripheral, characteristic: characteristic, enabled: false)
         return CharacteristicResponse()
     }
 }

@@ -77,7 +77,7 @@ struct DiscoverDescriptors: BluetoothAction {
             characteristicId: request.characteristicUuid,
             instance: request.instance
         )
-        let result = try await client.discoverDescriptors(peripheral, characteristic)
+        let result = try await client.discoverDescriptors(peripheral, characteristic: characteristic)
         await state.setDescriptors(
             result.descriptors,
             on: peripheral.id,

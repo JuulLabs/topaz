@@ -25,12 +25,12 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         peripheral.delegate = self // weak owned
-        handlePeripheralEvent(.connect, peripheral, nil)
+        handlePeripheralEvent(.connect, peripheral: peripheral, error: nil)
     }
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
         peripheral.delegate = nil
-        handlePeripheralEvent(.disconnect, peripheral, error)
+        handlePeripheralEvent(.disconnect, peripheral: peripheral, error: error)
     }
 
     // MARK: - CBPeripheralDelegate
@@ -161,34 +161,18 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: (any Error)?) {
-        let event: BluetoothEvent = if let error {
-            ErrorEvent(
-                error: BluetoothError.causedBy(error),
-                lookup: .exact(
-                    key: .characteristic(
-                        .characteristicWrite,
-                        peripheralId: peripheral.identifier,
-                        characteristicId: characteristic.uuid.regularUuid,
-                        instance: characteristic.instanceId
-                    )
-                )
-            )
-        } else {
-            CharacteristicEvent(
-                .characteristicWrite,
-                peripheralId: peripheral.identifier,
-                characteristicId: characteristic.uuid.regularUuid,
-                instance: characteristic.instanceId
-            )
-        }
-        handleEvent(event)
+        handleCharacteristicEvent(.characteristicWrite, peripheral: peripheral, characteristic: characteristic, error: error)
+    }
+
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: (any Error)?) {
+        handleCharacteristicEvent(.characteristicNotify, peripheral: peripheral, characteristic: characteristic, error: error)
     }
 
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-        handlePeripheralEvent(.canSendWriteWithoutResponse, peripheral, nil)
+        handlePeripheralEvent(.canSendWriteWithoutResponse, peripheral: peripheral, error: nil)
     }
 
-    private func handlePeripheralEvent(_ event: EventName, _ peripheral: CBPeripheral, _ error: (any Error)?) {
+    private func handlePeripheralEvent(_ event: EventName, peripheral: CBPeripheral, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
             ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(name: event, peripheralId: peripheral.identifier))
         } else {
@@ -197,14 +181,13 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         handleEvent(event)
     }
 
-    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: (any Error)?) {
-        let eventName: EventName = characteristic.isNotifying ? .startNotifications : .stopNotifications
+    private func handleCharacteristicEvent(_ event: EventName, peripheral: CBPeripheral, characteristic: CBCharacteristic, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
             ErrorEvent(
                 error: BluetoothError.causedBy(error),
                 lookup: .exact(
                     key: .characteristic(
-                        eventName,
+                        event,
                         peripheralId: peripheral.identifier,
                         characteristicId: characteristic.uuid.regularUuid,
                         instance: characteristic.instanceId
@@ -213,7 +196,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             )
         } else {
             CharacteristicEvent(
-                eventName,
+                event,
                 peripheralId: peripheral.identifier,
                 characteristicId: characteristic.uuid.regularUuid,
                 instance: characteristic.instanceId
