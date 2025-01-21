@@ -56,14 +56,11 @@ struct WriteCharacteristic: BluetoothAction {
             instance: request.characteristicInstance
         )
         if !request.withResponse {
-            await peripheral.canSendWriteWithoutResponse.setValue(peripheral.isReadyToSendWriteWithoutResponse)
-            var state: Bool?
-            repeat {
-                state = await peripheral.canSendWriteWithoutResponse.getValue()
-                guard state != nil else {
-                    throw BluetoothError.cancelled
-                }
-            } while state == false
+            // Update the peripheral state with the latest value read from the actual live CBPeripheral object
+            try await state.refreshCanSendWriteWithoutResponse(request.peripheralId)
+            while try await !state.getCanSendWriteWithoutResponse(request.peripheralId) {
+                // The peripheral state is false, waiting until the delegate callback updates it to true...
+            }
         }
         _ = try await client.characteristicWrite(peripheral, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
         return CharacteristicResponse()
