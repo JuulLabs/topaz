@@ -17,7 +17,15 @@ public struct DescriptorChangedEvent: BluetoothEvent {
         self.data = data
     }
 
-    public var key: EventKey {
-        .descriptor(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance, descriptorId: descriptorId)
+    public var lookup: EventLookup {
+        .exact(
+            key: .descriptor(
+                name,
+                peripheralId: peripheralId,
+                characteristicId: characteristicId,
+                instance: instance,
+                descriptorId: descriptorId
+            )
+        )
     }
 }

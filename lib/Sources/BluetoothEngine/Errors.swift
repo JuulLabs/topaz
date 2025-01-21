@@ -14,6 +14,7 @@ extension BluetoothError: DomErrorConvertable {
         case .noSuchDescriptor: .notFound
         case .characteristicNotificationsNotSupported: .notSupported
         case .nullService: .operation
+        case .nullCharacteristic: .operation
         case .unavailable: .operation
         case .unknown: .unknown
         }

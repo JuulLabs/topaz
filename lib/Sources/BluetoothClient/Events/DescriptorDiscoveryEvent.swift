@@ -17,13 +17,19 @@ public struct DescriptorDiscoveryEvent: BluetoothEvent {
         self.descriptors = descriptors
     }
 
-    public var key: EventKey {
-        .descriptorDiscovery(peripheralId: peripheralId, characteristicId: characteristicId, instance: instance)
+    public var lookup: EventLookup {
+        .exact(key: .descriptorDiscovery(peripheralId: peripheralId, characteristicId: characteristicId, instance: instance))
     }
 }
 
-extension EventKey {
+extension EventRegistrationKey {
     public static func descriptorDiscovery(peripheralId: UUID, characteristicId: UUID, instance: UInt32) -> Self {
-        EventKey(name: .discoverDescriptors, peripheralId, characteristicId, instance)
+        EventRegistrationKey(
+            name: .discoverDescriptors,
+            peripheralId: peripheralId,
+            // TODO: service id?
+            characteristicId: characteristicId,
+            characteristicInstance: instance
+        )
     }
 }

@@ -37,7 +37,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(.discoverServices, peripheral.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(name: .discoverServices, peripheralId: peripheral.identifier))
         } else {
             ServiceDiscoveryEvent(peripheralId: peripheral.identifier, services: peripheral.erasedServices(locker: locker))
         }
@@ -46,7 +46,10 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(.discoverCharacteristics, peripheral.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(
+                error: BluetoothError.causedBy(error),
+                lookup: .exact(name: .discoverCharacteristics, peripheralId: peripheral.identifier, serviceId: service.uuid.regularUuid)
+            )
         } else {
             CharacteristicDiscoveryEvent(
                 peripheralId: peripheral.identifier,
@@ -58,10 +61,32 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: (any Error)?) {
-        let service = characteristic.service
+        guard let service = characteristic.service else {
+            let cause = error.map(BluetoothError.causedBy) ?? .nullService(characteristic: characteristic.uuid.regularUuid)
+            let errorEvent = ErrorEvent(
+                error: cause,
+                lookup: .wildcard(
+                    name: .discoverDescriptors,
+                    peripheralId: peripheral.identifier,
+                    characteristicId: characteristic.uuid.regularUuid,
+                    characteristicInstance: characteristic.instanceId
+                )
+            )
+            handleEvent(errorEvent)
+            return
+        }
         let event: BluetoothEvent = if let error {
-            ErrorEvent(.discoverDescriptors, peripheral.erase(locker: locker), BluetoothError.causedBy(error))
-        } else if let service {
+            ErrorEvent(
+                error: BluetoothError.causedBy(error),
+                lookup: .exact(
+                    name: .discoverDescriptors,
+                    peripheralId: peripheral.identifier,
+                    serviceId: service.uuid.regularUuid,
+                    characteristicId: characteristic.uuid.regularUuid,
+                    characteristicInstance: characteristic.instanceId
+                )
+            )
+        } else {
             DescriptorDiscoveryEvent(
                 peripheralId: peripheral.identifier,
                 serviceId: service.uuid.regularUuid,
@@ -69,37 +94,55 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 instance: characteristic.instanceId,
                 descriptors: characteristic.erasedDescriptors(locker: locker)
             )
-        } else {
-            ErrorEvent(.discoverDescriptors, peripheral.erase(locker: locker), BluetoothError.nullService(characteristic: characteristic.uuid.regularUuid))
         }
         handleEvent(event)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(.characteristicValue, peripheral.erase(locker: locker), characteristic.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(
+                error: BluetoothError.causedBy(error),
+                lookup: .exact(
+                    name: .characteristicValue,
+                    peripheralId: peripheral.identifier,
+                    characteristicId: characteristic.uuid.regularUuid,
+                    characteristicInstance: characteristic.instanceId
+                )
+            )
         } else {
-            CharacteristicChangedEvent(peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId, data: characteristic.value)
+            CharacteristicChangedEvent(
+                peripheralId: peripheral.identifier,
+                characteristicId: characteristic.uuid.regularUuid,
+                instance: characteristic.instanceId,
+                data: characteristic.value
+            )
         }
         handleEvent(event)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: (any Error)?) {
         guard let characteristic = descriptor.characteristic else {
-            // todo: For all `BluetoothRemoteGATTDescriptor`s with matching UUID, fail all in-flight readValue() promises.
-            // Without the parent characteristic, we have no way of failing the specific readValue() call.
-            print("Error: Missing parent characteristic for descriptor \(descriptor.uuid.uuidString)")
+            let cause = error.map(BluetoothError.causedBy) ?? .nullCharacteristic(descriptor: descriptor.uuid.regularUuid)
+            let errorEvent = ErrorEvent(
+                error: cause,
+                lookup: .wildcard(
+                    name: .descriptorValue,
+                    peripheralId: peripheral.identifier,
+                    descriptorId: descriptor.uuid.regularUuid
+                )
+            )
+            handleEvent(errorEvent)
             return
         }
-
+        let eventKey = EventRegistrationKey(
+            name: .descriptorValue,
+            peripheralId: peripheral.identifier,
+            characteristicId: characteristic.uuid.regularUuid,
+            characteristicInstance: characteristic.instanceId,
+            descriptorId: descriptor.uuid.regularUuid
+        )
         let event: BluetoothEvent = if let error {
-            ErrorEvent(
-                .descriptorValue,
-                peripheral.erase(locker: locker),
-                characteristic.erase(locker: locker),
-                descriptor.erase(locker: locker),
-                BluetoothError.causedBy(error)
-            )
+            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(key: eventKey))
         } else {
             switch descriptor.valueAsData() {
             case let .success(data):
@@ -111,13 +154,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                     data: data
                 )
             case let .failure(error):
-                ErrorEvent(
-                    .descriptorValue,
-                    peripheral.erase(locker: locker),
-                    characteristic.erase(locker: locker),
-                    descriptor.erase(locker: locker),
-                    BluetoothError.causedBy(error)
-                )
+                ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(key: eventKey))
             }
         }
         handleEvent(event)
@@ -126,10 +163,15 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
             ErrorEvent(
-                .characteristicWrite,
-                peripheral.erase(locker: locker),
-                characteristic.erase(locker: locker),
-                BluetoothError.causedBy(error)
+                error: BluetoothError.causedBy(error),
+                lookup: .exact(
+                    key: .characteristic(
+                        .characteristicWrite,
+                        peripheralId: peripheral.identifier,
+                        characteristicId: characteristic.uuid.regularUuid,
+                        instance: characteristic.instanceId
+                    )
+                )
             )
         } else {
             CharacteristicEvent(
@@ -148,7 +190,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     private func handlePeripheralEvent(_ event: EventName, _ peripheral: CBPeripheral, _ error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(event, peripheral.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(name: event, peripheralId: peripheral.identifier))
         } else {
             PeripheralEvent(event, peripheral.erase(locker: locker))
         }
@@ -157,11 +199,25 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: (any Error)?) {
         let eventName: EventName = characteristic.isNotifying ? .startNotifications : .stopNotifications
-
         let event: BluetoothEvent = if let error {
-            ErrorEvent(eventName, peripheral.erase(locker: locker), characteristic.erase(locker: locker), BluetoothError.causedBy(error))
+            ErrorEvent(
+                error: BluetoothError.causedBy(error),
+                lookup: .exact(
+                    key: .characteristic(
+                        eventName,
+                        peripheralId: peripheral.identifier,
+                        characteristicId: characteristic.uuid.regularUuid,
+                        instance: characteristic.instanceId
+                    )
+                )
+            )
         } else {
-            CharacteristicEvent(eventName, peripheralId: peripheral.identifier, characteristicId: characteristic.uuid.regularUuid, instance: characteristic.instanceId)
+            CharacteristicEvent(
+                eventName,
+                peripheralId: peripheral.identifier,
+                characteristicId: characteristic.uuid.regularUuid,
+                instance: characteristic.instanceId
+            )
         }
         handleEvent(event)
     }

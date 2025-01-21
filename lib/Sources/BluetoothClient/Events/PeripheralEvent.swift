@@ -9,13 +9,13 @@ public struct PeripheralEvent: BluetoothEvent {
         self.peripheral = peripheral
     }
 
-    public var key: EventKey {
-        .peripheral(name, peripheral)
+    public var lookup: EventLookup {
+        .exact(key: .peripheral(name, peripheral))
     }
 }
 
-extension EventKey {
+extension EventRegistrationKey {
     public static func peripheral(_ name: EventName, _ peripheral: Peripheral) -> Self {
-        EventKey(name: name, peripheral.id)
+        EventRegistrationKey(name: name, peripheralId: peripheral.id)
     }
 }

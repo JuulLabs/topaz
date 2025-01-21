@@ -11,13 +11,13 @@ public struct ServiceDiscoveryEvent: BluetoothEvent {
         self.services = services
     }
 
-    public var key: EventKey {
-        .serviceDiscovery(peripheralId: peripheralId)
+    public var lookup: EventLookup {
+        .exact(key: .serviceDiscovery(peripheralId: peripheralId))
     }
 }
 
-extension EventKey {
+extension EventRegistrationKey {
     public static func serviceDiscovery(peripheralId: UUID) -> Self {
-        EventKey(name: .discoverServices, peripheralId)
+        EventRegistrationKey(name: .discoverServices, peripheralId: peripheralId)
     }
 }

@@ -81,6 +81,7 @@ struct NativeBluetoothClient: BluetoothClient {
     func characteristicNotify(_ peripheral: Peripheral, _ characteristic: Characteristic, enabled: Bool) async throws -> CharacteristicEvent {
         try await server.awaitEvent(key: .characteristic(.characteristicNotify, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             // TODO:
+            // refactor to use this method
         }
     }
 

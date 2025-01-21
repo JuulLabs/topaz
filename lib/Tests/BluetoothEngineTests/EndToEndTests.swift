@@ -73,7 +73,7 @@ struct EndToEndBluetoothEngineTests {
         var client = MockBluetoothClient()
         let resolveExpectation = XCTestExpectation(description: "Resolve pending request")
         client.onResolvePendingRequests = { event in
-            #expect(event.name == .characteristicValue)
+            #expect(event is CharacteristicChangedEvent)
             resolveExpectation.fulfill()
         }
 

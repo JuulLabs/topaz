@@ -15,7 +15,7 @@ public struct CharacteristicChangedEvent: BluetoothEvent {
         self.data = data
     }
 
-    public var key: EventKey {
-        .characteristic(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance)
+    public var lookup: EventLookup {
+        .exact(key: .characteristic(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance))
     }
 }

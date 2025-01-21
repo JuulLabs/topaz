@@ -20,7 +20,7 @@ public actor EventService {
     }
 
     public func awaitEvent<T: BluetoothEvent>(
-        key: EventKey,
+        key: EventRegistrationKey,
         launchEffect: @Sendable () -> Void
     ) async throws -> T {
         let result = try await withCheckedThrowingContinuation { continuation in
@@ -29,16 +29,34 @@ public actor EventService {
         }
         try Task.checkCancellation()
         guard let result = result as? T else {
-            throw EventServiceError.typeMismatch(result.name, expectedType: "\(type(of: T.self))")
+            throw EventServiceError.typeMismatch(key.name, expectedType: "\(type(of: T.self))")
         }
         return result
     }
 
     private func resolvePromises(for event: BluetoothEvent) {
         if let event = event as? ErrorEvent {
-            promiseStore.reject(with: event.error, for: event.key)
+            rejectPromises(with: event.error, lookup: event.lookup)
         } else {
-            promiseStore.resolve(with: event, for: event.key)
+            resolvePromises(with: event, lookup: event.lookup)
+        }
+    }
+
+    private func resolvePromises(with event: BluetoothEvent, lookup: EventLookup) {
+        switch lookup.match {
+        case let .exact(key):
+            promiseStore.resolve(with: event, for: key)
+        case let .wildcard(name, attributes):
+            promiseStore.resolve(with: event, where: attributes.predicate(name: name))
+        }
+    }
+
+    private func rejectPromises(with error: any Error, lookup: EventLookup) {
+        switch lookup.match {
+        case let .exact(key):
+            promiseStore.reject(with: error, for: key)
+        case let .wildcard(name, attributes):
+            promiseStore.reject(with: error, where: attributes.predicate(name: name))
         }
     }
 }
