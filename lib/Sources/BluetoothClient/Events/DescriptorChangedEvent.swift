@@ -2,7 +2,6 @@ import Bluetooth
 import Foundation
 
 public struct DescriptorChangedEvent: BluetoothEvent {
-    public let name: EventName = .descriptorValue
     public let peripheralId: UUID
     public let characteristicId: UUID
     public let instance: UInt32
@@ -20,7 +19,7 @@ public struct DescriptorChangedEvent: BluetoothEvent {
     public var lookup: EventLookup {
         .exact(
             key: .descriptor(
-                name,
+                .descriptorValue,
                 peripheralId: peripheralId,
                 characteristicId: characteristicId,
                 instance: instance,

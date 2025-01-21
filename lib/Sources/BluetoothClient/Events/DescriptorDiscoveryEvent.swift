@@ -2,7 +2,6 @@ import Bluetooth
 import Foundation
 
 public struct DescriptorDiscoveryEvent: BluetoothEvent {
-    public let name: EventName = .discoverDescriptors
     public let peripheralId: UUID
     public let serviceId: UUID
     public let characteristicId: UUID

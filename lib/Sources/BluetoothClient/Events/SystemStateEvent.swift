@@ -1,7 +1,6 @@
 import Bluetooth
 
 public struct SystemStateEvent: BluetoothEvent {
-    public let name: EventName = .systemState
     public let systemState: SystemState
 
     public init(_ systemState: SystemState) {

@@ -2,7 +2,6 @@ import Bluetooth
 import Foundation
 
 public struct ServiceDiscoveryEvent: BluetoothEvent {
-    public let name: EventName = .discoverServices
     public let peripheralId: UUID
     public let services: [Service]
 
