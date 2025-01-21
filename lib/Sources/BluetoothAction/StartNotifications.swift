@@ -13,12 +13,9 @@ struct StartNotifications: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
-        let peripheral = try await state.getPeripheral(request.peripheralId)
+        let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
 
-        guard peripheral.connectionState == .connected else {
-            throw BluetoothError.deviceNotConnected
-        }
         guard characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate) else {
             throw BluetoothError.characteristicNotificationsNotSupported(characteristic: request.characteristicUuid)
         }
