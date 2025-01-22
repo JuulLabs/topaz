@@ -1,4 +1,5 @@
 import Observation
+import Settings
 import SwiftUI
 
 @MainActor
@@ -17,16 +18,13 @@ public final class SearchBarModel {
         self.focusedField = nil
         if let derivedUrl = URL(string: sanitized), derivedUrl.isHttp {
             onSubmit(derivedUrl)
-        } else if let derivedUrl = duckduckUrl(query: sanitized) {
+        } else if let derivedUrl = searchUrl(query: sanitized) {
             onSubmit(derivedUrl)
         }
     }
 
-    private func duckduckUrl(query: String) -> URL? {
-        let queryItems: [URLQueryItem] = [
-            URLQueryItem(name: "q", value: query),
-        ]
-        return URL(string: "https://duckduckgo.com/")?.appending(queryItems: queryItems)
+    private func searchUrl(query: String) -> URL? {
+        loadPreferredSearchEngine().searchUrl(for: query)
     }
 
     // TODO: appply valid-character-only filter to input as it is typed instead
