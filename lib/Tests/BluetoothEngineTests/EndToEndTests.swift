@@ -28,6 +28,7 @@ struct EndToEndBluetoothEngineTests {
     /// 3. user selecting the device from the picker
     /// 4. engine fulfills the selected device promise
     @Test func process_requestDevice_returnsDeviceWhenSelected() async throws {
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!), eventSink: { _ in .success(()) })
         let fake = FakePeripheral(id: zeroUuid, name: "bob")
         let scanner = MockScanner()
         let selectorSut = await DeviceSelector()
@@ -38,7 +39,8 @@ struct EndToEndBluetoothEngineTests {
             selector = selectorSut
         }
 
-        async let promise = await engineSut.process(request: requestDeviceRequest)
+        await engineSut.didAttach(to: context)
+        async let promise = await engineSut.process(request: requestDeviceRequest, in: context)
         scanner.continuation.yield(AdvertisementEvent(fake, fake.fakeAd(rssi: 0)))
         let advertisements = await selectorSut.advertisements.first(where: { !$0.isEmpty })
         #expect(advertisements!.count == 1)
@@ -84,7 +86,8 @@ struct EndToEndBluetoothEngineTests {
         )
 
         // It is critical that Js sees the `characteristicvaluechanged` event before the promise is resolved
-        await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation], timeout: 1.0, enforceOrder: true)
+        let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation], timeout: 1.0, enforceOrder: true)
+        #expect(outcome == .completed)
     }
 
 }

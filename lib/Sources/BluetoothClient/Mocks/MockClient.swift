@@ -8,6 +8,7 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public var onEnable: @Sendable () async -> Void
     public var onDisable: @Sendable () async -> Void
+    public var onPrepareForShutdown: @Sendable ([Peripheral]) async -> Void
     public var onResolvePendingRequests: @Sendable  (BluetoothEvent) async -> Void
     public var onCancelPendingRequests: @Sendable () async -> Void
     public var onScan: @Sendable (_ filter: Filter) async -> BluetoothScanner
@@ -30,6 +31,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.eventsContinuation = continuation
         self.onEnable = { fatalError("Not implemented") }
         self.onDisable = { fatalError("Not implemented") }
+        self.onPrepareForShutdown = { _ in fatalError("Not implemented") }
         self.onResolvePendingRequests = { _ in fatalError("Not implemented") }
         self.onCancelPendingRequests = { fatalError("Not implemented") }
         self.onScan = { _ in fatalError("Not implemented") }
@@ -53,6 +55,10 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func disable() async {
         await onDisable()
+    }
+
+    public func prepareForShutdown(peripherals: [Peripheral]) async {
+        await onPrepareForShutdown(peripherals)
     }
 
     public func resolvePendingRequests(for event: BluetoothEvent) async {

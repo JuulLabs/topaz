@@ -5,7 +5,7 @@ import Foundation
 
 @MainActor
 @Observable
-public class DeviceSelector: InteractiveDeviceSelector {
+public final class DeviceSelector: InteractiveDeviceSelector {
     private var selectionContinuaton: CheckedContinuation<Result<Peripheral, DeviceSelectionError>, Never>?
     private var advertisingPeripherals: [UUID: (Peripheral, Advertisement)] = [:]
     private let advertisementsContinuation: AsyncStream<[Advertisement]>.Continuation

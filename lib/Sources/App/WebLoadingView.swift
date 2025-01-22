@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import DevicePicker
+import JsMessage
 import Observation
 import SwiftUI
 import WebView
@@ -80,10 +81,9 @@ private func webModel(url: URL) -> WebContainerModel {
             tab: 0,
             url: url,
             config: previewWebConfig(),
-            messageProcessors: []
+            messageProcessorFactory: staticMessageProcessorFactory()
         ),
         navBarModel: NavBarModel(),
-        selector: DeviceSelector(),
-        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
+        selector: DeviceSelector()
     )
 }
