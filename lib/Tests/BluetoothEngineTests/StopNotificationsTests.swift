@@ -3,6 +3,7 @@ import Bluetooth
 import BluetoothClient
 import BluetoothMessage
 import Foundation
+import TestHelpers
 import Testing
 import XCTest
 

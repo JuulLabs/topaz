@@ -1,11 +1,8 @@
 import Bluetooth
 @testable import DevicePicker
 import Foundation
+import TestHelpers
 import Testing
-
-private func bigYield() async {
-    try? await Task.sleep(nanoseconds: NSEC_PER_SEC / 1000)
-}
 
 @MainActor
 @Suite(.timeLimit(.minutes(1)))
@@ -17,7 +14,7 @@ struct DevicePickerTests {
     func awaitSelection_whilePending_isSelectingIsTrue() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         let isSelecting = sut.isSelecting
         sut.cancel()
         await _ = pendingResult
@@ -28,7 +25,7 @@ struct DevicePickerTests {
     func awaitSelection_whenFulfilled_isSelectingIsFalse() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         sut.cancel()
         await _ = pendingResult
         let isSelecting = sut.isSelecting
@@ -39,7 +36,7 @@ struct DevicePickerTests {
     func cancel_whilePending_returnsCancelled() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         sut.cancel()
         let result = await pendingResult
         switch result {
@@ -54,7 +51,7 @@ struct DevicePickerTests {
     func makeSelection_withInvalidId_returnsInvalidSelection() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         sut.makeSelection(zeroUuid)
         let result = await pendingResult
         switch result {
@@ -69,10 +66,10 @@ struct DevicePickerTests {
     func makeSelection_withValidId_returnsMatchingDevice() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         let fake = FakePeripheral(id: zeroUuid, name: "bob")
         sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAd(rssi: 0))
-        await bigYield()
+        await Task.bigYield()
         sut.makeSelection(fake.id)
         let result = await pendingResult
         switch result {
@@ -87,12 +84,12 @@ struct DevicePickerTests {
     func showAdvertisement_emitsAdvertisements() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()
-        await bigYield()
+        await Task.bigYield()
         let fake = FakePeripheral(id: zeroUuid)
         sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAd(rssi: 0))
-        await bigYield()
+        await Task.bigYield()
         async let collected = await sut.advertisements.first(where: { !$0.isEmpty })!
-        await bigYield()
+        await Task.bigYield()
         sut.cancel()
         await _ = pendingResult
         let ads = await collected

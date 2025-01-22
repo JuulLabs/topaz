@@ -11,20 +11,7 @@ let package = Package(
     ],
     products: [
         .library(name: "App", targets: ["App"]),
-        .library(name: "Bluetooth", targets: ["Bluetooth"]),
-        .library(name: "BluetoothAction", targets: ["BluetoothAction"]),
-        .library(name: "BluetoothClient", targets: ["BluetoothClient"]),
-        .library(name: "BluetoothEngine", targets: ["BluetoothEngine"]),
-        .library(name: "BluetoothMessage", targets: ["BluetoothMessage"]),
         .library(name: "BluetoothNative", targets: ["BluetoothNative"]),
-        .library(name: "Design", targets: ["Design"]),
-        .library(name: "DevicePicker", targets: ["DevicePicker"]),
-        .library(name: "Helpers", targets: ["Helpers"]),
-        .library(name: "JsMessage", targets: ["JsMessage"]),
-        .library(name: "Settings", targets: ["Settings"]),
-        .library(name: "Tabs", targets: ["Tabs"]),
-        .library(name: "UIHelpers", targets: ["UIHelpers"]),
-        .library(name: "WebView", targets: ["WebView"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/Semaphore.git", from: "0.1.0")
@@ -42,7 +29,7 @@ let package = Package(
         ),
         .testTarget(
             name: "AppTests",
-            dependencies: ["App"]
+            dependencies: ["App", "TestHelpers"]
         ),
 
         .target(
@@ -53,7 +40,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BluetoothTests",
-            dependencies: ["Bluetooth"]
+            dependencies: ["Bluetooth", "TestHelpers"]
         ),
 
         .target(
@@ -73,6 +60,10 @@ let package = Package(
                 "Bluetooth",
             ]
         ),
+        .testTarget(
+            name: "BluetoothClientTests",
+            dependencies: ["BluetoothClient", "TestHelpers"]
+        ),
 
         .target(
             name: "BluetoothEngine",
@@ -87,7 +78,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BluetoothEngineTests",
-            dependencies: ["BluetoothEngine"]
+            dependencies: ["BluetoothEngine", "TestHelpers"]
         ),
 
         .target(
@@ -108,7 +99,7 @@ let package = Package(
         ),
         .testTarget(
             name: "BluetoothNativeTests",
-            dependencies: ["BluetoothNative"]
+            dependencies: ["BluetoothNative", "TestHelpers"]
         ),
 
         .target(
@@ -127,7 +118,7 @@ let package = Package(
         ),
         .testTarget(
             name: "DevicePickerTests",
-            dependencies: ["DevicePicker"]
+            dependencies: ["DevicePicker", "TestHelpers"]
         ),
 
         .target(
@@ -138,7 +129,7 @@ let package = Package(
         ),
         .testTarget(
             name: "HelpersTests",
-            dependencies: ["Helpers"]
+            dependencies: ["Helpers", "TestHelpers"]
         ),
 
         .target(
@@ -154,6 +145,11 @@ let package = Package(
                 "Design",
                 "UIHelpers",
             ]
+        ),
+
+        .target(
+            name: "TestHelpers",
+            dependencies: []
         ),
 
         .target(
