@@ -18,7 +18,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onDiscoverServices: @Sendable (_ peripheral: Peripheral, _ filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
     public var onDiscoverCharacteristics: @Sendable (_ peripheral: Peripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     public var onDiscoverDescriptors: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent
-    public var onCharacteristicNotify: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
+    public var onCharacteristicSetNotifications: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ enabled: Bool) async throws -> CharacteristicEvent
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
     public var onCharacteristicWrite: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ value: Data, _ withResponse: Bool) async throws -> CharacteristicEvent
     public var onDescriptorRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor) async throws -> DescriptorChangedEvent
@@ -39,7 +39,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onDiscoverServices = { _, _ in fatalError("Not implemented") }
         self.onDiscoverCharacteristics = { _, _ in fatalError("Not implemented") }
         self.onDiscoverDescriptors = { _, _ in fatalError("Not implemented") }
-        self.onCharacteristicNotify = { _, _, _ in fatalError("Not implemented") }
+        self.onCharacteristicSetNotifications = { _, _, _ in fatalError("Not implemented") }
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicWrite = { _, _, _, _ in fatalError("Not implemented") }
         self.onDescriptorRead = { _, _, _ in fatalError("Not implemented") }
@@ -93,8 +93,8 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onDiscoverDescriptors(peripheral, characteristic)
     }
 
-    public func characteristicNotify(_ peripheral: Peripheral, characteristic: Bluetooth.Characteristic, enable: Bool) async throws -> CharacteristicEvent {
-        try await onCharacteristicNotify(peripheral, characteristic, enable)
+    public func characteristicSetNotifications(_ peripheral: Peripheral, characteristic: Bluetooth.Characteristic, enable: Bool) async throws -> CharacteristicEvent {
+        try await onCharacteristicSetNotifications(peripheral, characteristic, enable)
     }
 
     public func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {

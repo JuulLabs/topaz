@@ -28,7 +28,7 @@ struct StopNotificationsTests {
         let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         let stopInvokedExpectation = XCTestExpectation(description: "onStopNotifications invoked")
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onCharacteristicNotify = { _, _, startNotifying in
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
                 if startNotifying == false {
                     stopInvokedExpectation.fulfill()
                 }
@@ -77,7 +77,7 @@ struct StopNotificationsTests {
 private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
     var client = MockBluetoothClient()
     let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-    client.onCharacteristicNotify = { _, _, _ in
+    client.onCharacteristicSetNotifications = { _, _, _ in
         basicCharacteristic
     }
     modify?(&client)

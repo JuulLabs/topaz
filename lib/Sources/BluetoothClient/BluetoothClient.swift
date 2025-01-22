@@ -19,7 +19,7 @@ public protocol BluetoothClient: Sendable {
     func discoverServices(_ peripheral: Peripheral, filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
     func discoverCharacteristics(_ peripheral: Peripheral, filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     func discoverDescriptors(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent
-    func characteristicNotify(_ peripheral: Peripheral, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent
+    func characteristicSetNotifications(_ peripheral: Peripheral, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent
     func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent
     func characteristicWrite(_ peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent
     func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent

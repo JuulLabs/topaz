@@ -28,7 +28,7 @@ struct StartNotificationsTests {
         let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onCharacteristicNotify = { _, _, startNotifying in
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
                 if startNotifying {
                     startInvokedExpectation.fulfill()
                 }
@@ -137,7 +137,7 @@ struct StartNotificationsTests {
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
         startInvokedExpectation.isInverted = true
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onCharacteristicNotify = { _, _, startNotifying in
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
                 if startNotifying {
                     startInvokedExpectation.fulfill()
                 }
@@ -158,7 +158,7 @@ struct StartNotificationsTests {
 private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
     var client = MockBluetoothClient()
     let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-    client.onCharacteristicNotify = { _, _, _ in
+    client.onCharacteristicSetNotifications = { _, _, _ in
         basicCharacteristic
     }
     modify?(&client)
