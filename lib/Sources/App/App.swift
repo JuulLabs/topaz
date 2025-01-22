@@ -4,6 +4,7 @@ import BluetoothMessage
 import Design
 import DevicePicker
 import Helpers
+import JsMessage
 import SwiftUI
 import Tabs
 import WebView
@@ -51,5 +52,17 @@ private func previewModel() -> AppModel {
 #else
     let mockClient = MockBluetoothClient()
 #endif
-    return AppModel(state: state, client: mockClient, deviceSelector: selector, storage: InMemoryStorage())
+    let bluetoothEngine = BluetoothEngine(
+        state: state,
+        client: mockClient,
+        deviceSelector: selector
+    )
+    let factory = staticMessageProcessorFactory(
+        [BluetoothEngine.handlerName: bluetoothEngine]
+    )
+    return AppModel(
+        messageProcessorFactory: factory,
+        deviceSelector: selector,
+        storage: InMemoryStorage()
+    )
 }

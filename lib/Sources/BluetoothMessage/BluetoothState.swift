@@ -5,16 +5,8 @@ import Foundation
  Represents the current state of the bluetooth system.
  */
 public actor BluetoothState: Sendable {
-
-    public let (stateStream, continuation) = AsyncStream<SystemState>.makeStream()
-
-    public private(set) var systemState: SystemState {
-        didSet {
-            continuation.yield(systemState)
-        }
-    }
-
-    private(set) var peripherals: [UUID: Peripheral]
+    public private(set) var systemState: SystemState
+    public private(set) var peripherals: [UUID: Peripheral]
 
     public init(
         systemState: SystemState = .unknown,
@@ -43,6 +35,12 @@ public actor BluetoothState: Sendable {
     public func refreshCanSendWriteWithoutResponse(_ peripheralId: UUID) async throws {
         let liveValue = try getPeripheral(peripheralId).isReadyToSendWriteWithoutResponse
         await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(liveValue)
+    }
+
+    public func removeAllPeripherals() -> [Peripheral] {
+        let deadPeripherals = Array(peripherals.values)
+        peripherals.removeAll()
+        return deadPeripherals
     }
 
     public func putPeripheral(_ peripheral: Peripheral) {
