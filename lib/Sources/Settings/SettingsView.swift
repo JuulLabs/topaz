@@ -32,6 +32,8 @@ public struct SettingsView: View {
                     model.setDefaultHomeButtonTapped()
                 }
 
+                SearchEngineSelectorView(model: model.searchEngineSelectorModel)
+
                 LabeledContent("Bluetooth® permissions") {
                     CustomToggle(isOn: $model.bluetoothEnabled)
                         .padding(.vertical, 2)
