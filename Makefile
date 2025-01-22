@@ -1,9 +1,28 @@
+.PHONY: all help lint lint-fix clean js js-debug js-clean
+
+# Default target - must be first
+all: help
+
 include build.mk publish.mk run.mk
 
-.PHONY: all lint lint-fix clean js js-debug js-clean
-
-# Default target
-all: build
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@echo "Targets:"
+	@echo "  help       Display this help message"
+	@echo "  build      Build the project"
+	@echo "  test       Build and run all unit tests"
+	@echo "  run        Launch the 'Designed for iPad' variant as a macOS app"
+	@echo "  ipa        Build the app store IPA artifact"
+	@echo "  js         Build the JavaScript polyfill artifacts"
+	@echo "  js-debug   Build the JavaScript polyfill artifacts without minification"
+	@echo "  js-clean   Clean the JavaScript build"
+	@echo "  lint       Lint the project"
+	@echo "  lint-fix   Fix linting issues"
+	@echo "  clean      Clean the project"
+	@echo ""
+	@echo "Test targets:"
+	@echo $(TEST_MODULES) | tr ' ' '\n' | sed -e 's/^/  /'
 
 js:
 	$(MAKE) -C lib/Javascript build
