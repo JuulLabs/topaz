@@ -23,7 +23,7 @@ struct StartNotifications: BluetoothAction {
             return CharacteristicResponse()
         }
 
-        _ = try await client.characteristicNotify(peripheral, characteristic: characteristic, enabled: true)
+        _ = try await client.characteristicNotify(peripheral, characteristic: characteristic, enable: true)
 
         return CharacteristicResponse()
     }

@@ -16,7 +16,7 @@ struct StopNotifications: BluetoothAction {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         // check: do we need to check for is connected here?
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
-        _ = try await client.characteristicNotify(peripheral, characteristic: characteristic, enabled: false)
+        _ = try await client.characteristicNotify(peripheral, characteristic: characteristic, enable: false)
         return CharacteristicResponse()
     }
 }
