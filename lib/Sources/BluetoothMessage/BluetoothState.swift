@@ -37,6 +37,12 @@ public actor BluetoothState: Sendable {
         await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(liveValue)
     }
 
+    public func removeAllPeripherals() -> [Peripheral] {
+        let deadPeripherals = Array(peripherals.values)
+        peripherals.removeAll()
+        return deadPeripherals
+    }
+
     public func putPeripheral(_ peripheral: Peripheral) {
         self.peripherals[peripheral.id] = peripheral
     }

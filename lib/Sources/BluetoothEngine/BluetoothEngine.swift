@@ -74,10 +74,17 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     public func didDetach(from context: JsContext) async {
+        // Note: carefully orchestrate the tear-down to avoid request/response races here
+        // Firstly, modify runState immediately so all future requests and events are dropped
         self.runState = .shutdown
-        await cleanup()
+
+        // Shut down the delegate event handler
         self.task?.cancel()
         self.task = nil
+
+        // Tell the system to disconnect all known peripherals and then shutdown
+        let peripherals = await state.removeAllPeripherals()
+        await client.prepareForShutdown(peripherals: peripherals)
         await client.disable()
     }
 
@@ -116,10 +123,6 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     // MARK: - Private Helpers
-
-    private func cleanup() async {
-        await client.prepareForShutdown(peripherals: Array(state.peripherals.values))
-    }
 
     /// Blocks until we are in powered on state
     /// Throws an error if the state is not powered on
