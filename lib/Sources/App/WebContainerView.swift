@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import JsMessage
 import Observation
 import Settings
 import SwiftUI
@@ -66,17 +67,19 @@ private func previewModel() -> WebContainerModel {
         client: client,
         deviceSelector: selector
     )
+    let factory = staticMessageProcessorFactory(
+        [BluetoothEngine.handlerName: bluetoothEngine]
+    )
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
         config: previewWebConfig(),
-        messageProcessors: [bluetoothEngine]
+        messageProcessorFactory: factory
     )
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: NavBarModel(),
-        selector: selector,
-        bluetoothStateStream: AsyncStream<SystemState>.makeStream().stream
+        selector: selector
     )
 }
 

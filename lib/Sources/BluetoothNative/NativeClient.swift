@@ -3,7 +3,9 @@ import BluetoothClient
 import CoreBluetooth
 import Foundation
 
-public let liveBluetoothClient: BluetoothClient = NativeBluetoothClient()
+public func liveBluetoothClient() -> BluetoothClient {
+    NativeBluetoothClient()
+}
 
 struct NativeBluetoothClient: BluetoothClient {
 
@@ -30,6 +32,12 @@ struct NativeBluetoothClient: BluetoothClient {
     func disable() async {
         coordinator.disable()
         await cancelPendingRequests()
+    }
+
+    public func prepareForShutdown(peripherals: [Peripheral]) async {
+        for peripheral in peripherals {
+            coordinator.disconnect(peripheral: peripheral)
+        }
     }
 
     func resolvePendingRequests(for event: any BluetoothEvent) async {

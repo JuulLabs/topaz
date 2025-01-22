@@ -1,4 +1,5 @@
 import Bluetooth
+import BluetoothEngine
 import Observation
 import Settings
 import SwiftUI
@@ -13,25 +14,23 @@ public final class NavBarModel {
 
     let navigator: WebNavigator
 
-    let bluetoothStateStream: AsyncStream<SystemState>
-
     var fullscreenButtonDisabled: Bool = false
     var isSettingsPresented: Bool = false
-    var bluetoothState: SystemState = .unknown
+    var bluetoothSystem: BluetoothSystemState
     var shouldShowErrorState: Bool {
-        bluetoothState != .unknown && bluetoothState != .poweredOn
+        bluetoothSystem.systemState != .unknown && bluetoothSystem.systemState != .poweredOn
     }
 
     private(set) var isFullscreen: Bool = false
 
     init(
         navigator: WebNavigator = WebNavigator(),
-        bluetoothStateStream: AsyncStream<SystemState> = AsyncStream<SystemState>.makeStream().stream
+        bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.navigator = navigator
         self.pullDrawer = PullDrawerModel(height: 104.0, ratio: 1.25, activationDistance: 16)
         self.settingsModel = SettingsModel()
-        self.bluetoothStateStream = bluetoothStateStream
+        self.bluetoothSystem = bluetoothSystem
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }
@@ -81,12 +80,6 @@ public final class NavBarModel {
             return progress
         case .complete:
             return nil
-        }
-    }
-
-    func listenToBluetoothState() async {
-        for await state in bluetoothStateStream {
-            bluetoothState = state
         }
     }
 }

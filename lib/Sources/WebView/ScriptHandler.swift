@@ -8,40 +8,35 @@ import WebKit
 @MainActor
 class ScriptHandler: NSObject {
     private let context: JsContext
-    private let processors: [String: JsMessageProcessor]
-    private var notifiedProcessors: Set<String> = []
+    private let factory: JsMessageProcessorFactory
+    private var cache: [String: JsMessageProcessor] = [:]
 
-    init(context: JsContext, processors: [JsMessageProcessor]) {
+    init(context: JsContext, factory: JsMessageProcessorFactory) {
         self.context = context
-        self.processors = processors.reduce(into: [:]) { lookupTable, processor in
-            lookupTable[processor.handlerName] = processor
-        }
+        self.factory = factory
         super.init()
     }
 
-    var allProcessors: Dictionary<String, any JsMessageProcessor>.Values {
-        processors.values
+    var allHandlerNames: [String] {
+        factory.handlerNames
     }
 
     func getProcessor(named name: String) async -> JsMessageProcessor? {
-        guard let processor = processors[name] else {
-            return nil
-        }
-        if !notifiedProcessors.contains(name) {
-            notifiedProcessors.insert(name)
-            await processor.didAttach(to: context)
+        guard let processor = cache[name] else {
+            if let newProcessor = factory.makeProcessor(name, context: context) {
+                cache[name] = newProcessor
+                await newProcessor.didAttach(to: context)
+            }
+            return cache[name]
         }
         return processor
     }
 
     func detachProcessors() {
-        let detached = processors.reduce(into: [JsMessageProcessor]()) { (result, entry) in
-            if notifiedProcessors.contains(entry.key) {
-                result.append(entry.value)
-            }
-        }
-        Task.detached { [context, detached] in
-            for processor in detached {
+        let processors = cache.values
+        cache.removeAll()
+        Task.detached { [context] in
+            for processor in processors {
                 await processor.didDetach(from: context)
             }
         }
@@ -57,15 +52,15 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
             return (nil, "Handler not found for \(request.handlerName)")
         }
 #if DEBUG
-        if processor.handlerName != "logging" {
+        if processor.enableDebugLogging {
             print("REQUEST \(message.name): \(message.body)")
         }
 #endif
-        let result = await processor.process(request: request)
+        let result = await processor.process(request: request, in: context)
 #if DEBUG
         switch result {
         case let .body(value):
-            if processor.handlerName != "logging" {
+            if processor.enableDebugLogging {
                 print("RESPONSE \(message.name): \(value.jsValue)")
             }
         case let .error(reason):
