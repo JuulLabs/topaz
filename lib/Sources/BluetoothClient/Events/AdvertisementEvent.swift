@@ -1,7 +1,6 @@
 import Bluetooth
 
 public struct AdvertisementEvent: BluetoothEvent {
-    public let name: EventName = .advertisement
     public let peripheral: Peripheral
     public let advertisement: Advertisement
 
@@ -10,11 +9,5 @@ public struct AdvertisementEvent: BluetoothEvent {
         self.advertisement = advertisement
     }
 
-    public var key: EventKey {
-        .advertisement
-    }
-}
-
-extension EventKey {
-    public static let advertisement = EventKey(name: .advertisement)
+    public let lookup: EventLookup = .exact(name: .advertisement)
 }

@@ -5,8 +5,7 @@ import Foundation
 import JsMessage
 
 struct StartNotifications: BluetoothAction {
-
-    var requiresReadyState: Bool = true
+    let requiresReadyState: Bool = true
     let request: CharacteristicRequest
 
     init(request: CharacteristicRequest) {
@@ -14,22 +13,17 @@ struct StartNotifications: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
-        let peripheral = try await state.getPeripheral(request.peripheralId)
+        let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
-
-        guard peripheral.connectionState == .connected else {
-            throw BluetoothError.deviceNotConnected
-        }
 
         guard characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate) else {
             throw BluetoothError.characteristicNotificationsNotSupported(characteristic: request.characteristicUuid)
         }
-
         guard characteristic.isNotifying == false else {
             return CharacteristicResponse()
         }
 
-        _ = try await client.startNotifications(peripheral, characteristic: characteristic)
+        _ = try await client.characteristicSetNotifications(peripheral, characteristic: characteristic, enable: true)
 
         return CharacteristicResponse()
     }

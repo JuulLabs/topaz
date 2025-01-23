@@ -14,13 +14,19 @@ public struct CharacteristicEvent: BluetoothEvent {
         self.instance = instance
     }
 
-    public var key: EventKey {
-        .characteristic(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance)
+    public var lookup: EventLookup {
+        .exact(key: .characteristic(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance))
     }
 }
 
-extension EventKey {
+extension EventRegistrationKey {
     public static func characteristic(_ name: EventName, peripheralId: UUID, characteristicId: UUID, instance: UInt32) -> Self {
-        EventKey(name: name, peripheralId, characteristicId, instance)
+        EventRegistrationKey(
+            name: name,
+            peripheralId: peripheralId,
+            // TODO: should we have serviceId here also?
+            characteristicId: characteristicId,
+            characteristicInstance: instance
+        )
     }
 }

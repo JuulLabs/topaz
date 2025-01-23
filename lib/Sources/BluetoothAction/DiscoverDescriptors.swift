@@ -69,15 +69,14 @@ struct DiscoverDescriptors: BluetoothAction {
     let request: DiscoverDescriptorsRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverDescriptorsResponse {
-        let peripheral = try await state.getPeripheral(request.peripheralId)
-        // todo: error response if not connected
+        let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let characteristic = try await state.getCharacteristic(
             peripheralId: request.peripheralId,
             serviceId: request.serviceUuid,
             characteristicId: request.characteristicUuid,
             instance: request.instance
         )
-        let result = try await client.discoverDescriptors(peripheral, characteristic)
+        let result = try await client.discoverDescriptors(peripheral, characteristic: characteristic)
         await state.setDescriptors(
             result.descriptors,
             on: peripheral.id,
