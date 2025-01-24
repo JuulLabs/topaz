@@ -51,4 +51,18 @@ struct PromiseStore<Result: Sendable> {
         }
         promises = [:]
     }
+
+    mutating func resolve<T: Hashable>(with value: Result, where predicate: (T) -> Bool) {
+        promises.keys
+            .compactMap { $0 as? T }
+            .filter(predicate)
+            .forEach { resolve(with: value, for: $0) }
+    }
+
+    mutating func reject<T: Hashable>(with error: any Error, where predicate: (T) -> Bool) {
+        promises.keys
+            .compactMap { $0 as? T }
+            .filter(predicate)
+            .forEach { reject(with: error, for: $0) }
+    }
 }

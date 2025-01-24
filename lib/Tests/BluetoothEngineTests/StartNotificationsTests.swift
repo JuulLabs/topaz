@@ -3,6 +3,7 @@ import Bluetooth
 import BluetoothClient
 import BluetoothMessage
 import Foundation
+import TestHelpers
 import Testing
 import XCTest
 
@@ -23,12 +24,14 @@ struct StartNotificationsTests {
     }
 
     @Test
-    func execute_withBasicPeripheral_callsStartNotifications() async throws {
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    func execute_withBasicPeripheral_clientShouldStartNotifications() async throws {
+        let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onStartNotifications = { _, _ in
-                startInvokedExpectation.fulfill()
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
+                if startNotifying {
+                    startInvokedExpectation.fulfill()
+                }
                 return basicCharacteristic
             }
         }
@@ -130,12 +133,14 @@ struct StartNotificationsTests {
     @Test
     func execute_characteristicIsAlreadyNotifying_clientShouldNotStartNotifications() async throws {
         let alreadyNotifyingCharacteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate], isNotifying: true)
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+        let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
         startInvokedExpectation.isInverted = true
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onStartNotifications = { _, _ in
-                startInvokedExpectation.fulfill()
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
+                if startNotifying {
+                    startInvokedExpectation.fulfill()
+                }
                 return basicCharacteristic
             }
         }
@@ -152,8 +157,8 @@ struct StartNotificationsTests {
 
 private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
     var client = MockBluetoothClient()
-    let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-    client.onStartNotifications = { _, _ in
+    let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    client.onCharacteristicSetNotifications = { _, _, _ in
         basicCharacteristic
     }
     modify?(&client)

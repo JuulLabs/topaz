@@ -2,10 +2,6 @@
 import Foundation
 import Testing
 
-private func bigYield() async {
-    try? await Task.sleep(nanoseconds: NSEC_PER_SEC / 1000)
-}
-
 struct StateValueTests {
 
     @Test
@@ -14,7 +10,7 @@ struct StateValueTests {
         let task = Task {
             await sut.getValue()
         }
-        await bigYield()
+        await Task.bigYield()
         await sut.setValue("Bye")
         let value = await task.value
         #expect(value == "Bye")
@@ -33,7 +29,7 @@ struct StateValueTests {
         let task = Task {
             await sut.getValue()
         }
-        await bigYield()
+        await Task.bigYield()
         await sut.setValue("Bye")
         let value = await task.value
         #expect(value == "Hello")
@@ -67,10 +63,10 @@ struct StateValueTests {
             return state
         }
         for _ in 1...3 {
-            await bigYield()
+            await Task.bigYield()
             await sut.setValue(false)
         }
-        await bigYield()
+        await Task.bigYield()
         await sut.setValue(true)
         let value = await task.value
         #expect(value == true)

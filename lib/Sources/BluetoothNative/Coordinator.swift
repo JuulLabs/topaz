@@ -145,19 +145,11 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
-    func startNotifications(peripheral: Peripheral, characteristic: Characteristic) {
+    func setNotify(peripheral: Peripheral, characteristic: Characteristic, value: Bool) {
         queue.async {
             guard let nativePeripheral = peripheral.rawValue else { return }
             guard let nativeCharacteristic = characteristic.rawValue else { return }
-            nativePeripheral.setNotifyValue(true, for: nativeCharacteristic)
-        }
-    }
-
-    func stopNotifications(peripheral: Peripheral, characteristic: Characteristic) {
-        queue.async {
-            guard let nativePeripheral = peripheral.rawValue else { return }
-            guard let nativeCharacteristic = characteristic.rawValue else { return }
-            nativePeripheral.setNotifyValue(false, for: nativeCharacteristic)
+            nativePeripheral.setNotifyValue(value, for: nativeCharacteristic)
         }
     }
 }

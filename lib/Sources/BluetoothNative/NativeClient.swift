@@ -80,15 +80,15 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func discoverDescriptors(_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent {
+    func discoverDescriptors(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent {
         try await server.awaitEvent(key: .descriptorDiscovery(peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             coordinator.discoverDescriptors(peripheral: peripheral, characteristic: characteristic)
         }
     }
 
-    func characteristicNotify(_ peripheral: Peripheral, _ characteristic: Characteristic, enabled: Bool) async throws -> CharacteristicEvent {
+    func characteristicSetNotifications(_ peripheral: Peripheral, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent {
         try await server.awaitEvent(key: .characteristic(.characteristicNotify, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
-            // TODO:
+            coordinator.setNotify(peripheral: peripheral, characteristic: characteristic, value: enable)
         }
     }
 
@@ -116,18 +116,6 @@ struct NativeBluetoothClient: BluetoothClient {
     func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {
         return try await server.awaitEvent(key: .descriptor(.descriptorValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)) {
             coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
-        }
-    }
-
-    func startNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
-        try await server.awaitEvent(key: .characteristic(.startNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
-            coordinator.startNotifications(peripheral: peripheral, characteristic: characteristic)
-        }
-    }
-
-    func stopNotifications(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicEvent {
-        try await server.awaitEvent(key: .characteristic(.stopNotifications, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
-            coordinator.stopNotifications(peripheral: peripheral, characteristic: characteristic)
         }
     }
 }

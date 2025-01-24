@@ -1,10 +1,7 @@
 @testable import Helpers
 import Foundation
+import TestHelpers
 import Testing
-
-private func bigYield() async {
-    try? await Task.sleep(nanoseconds: NSEC_PER_SEC / 1000)
-}
 
 struct DeferredValueTests {
 
@@ -14,7 +11,7 @@ struct DeferredValueTests {
         let task = Task {
             await sut.getValue()
         }
-        await bigYield()
+        await Task.bigYield()
         await sut.setValue("Hello")
         let value = await task.value
         #expect(value == "Hello")
@@ -33,7 +30,7 @@ struct DeferredValueTests {
         let task = Task {
             await sut.getValue()
         }
-        await bigYield()
+        await Task.bigYield()
         await sut.setValue("Bye")
         let value = await task.value
         #expect(value == "Hello")
@@ -47,7 +44,7 @@ struct DeferredValueTests {
         let task = Task {
             await sut.getValue()
         }
-        await bigYield()
+        await Task.bigYield()
         task.cancel()
         let value = await task.value
         #expect(value == nil)

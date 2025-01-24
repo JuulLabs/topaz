@@ -68,8 +68,7 @@ struct DiscoverCharacteristics: BluetoothAction {
     let request: DiscoverCharacteristicsRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverCharacteristicsResponse {
-        let peripheral = try await state.getPeripheral(request.peripheralId)
-        // todo: error response if not connected
+        let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let result = try await client.discoverCharacteristics(peripheral, filter: request.filter)
         await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {

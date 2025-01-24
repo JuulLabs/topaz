@@ -2,7 +2,6 @@ import Bluetooth
 import Foundation
 
 public struct DescriptorDiscoveryEvent: BluetoothEvent {
-    public let name: EventName = .discoverDescriptors
     public let peripheralId: UUID
     public let serviceId: UUID
     public let characteristicId: UUID
@@ -17,13 +16,19 @@ public struct DescriptorDiscoveryEvent: BluetoothEvent {
         self.descriptors = descriptors
     }
 
-    public var key: EventKey {
-        .descriptorDiscovery(peripheralId: peripheralId, characteristicId: characteristicId, instance: instance)
+    public var lookup: EventLookup {
+        .exact(key: .descriptorDiscovery(peripheralId: peripheralId, characteristicId: characteristicId, instance: instance))
     }
 }
 
-extension EventKey {
+extension EventRegistrationKey {
     public static func descriptorDiscovery(peripheralId: UUID, characteristicId: UUID, instance: UInt32) -> Self {
-        EventKey(name: .discoverDescriptors, peripheralId, characteristicId, instance)
+        EventRegistrationKey(
+            name: .discoverDescriptors,
+            peripheralId: peripheralId,
+            // TODO: service id?
+            characteristicId: characteristicId,
+            characteristicInstance: instance
+        )
     }
 }

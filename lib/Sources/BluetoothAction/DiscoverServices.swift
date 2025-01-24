@@ -64,8 +64,7 @@ struct DiscoverServices: BluetoothAction {
     let request: DiscoverServicesRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverServicesResponse {
-        let peripheral = try await state.getPeripheral(request.peripheralId)
-        // todo: error response if not connected
+        let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let result = try await client.discoverServices(peripheral, filter: request.filter)
         await state.setServices(result.services, on: peripheral.id)
         let primaryServices = result.services.filter { $0.isPrimary }

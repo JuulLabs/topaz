@@ -1,18 +1,15 @@
 import Bluetooth
 
 public struct SystemStateEvent: BluetoothEvent {
-    public let name: EventName = .systemState
     public let systemState: SystemState
 
     public init(_ systemState: SystemState) {
         self.systemState = systemState
     }
 
-    public var key: EventKey {
-        .systemState
-    }
+    public let lookup: EventLookup = .exact(key: .systemState)
 }
 
-extension EventKey {
-    public static let systemState = EventKey(name: .systemState)
+extension EventRegistrationKey {
+    public static let systemState = EventRegistrationKey(name: .systemState)
 }
