@@ -38,8 +38,8 @@ public struct AppContentView: View {
     AppContentView(model: model)
         .task {
             try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
-            let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-            model.activePageModels?.1.onSubmit(url)
+            model.activePageModels?.1.searchString = "https://googlechrome.github.io/samples/web-bluetooth/index.html"
+            model.activePageModels?.1.didSubmitSearchString()
         }
 }
 
