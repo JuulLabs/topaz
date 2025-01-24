@@ -33,5 +33,5 @@ $ git tag -a release/1.2.3 -m "Verison 1.2.3 App Store Release"
 $ git push origin release/1.2.3
 ```
 
-[releases page]: ../releases
-[actions page]: ../actions
+[releases page]: https://github.com/JuulLabs/topaz/releases
+[actions page]: https://github.com/JuulLabs/topaz/actions
