@@ -6,10 +6,11 @@ import Foundation
 import JsMessage
 
 struct RequestDeviceRequest: JsMessageDecodable {
-    let filter: Filter
+    let options: Options
 
-    static func decode(from data: [String: JsType]?) -> Self? {
-        return .init(filter: .decode(from: data))
+    static func decode(from data: [String: JsType]?) throws -> Self? {
+        let optionsData = data?["options"]?.dictionary
+        return .init(options: try .decode(from: optionsData))
     }
 }
 
@@ -45,7 +46,7 @@ struct RequestDevice: BluetoothAction {
             throw BluetoothError.unavailable
         }
         let task = Task {
-            let scanner = await client.scan(filter: request.filter)
+            let scanner = await client.scan(options: request.options)
             defer { scanner.cancel() }
             for await event in scanner.advertisements {
                 try Task.checkCancellation()

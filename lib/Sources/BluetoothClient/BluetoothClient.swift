@@ -11,7 +11,7 @@ public protocol BluetoothClient: Sendable {
     func resolvePendingRequests(for event: BluetoothEvent) async
     func cancelPendingRequests() async
 
-    func scan(filter: Filter) async -> BluetoothScanner
+    func scan(options: Options) async -> BluetoothScanner
 
     func systemState() async throws -> SystemStateEvent
     func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent

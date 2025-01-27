@@ -24,8 +24,6 @@ struct OptionsTests {
     // the function name, so I've labled the function with the corresponding
     // exaple from the page above and commented its input dictionary.
 
-    //DEAR JUSTIN. MAKE A TEST FOR THE ALL NIL CASE TO COVER THE BASES
-
     @Test
     func decode_example2_1_returnsCorrectOptionsObject() {
         // { filters: [ {services: ["A", "B"]} ] }

@@ -67,11 +67,13 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
-    func startScanning(filter: Filter, callback: @escaping @Sendable (AdvertisementEvent) -> Void) {
+    func startScanning(serviceUuids: [UUID], callback: @escaping @Sendable (AdvertisementEvent) -> Void) {
         queue.async {
-            let services = filter.services.map(CBUUID.init)
+            let services = serviceUuids.map(CBUUID.init)
+//            let services = options.filters.flatMap { $0.compactMap { $0.services?.compactMap { CBUUID.init(nsuuid: $0) } } }
+//            let services = options.filters?.compactMap { $0.services?.compactMap { CBUUID.init(nsuuid: $0) } }.flatMap { $0 }
             self.scannerCallback = callback
-            self.manager?.scanForPeripherals(withServices: services, options: filter.options)
+            self.manager?.scanForPeripherals(withServices: services, options: nil) // TODO: Configure CoreBluetooth scanner options
         }
     }
 

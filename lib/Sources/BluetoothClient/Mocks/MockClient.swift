@@ -11,7 +11,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onPrepareForShutdown: @Sendable ([Peripheral]) async -> Void
     public var onResolvePendingRequests: @Sendable  (BluetoothEvent) async -> Void
     public var onCancelPendingRequests: @Sendable () async -> Void
-    public var onScan: @Sendable (_ filter: Filter) async -> BluetoothScanner
+    public var onScan: @Sendable (_ options: Options) async -> BluetoothScanner
     public var onSystemState: @Sendable () async throws -> SystemStateEvent
     public var onConnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
     public var onDisconnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
@@ -69,8 +69,8 @@ public struct MockBluetoothClient: BluetoothClient {
         await onCancelPendingRequests()
     }
 
-    public func scan(filter: Filter) async -> any BluetoothScanner {
-        await onScan(filter)
+    public func scan(options: Options) async -> any BluetoothScanner {
+        await onScan(options)
     }
 
     public func systemState() async throws -> SystemStateEvent {
