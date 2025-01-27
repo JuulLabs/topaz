@@ -6,6 +6,7 @@ import DevicePicker
 import Helpers
 import JsMessage
 import Observation
+import Settings
 import SwiftUI
 import Tabs
 import WebView
@@ -94,7 +95,9 @@ public class AppModel {
             model.navBarModel.settingsModel.tabAction = { [weak self] in
                 self?.activePageModels = nil
             }
-            model.webPageModel.onPageLoaded = { [weak self] url in
+            model.navBarModel.settingsModel.shareItem = SharingUrl(url: url)
+            model.webPageModel.onPageLoaded = { [weak self, settingsModel = model.navBarModel.settingsModel] url, title in
+                settingsModel.shareItem = SharingUrl(url: url, subject: title)
                 self?.tabsModel.update(url: url, at: tab)
             }
             return model

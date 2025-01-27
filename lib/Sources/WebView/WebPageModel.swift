@@ -32,7 +32,7 @@ public class WebPageModel {
         url.host(percentEncoded: false) ?? "unknown"
     }
 
-    public var onPageLoaded: (URL) -> Void = { _ in }
+    public var onPageLoaded: (URL, _ title: String?) -> Void = { _, _ in }
 
     public init(
         tab: Int,
@@ -88,13 +88,13 @@ public class WebPageModel {
                         if self.loadingState.isProgressComplete {
                             self.loadingState = .complete
                             if let url = webView.url {
-                                self.onPageLoaded(url)
+                                self.onPageLoaded(url, webView.title)
                             }
                         }
                     } else {
                         self.loadingState = .complete
                         if let url = webView.url {
-                            self.onPageLoaded(url)
+                            self.onPageLoaded(url, webView.title)
                         }
                     }
                 }

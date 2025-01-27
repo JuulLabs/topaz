@@ -12,6 +12,7 @@ public final class SettingsModel {
 
     public var dismiss: () -> Void  = {}
     public var tabAction: () -> Void = {}
+    public var shareItem: SharingUrl = .init()
 
     public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
@@ -19,9 +20,6 @@ public final class SettingsModel {
 
     func doneButtonTapped() {
         dismiss()
-    }
-
-    func shareButtonTapped() {
     }
 
     func newTabButtonTapped() {
