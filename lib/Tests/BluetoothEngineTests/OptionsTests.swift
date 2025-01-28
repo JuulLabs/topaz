@@ -9,8 +9,8 @@ extension Tag {
     @Tag static var options: Self
 }
 
-// swiftlint:disable:this type_body_length
 @Suite(.tags(.options))
+// swiftlint:disable:this type_body_length
 struct OptionsTests {
 
     // swiftlint:disable:this type_name
