@@ -1,6 +1,7 @@
 import Observation
 import Settings
 import SwiftUI
+import WebView
 
 @MainActor
 @Observable
@@ -9,9 +10,19 @@ public final class SearchBarModel {
         case searchBar
     }
 
+    enum StopOrReloadMode {
+        case showStopLoading, showReload
+    }
+
+    let navigator: WebNavigator
+
     var focusedField: FocusedField?
     var searchString: String = ""
     var onSubmit: (URL) -> Void = { _ in }
+
+    init(navigator: WebNavigator = WebNavigator()) {
+        self.navigator = navigator
+    }
 
     func didSubmitSearchString() {
         guard let sanitized = sanitizeInput(query: searchString) else { return }
@@ -21,6 +32,22 @@ public final class SearchBarModel {
         } else if let derivedUrl = searchUrl(query: sanitized) {
             onSubmit(derivedUrl)
         }
+    }
+
+    var stopOrReloadMode: StopOrReloadMode? {
+        switch navigator.loadingState {
+        case .inProgress: .showStopLoading
+        case .complete: .showReload
+        default: nil
+        }
+    }
+
+    func stopButtonTapped() {
+        navigator.stopLoading()
+    }
+
+    func reloadButtonTapped() {
+        navigator.reload()
     }
 
     private func searchUrl(query: String) -> URL? {

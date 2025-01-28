@@ -82,7 +82,8 @@ private func previewModel() -> WebPageModel {
         tab: 0,
         url: url,
         config: previewWebConfig(),
-        messageProcessorFactory: factory
+        messageProcessorFactory: factory,
+        navigator: WebNavigator()
     )
 }
 
