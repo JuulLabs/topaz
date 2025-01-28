@@ -65,7 +65,8 @@ public class AppModel {
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
         let settingsModel = SettingsModel()
         let navigator = WebNavigator()
-        navigator.onPageLoaded = { [weak self] url in
+        navigator.onPageLoaded = { [weak self] url, title in
+            settingsModel.shareItem = SharingUrl(url: url, subject: title)
             self?.tabsModel.update(url: url, at: tabIndex)
         }
         settingsModel.tabAction = { [weak self] in
@@ -101,7 +102,7 @@ public class AppModel {
 
     private func loadWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel) async -> WebContainerModel? {
         do {
-            let model = try await WebContainerModel.loadAsync(
+            return try await WebContainerModel.loadAsync(
                 selector: deviceSelector,
                 navBarModel: navBarModel,
                 webConfigLoader: webConfigLoader
@@ -114,7 +115,6 @@ public class AppModel {
                     navigator: navBarModel.navigator
                 )
             }
-            return model
         } catch {
             // TODO: navigate away due to failure and try again
             print("Unable to load \(error)")
