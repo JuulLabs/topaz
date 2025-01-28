@@ -1,4 +1,4 @@
-// swiftlint:disable file_length
+// swiftlint:disable file_length force_try
 import Bluetooth
 @testable import BluetoothAction
 import Foundation
