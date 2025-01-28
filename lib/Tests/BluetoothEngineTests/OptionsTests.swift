@@ -32,13 +32,14 @@ struct OptionsTests {
         // { filters: [ {services: ["A", "B"]} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
+            expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
+        }
     }
 
     @Test
@@ -46,14 +47,15 @@ struct OptionsTests {
         // { filters: [ {services: [A, B]}, {services: [C, D]} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]], ["services": [uuid_3.uuidString, uuid_4.uuidString]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
-        expect(filterToTest: resultingFilters?[1], expectedServiceUuids: [uuid_3, uuid_4])
+            expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
+            expect(filterToTest: resultingFilters?[1], expectedServiceUuids: [uuid_3, uuid_4])
+        }
     }
 
     @Test
@@ -61,15 +63,16 @@ struct OptionsTests {
         // { filters: [ {services: [A, B]} ], optionalServices: [E] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]]]), "optionalServices": JsType.bridge([uuid_3.uuidString])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
+            expect(filterToTest: resultingFilters?[0], expectedServiceUuids: [uuid_1, uuid_2])
 
-        #expect(result.optionalServices == [uuid_3])
+            #expect(result.optionalServices == [uuid_3])
+        }
     }
 
     @Test
@@ -77,13 +80,14 @@ struct OptionsTests {
         // { filters: [ {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["name": "Batman's Shark Repellant"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
-        let nameFilter = resultingFilters?.first
-        #expect(nameFilter?.name == "Batman's Shark Repellant")
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
+            let nameFilter = resultingFilters?.first
+            #expect(nameFilter?.name == "Batman's Shark Repellant")
+        }
     }
 
     @Test
@@ -91,13 +95,14 @@ struct OptionsTests {
         // { filters: [ {namePrefix: "Device"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Batman's"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
-        let namePrefixFilter = resultingFilters?.first
-        #expect(namePrefixFilter?.namePrefix == "Batman's")
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
+            let namePrefixFilter = resultingFilters?.first
+            #expect(namePrefixFilter?.namePrefix == "Batman's")
+        }
     }
 
     @Test
@@ -105,17 +110,18 @@ struct OptionsTests {
         // { filters: [ {name: "First De"}, {name: "First Device"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["name": "Bat"], ["name": "Batman"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        let nameFilter_1 = resultingFilters?[0]
-        #expect(nameFilter_1?.name == "Bat")
+            let nameFilter_1 = resultingFilters?[0]
+            #expect(nameFilter_1?.name == "Bat")
 
-        let nameFilter_2 = resultingFilters?[1]
-        #expect(nameFilter_2?.name == "Batman")
+            let nameFilter_2 = resultingFilters?[1]
+            #expect(nameFilter_2?.name == "Batman")
+        }
     }
 
     @Test
@@ -123,17 +129,18 @@ struct OptionsTests {
         // { filters: [ {namePrefix: "First"}, {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"], ["name": "Robin"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        let namePrefixFilter = resultingFilters?.first { $0.namePrefix != nil }
-        #expect(namePrefixFilter?.namePrefix == "Bat")
+            let namePrefixFilter = resultingFilters?.first { $0.namePrefix != nil }
+            #expect(namePrefixFilter?.namePrefix == "Bat")
 
-        let nameFilter = resultingFilters?.first { $0.name != nil }
-        #expect(nameFilter?.name == "Robin")
+            let nameFilter = resultingFilters?.first { $0.name != nil }
+            #expect(nameFilter?.name == "Robin")
+        }
     }
 
     @Test
@@ -141,17 +148,18 @@ struct OptionsTests {
         // { filters: [ {services: [C], namePrefix: "Device"}, {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString], "namePrefix": "Bat"], ["name": "Batman"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        let serviceAndNamePrefixFilter = resultingFilters?.first { $0.services != nil }
-        expect(filterToTest: serviceAndNamePrefixFilter, expectedServiceUuids: [uuid_1], namePrefix: "Bat")
+            let serviceAndNamePrefixFilter = resultingFilters?.first { $0.services != nil }
+            expect(filterToTest: serviceAndNamePrefixFilter, expectedServiceUuids: [uuid_1], namePrefix: "Bat")
 
-        let nameFilter = resultingFilters?.first { $0.name != nil }
-        expect(filterToTest: nameFilter, name: "Batman")
+            let nameFilter = resultingFilters?.first { $0.name != nil }
+            expect(filterToTest: nameFilter, name: "Batman")
+        }
     }
 
     @Test
@@ -159,16 +167,17 @@ struct OptionsTests {
         // { filters: [{namePrefix: "Device"}], exclusionFilters: [{name: "Device Third"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["name": "Batman"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
-        expect(filterToTest: resultingFilters?.first, namePrefix: "Bat")
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
+            expect(filterToTest: resultingFilters?.first, namePrefix: "Bat")
 
-        let exclusionFilters = result.exclusionFilters
-        expect(filters: exclusionFilters, expectedCount: 1)
-        expect(filterToTest: exclusionFilters?.first, name: "Batman")
+            let exclusionFilters = result.exclusionFilters
+            expect(filters: exclusionFilters, expectedCount: 1)
+            expect(filterToTest: exclusionFilters?.first, name: "Batman")
+        }
     }
 
     @Test
@@ -176,16 +185,17 @@ struct OptionsTests {
         // { filters: [{namePrefix: "Device"}], exclusionFilters: [{namePrefix: "Device F"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["namePrefix": "Rob"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
-        expect(filterToTest: resultingFilters?.first, namePrefix: "Bat")
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
+            expect(filterToTest: resultingFilters?.first, namePrefix: "Bat")
 
-        let exclusionFilters = result.exclusionFilters
-        expect(filters: exclusionFilters, expectedCount: 1)
-        expect(filterToTest: exclusionFilters?.first, namePrefix: "Rob")
+            let exclusionFilters = result.exclusionFilters
+            expect(filters: exclusionFilters, expectedCount: 1)
+            expect(filterToTest: exclusionFilters?.first, namePrefix: "Rob")
+        }
     }
 
     @Test
@@ -193,20 +203,21 @@ struct OptionsTests {
         // { filters: [{services: [C]}, {namePrefix: "Device"}], exclusionFilters: [{services: [A]}, {name: "Device Fourth"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_3.uuidString]], ["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["services": [uuid_1.uuidString]], ["name": "Robin"]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        expect(filterToTest: resultingFilters?.first { $0.services != nil }, expectedServiceUuids: [uuid_3])
-        expect(filterToTest: resultingFilters?.first { $0.namePrefix != nil }, namePrefix: "Bat")
+            expect(filterToTest: resultingFilters?.first { $0.services != nil }, expectedServiceUuids: [uuid_3])
+            expect(filterToTest: resultingFilters?.first { $0.namePrefix != nil }, namePrefix: "Bat")
 
-        let exclusionFilters = result.exclusionFilters
-        expect(filters: exclusionFilters, expectedCount: 2)
+            let exclusionFilters = result.exclusionFilters
+            expect(filters: exclusionFilters, expectedCount: 2)
 
-        expect(filterToTest: exclusionFilters?.first { $0.services != nil }, expectedServiceUuids: [uuid_1])
-        expect(filterToTest: exclusionFilters?.first { $0.name != nil }, name: "Robin")
+            expect(filterToTest: exclusionFilters?.first { $0.services != nil }, expectedServiceUuids: [uuid_1])
+            expect(filterToTest: exclusionFilters?.first { $0.name != nil }, name: "Robin")
+        }
     }
 
     @Test
@@ -214,16 +225,17 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerDataFilters = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerDataFilters?.count == 1)
-        let manufacturerDataFilter = manufacturerDataFilters?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            let manufacturerDataFilters = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerDataFilters?.count == 1)
+            let manufacturerDataFilter = manufacturerDataFilters?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+        }
     }
 
     @Test
@@ -231,16 +243,17 @@ struct OptionsTests {
         // { filters: [{ serviceData: [{ service: "A" }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let serviceDataFilters = resultingFilters?.first?.serviceData
-        #expect(serviceDataFilters?.count == 1)
-        let serviceDataFilter = serviceDataFilters?.first
-        #expect(serviceDataFilter?.service == uuid_1)
+            let serviceDataFilters = resultingFilters?.first?.serviceData
+            #expect(serviceDataFilters?.count == 1)
+            let serviceDataFilter = serviceDataFilters?.first
+            #expect(serviceDataFilter?.service == uuid_1)
+        }
     }
 
     @Test
@@ -248,21 +261,22 @@ struct OptionsTests {
         // { filters: [ { manufacturerData: [{ companyIdentifier: 17 }] }, { serviceData: [{ service: "A" }] } ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]]], ["serviceData": [["service": uuid_1.uuidString]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 2)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 2)
 
-        let manufacturerDataFilters = resultingFilters?.first { $0.manufacturerData != nil }?.manufacturerData
-        #expect(manufacturerDataFilters?.count == 1)
-        let manufacturerDataFilter = manufacturerDataFilters?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            let manufacturerDataFilters = resultingFilters?.first { $0.manufacturerData != nil }?.manufacturerData
+            #expect(manufacturerDataFilters?.count == 1)
+            let manufacturerDataFilter = manufacturerDataFilters?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
 
-        let serviceDataFilters = resultingFilters?.first { $0.serviceData != nil }?.serviceData
-        #expect(serviceDataFilters?.count == 1)
-        let serviceDataFilter = serviceDataFilters?.first
-        #expect(serviceDataFilter?.service == uuid_1)
+            let serviceDataFilters = resultingFilters?.first { $0.serviceData != nil }?.serviceData
+            #expect(serviceDataFilters?.count == 1)
+            let serviceDataFilter = serviceDataFilters?.first
+            #expect(serviceDataFilter?.service == uuid_1)
+        }
     }
 
     @Test
@@ -270,23 +284,24 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }], serviceData: [{ service: "A" }] } ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]], "serviceData": [["service": uuid_1.uuidString]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let filter = resultingFilters?.first
+            let filter = resultingFilters?.first
 
-        let manufacturerFilter = filter?.manufacturerData
-        #expect(manufacturerFilter?.count == 1)
-        let manufacturerDataFilter = manufacturerFilter?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            let manufacturerFilter = filter?.manufacturerData
+            #expect(manufacturerFilter?.count == 1)
+            let manufacturerDataFilter = manufacturerFilter?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
 
-        let serviceFilter = filter?.serviceData
-        #expect(serviceFilter?.count == 1)
-        let serviceDataFilter = serviceFilter?.first
-        #expect(serviceDataFilter?.service == uuid_1)
+            let serviceFilter = filter?.serviceData
+            #expect(serviceFilter?.count == 1)
+            let serviceDataFilter = serviceFilter?.first
+            #expect(serviceDataFilter?.service == uuid_1)
+        }
     }
 
     @Test
@@ -294,17 +309,18 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3]]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerFilter = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerFilter?.count == 1)
-        let manufacturerDataFilter = manufacturerFilter?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
-        #expect(manufacturerDataFilter?.dataPrefix == [1, 2, 3])
+            let manufacturerFilter = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerFilter?.count == 1)
+            let manufacturerDataFilter = manufacturerFilter?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            #expect(manufacturerDataFilter?.dataPrefix == [1, 2, 3])
+        }
     }
 
     @Test
@@ -312,17 +328,18 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3, 4]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3, 4]]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerFilter = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerFilter?.count == 1)
-        let manufacturerDataFilter = manufacturerFilter?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
-        #expect(manufacturerDataFilter?.dataPrefix == [1, 2, 3, 4])
+            let manufacturerFilter = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerFilter?.count == 1)
+            let manufacturerDataFilter = manufacturerFilter?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            #expect(manufacturerDataFilter?.dataPrefix == [1, 2, 3, 4])
+        }
     }
 
     @Test
@@ -330,17 +347,18 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1]]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerFilter = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerFilter?.count == 1)
-        let manufacturerDataFilter = manufacturerFilter?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
-        #expect(manufacturerDataFilter?.dataPrefix == [1])
+            let manufacturerFilter = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerFilter?.count == 1)
+            let manufacturerDataFilter = manufacturerFilter?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            #expect(manufacturerDataFilter?.dataPrefix == [1])
+        }
     }
 
     @Test
@@ -348,18 +366,19 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57])}]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerFilter = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerFilter?.count == 1)
-        let manufacturerDataFilter = manufacturerFilter?.first
-        #expect(manufacturerDataFilter?.companyIdentifier == 7351)
-        #expect(manufacturerDataFilter?.dataPrefix == [0x91, 0xAA])
-        #expect(manufacturerDataFilter?.mask == [0x0f, 0x57])
+            let manufacturerFilter = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerFilter?.count == 1)
+            let manufacturerDataFilter = manufacturerFilter?.first
+            #expect(manufacturerDataFilter?.companyIdentifier == 7351)
+            #expect(manufacturerDataFilter?.dataPrefix == [0x91, 0xAA])
+            #expect(manufacturerDataFilter?.mask == [0x0f, 0x57])
+        }
     }
 
     @Test
@@ -367,16 +386,17 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }, { companyIdentifier: 18 }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 17], ["companyIdentifier": 18]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let manufacturerFilter = resultingFilters?.first?.manufacturerData
-        #expect(manufacturerFilter?.count == 2)
-        #expect(manufacturerFilter?[0].companyIdentifier == 17)
-        #expect(manufacturerFilter?[1].companyIdentifier == 18)
+            let manufacturerFilter = resultingFilters?.first?.manufacturerData
+            #expect(manufacturerFilter?.count == 2)
+            #expect(manufacturerFilter?[0].companyIdentifier == 17)
+            #expect(manufacturerFilter?[1].companyIdentifier == 18)
+        }
     }
 
     @Test
@@ -384,7 +404,7 @@ struct OptionsTests {
         // {}
         let web_bluetooth_options: [String: JsType] = [:]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Empty options provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -394,7 +414,7 @@ struct OptionsTests {
         // { filters: [] }
         let web_bluetooth_options = ["filters": JsType.bridge([])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Empty options provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -404,7 +424,7 @@ struct OptionsTests {
         // { filters: [ {} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([[:]])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Empty options provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -416,7 +436,7 @@ struct OptionsTests {
         // { filters: [...], acceptAllDevices:true }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString]]]), "acceptAllDevices": JsType.bridge(true)]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -426,7 +446,7 @@ struct OptionsTests {
         // { exclusionFilters: [...], acceptAllDevices:true }
         let web_bluetooth_options = ["exclusionFilters": JsType.bridge([["services": [uuid_1.uuidString]]]), "acceptAllDevices": JsType.bridge(true)]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -436,7 +456,7 @@ struct OptionsTests {
         // { exclusionFilters: [...] }
         let web_bluetooth_options = ["exclusionFilters": JsType.bridge([["services": [uuid_1.uuidString]]])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("Cannot use exclusionFilters without filters")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -446,7 +466,7 @@ struct OptionsTests {
         // { filters: [...], exclusionFilters: [] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString]]]), "exclusionFilters": JsType.bridge([])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("If exclusionFilters is provided, it cannot be empty")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -456,7 +476,7 @@ struct OptionsTests {
         // { filters: [{namePrefix: ""}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": ""]])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("namePrefix cannot be an empty string")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -468,7 +488,7 @@ struct OptionsTests {
         // { filters: [{manufacturerData: []}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString]], ["manufacturerData": []]])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("manufacturerData, if provided, cannot be empty")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -480,7 +500,7 @@ struct OptionsTests {
         // { filters: [{serviceData: []}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString]], ["serviceData": []]])]
 
-        #expect(throws: OptionsError.invalidInput) {
+        #expect(throws: OptionsError.invalidInput("serviceData, if provided, cannot be empty")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -493,18 +513,19 @@ struct OptionsTests {
         // { filters: [{ serviceData: [{ service: "A", dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57]) }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        let resultingFilters = result.filters
-        expect(filters: resultingFilters, expectedCount: 1)
+            let resultingFilters = result.filters
+            expect(filters: resultingFilters, expectedCount: 1)
 
-        let serviceFilter = resultingFilters?.first?.serviceData
-        #expect(serviceFilter?.count == 1)
-        let serviceDataFilter = serviceFilter?.first
-        #expect(serviceDataFilter?.service == uuid_1)
-        #expect(serviceDataFilter?.dataPrefix == [0x91, 0xAA])
-        #expect(serviceDataFilter?.mask == [0x0f, 0x57])
+            let serviceFilter = resultingFilters?.first?.serviceData
+            #expect(serviceFilter?.count == 1)
+            let serviceDataFilter = serviceFilter?.first
+            #expect(serviceDataFilter?.service == uuid_1)
+            #expect(serviceDataFilter?.dataPrefix == [0x91, 0xAA])
+            #expect(serviceDataFilter?.mask == [0x0f, 0x57])
+        }
     }
 
     @Test
@@ -512,10 +533,11 @@ struct OptionsTests {
         // { optionalManufacturerData: [1, 2, 3, 4] }
         let web_bluetooth_options = ["optionalManufacturerData": JsType.bridge([1, 2, 3, 4])]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        #expect(result.optionalManufacturerData == [1, 2, 3, 4])
+            #expect(result.optionalManufacturerData == [1, 2, 3, 4])
+        }
     }
 
     @Test
@@ -523,10 +545,11 @@ struct OptionsTests {
         // { acceptAllDevices: true }
         let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(true)]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
 
-        #expect(result.acceptAllDevices == true)
+            #expect(result.acceptAllDevices == true)
+        }
     }
 
     @Test
@@ -534,10 +557,11 @@ struct OptionsTests {
         // { acceptAllDevices: false }
         let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(false)]
 
-        // swiftlint:disable:next force_try
-        let result = try! sut.decode(from: web_bluetooth_options)
-
-        #expect(result.acceptAllDevices == false)
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
+            
+            #expect(result.acceptAllDevices == false)
+        }
     }
 
     private func expect(filters: [Options.Filter]?, expectedCount: Int) {

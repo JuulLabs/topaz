@@ -28,3 +28,11 @@ extension EventServiceError: DomErrorConvertable {
         }
     }
 }
+
+extension OptionsError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
+        switch self {
+        case .invalidInput: .type
+        }
+    }
+}

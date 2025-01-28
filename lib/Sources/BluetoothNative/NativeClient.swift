@@ -21,7 +21,7 @@ struct NativeBluetoothClient: BluetoothClient {
         self.server = EventService()
     }
 
-    func scan(options: Options) -> any BluetoothScanner {
+    func scan(options: Options?) -> any BluetoothScanner {
         return NativeScanner(options: options, coordinator: coordinator)
     }
 

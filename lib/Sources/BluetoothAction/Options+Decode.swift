@@ -25,27 +25,23 @@ extension Options {
         let optionalManufacturerData = data?[optionalManufacturerDataKey]?.array?.compactMapToUint16Array()
         let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue
 
-        // Empty input provided
         guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices != nil else {
-            throw OptionsError.invalidInput
+            throw OptionsError.invalidInput("Empty options provided")
         }
 
-        // Cannot set acceptAllDevicesTo true if other options are provided
         if acceptAllDevices == true {
             guard filters == nil && exclusionFilters == nil && optionalServices == nil && optionalManufacturerData == nil else {
-                throw OptionsError.invalidInput
+                throw OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")
             }
         }
 
         if exclusionFilters != nil {
-            // Cannot use exclusionFilters without filters
             guard filters != nil else {
-                throw OptionsError.invalidInput
+                throw OptionsError.invalidInput("Cannot use exclusionFilters without filters")
             }
 
-            // If exclusionFilters is provided, it cannot be empty
             guard exclusionFilters?.isEmpty == false else {
-                throw OptionsError.invalidInput
+                throw OptionsError.invalidInput("If exclusionFilters is provided, it cannot be empty")
             }
         }
 
@@ -59,26 +55,23 @@ extension Options.Filter {
         let name = data?[nameKey]?.string
         let namePrefix = data?[namePrefixKey]?.string
 
-        // namePrefix cannot be an empty string
         guard namePrefix != "" else {
-            throw OptionsError.invalidInput
+            throw OptionsError.invalidInput("namePrefix cannot be an empty string")
         }
 
         let manufacturerDataFilters = data?[manufacturerDataKey]?.array?.compactMap { Options.Filter.ManufacturerData.decode(from: $0.dictionary) }
 
-        // manufacturerData, if provided, cannot be empty
         if let manufacturerDataFilters = manufacturerDataFilters {
             guard manufacturerDataFilters.isEmpty == false else {
-                throw OptionsError.invalidInput
+                throw OptionsError.invalidInput("manufacturerData, if provided, cannot be empty")
             }
         }
 
         let serviceDataFilters = data?[serviceDataKey]?.array?.compactMap { Options.Filter.ServiceData.decode(from: $0.dictionary) }
 
-        // serviceData, if provided, cannot be empty
         if let serviceDataFilters = serviceDataFilters {
             guard serviceDataFilters.isEmpty == false else {
-                throw OptionsError.invalidInput
+                throw OptionsError.invalidInput("serviceData, if provided, cannot be empty")
             }
         }
 

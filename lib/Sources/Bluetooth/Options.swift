@@ -1,7 +1,7 @@
 import Foundation
 
-public enum OptionsError: Error {
-    case invalidInput
+public enum OptionsError: LocalizedError, Equatable {
+    case invalidInput(String)
 }
 
 public struct Options: Sendable {

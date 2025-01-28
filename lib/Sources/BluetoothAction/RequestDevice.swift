@@ -6,7 +6,7 @@ import Foundation
 import JsMessage
 
 struct RequestDeviceRequest: JsMessageDecodable {
-    let options: Options
+    let options: Options?
 
     static func decode(from data: [String: JsType]?) throws -> Self? {
         let optionsData = data?["options"]?.dictionary
