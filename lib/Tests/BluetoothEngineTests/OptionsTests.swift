@@ -10,10 +10,10 @@ extension Tag {
 }
 
 @Suite(.tags(.options))
-// swiftlint:disable:this type_body_length
+// swiftlint:disable:next type_body_length
 struct OptionsTests {
 
-    // swiftlint:disable:this type_name
+    // swiftlint:disable:next type_name
     private typealias sut = Options
 
     private let uuid_1 = UUID(uuidString: "0000fe18-0000-1000-8000-00805f9b34fb")!
