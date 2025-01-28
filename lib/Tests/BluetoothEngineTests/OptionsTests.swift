@@ -1,3 +1,4 @@
+// swiftlint:disable file_length
 import Bluetooth
 @testable import BluetoothAction
 import Foundation
@@ -8,7 +9,7 @@ extension Tag {
     @Tag static var options: Self
 }
 
-// swiftlint:disable:this file_length type_body_length
+// swiftlint:disable:this type_body_length
 @Suite(.tags(.options))
 struct OptionsTests {
 
