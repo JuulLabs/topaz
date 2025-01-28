@@ -22,7 +22,7 @@ public final class WebNavigator {
         }
     }
 
-    var onPageLoaded: (URL) -> Void = { _ in }
+    public var onPageLoaded: (URL) -> Void = { _ in }
 
     public init(loadingState: WebPageLoadingState = .initializing) {
         self.loadingState = loadingState

@@ -6,6 +6,7 @@ import DevicePicker
 import Helpers
 import JsMessage
 import Observation
+import Settings
 import SwiftUI
 import Tabs
 import WebView
@@ -51,31 +52,51 @@ public class AppModel {
     }
 
     private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel? {
-        let navBarModel = NavBarModel()
+        let navBarModel = buildNavModel(tabIndex: tabIndex)
         let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
         let loadingModel = WebLoadingModel(freshPageModel: freshPageModel, navBarModel: navBarModel)
         if let url = initialUrl {
-            freshPageModel.isLoading = true
-            freshPageModel.searchBarFocusOnLoad = false
-            Task {
-                loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: navBarModel)
-            }
+            performInitialLoad(on: loadingModel, tabIndex: tabIndex, initialUrl: url)
         }
-        navBarModel.searchBarModel.onSubmit = { [weak self, weak navBarModel, weak loadingModel] url in
-            guard let self, let navBarModel, let loadingModel else { return }
+        configureSubmitAction(on: loadingModel, tabIndex: tabIndex)
+        return loadingModel
+    }
+
+    private func buildNavModel(tabIndex: Int) -> NavBarModel {
+        let settingsModel = SettingsModel()
+        let navigator = WebNavigator()
+        navigator.onPageLoaded = { [weak self] url in
+            self?.tabsModel.update(url: url, at: tabIndex)
+        }
+        settingsModel.tabAction = { [weak self] in
+            self?.activePageModel = nil
+        }
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel)
+    }
+
+    private func performInitialLoad(on loadingModel: WebLoadingModel, tabIndex: Int, initialUrl url: URL) {
+        loadingModel.freshPageModel.isLoading = true
+        loadingModel.freshPageModel.searchBarFocusOnLoad = false
+        Task {
+            loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel)
+        }
+    }
+
+    private func configureSubmitAction(on loadingModel: WebLoadingModel, tabIndex: Int) {
+        loadingModel.navBarModel.searchBarModel.onSubmit = { [weak self, weak loadingModel] url in
+            guard let self, let loadingModel else { return }
             if let existingModel = loadingModel.webContainerModel {
                 existingModel.webPageModel.loadNewPage(url: url)
             } else {
                 Task {
-                    freshPageModel.isLoading = true
-                    if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: navBarModel) {
+                    loadingModel.freshPageModel.isLoading = true
+                    if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel) {
                         loadingModel.webContainerModel = webContainer
                         tabsModel.update(url: url, at: tabIndex)
                     }
                 }
             }
         }
-        return loadingModel
     }
 
     private func loadWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel) async -> WebContainerModel? {
@@ -92,12 +113,6 @@ public class AppModel {
                     messageProcessorFactory: messageProcessorFactory,
                     navigator: navBarModel.navigator
                 )
-            }
-            model.navBarModel.settingsModel.tabAction = { [weak self] in
-                self?.activePageModel = nil
-            }
-            model.webPageModel.onPageLoaded = { [weak self] url in
-                self?.tabsModel.update(url: url, at: tab)
             }
             return model
         } catch {

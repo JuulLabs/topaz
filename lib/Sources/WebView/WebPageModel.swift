@@ -30,8 +30,6 @@ public class WebPageModel {
         url.host(percentEncoded: false) ?? "unknown"
     }
 
-    public var onPageLoaded: (URL) -> Void = { _ in }
-
     public init(
         tab: Int,
         url: URL,
@@ -53,9 +51,6 @@ public class WebPageModel {
 
     func didInitializeWebView(_ webView: WKWebView) {
         monitorLoadingProgress(of: webView)
-        navigator.onPageLoaded = { [weak self] url in
-            self?.onPageLoaded(url)
-        }
     }
 
     func deinitialize(webView: WKWebView) {
