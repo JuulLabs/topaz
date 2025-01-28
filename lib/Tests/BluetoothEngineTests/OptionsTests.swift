@@ -559,7 +559,7 @@ struct OptionsTests {
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
-            
+
             #expect(result.acceptAllDevices == false)
         }
     }
