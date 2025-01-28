@@ -33,7 +33,6 @@ extension JsType {
         }
     }
 
-    // dear justin. use this for test dictionaries to jstype dicts
     public static func bridge(_ jsValue: Any) -> JsType {
         switch jsValue {
         case let number as NSNumber:

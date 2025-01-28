@@ -1,30 +1,5 @@
 import Foundation
 
-// can (SHOULD) look at Kable for how to do all this
-// filterPredicate file in Kable
-// don't look at FilterSet
-// Filter in Kable is one filter and FilterPredicate combines them all
-// BluetoothLEScanOptions is good to look at
-
-//priorities: filter on services, name, manufacturer data in that order for Juul to work. beyond that is not MVP
-
-//public struct Filter: Sendable {
-//    // maps to optionalServices
-//    public let services: [UUID]
-//
-//    // TODO: filter options
-//    // maps to filters in web spec
-//    // should be an array of dictionaries
-//    //keys are all predefined. can be found on the mozilla page
-//    public var options: [String: Any]? {
-//        nil
-//    }
-//
-//    public init(services: [UUID]) {
-//        self.services = services
-//    }
-//}
-
 public enum OptionsError: Error {
     case invalidInput
 }
@@ -86,10 +61,5 @@ public struct Options: Sendable {
             public let dataPrefix: [UInt8]?
             public let mask: [UInt8]?
         }
-
     }
 }
-
-
-
-
