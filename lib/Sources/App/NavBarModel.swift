@@ -9,6 +9,7 @@ import WebView
 @Observable
 public final class NavBarModel {
 
+    let searchBarModel: SearchBarModel
     let settingsModel: SettingsModel
     let pullDrawer: PullDrawerModel
 
@@ -24,10 +25,11 @@ public final class NavBarModel {
     private(set) var isFullscreen: Bool = false
 
     init(
-        navigator: WebNavigator = WebNavigator(),
         bluetoothSystem: BluetoothSystemState = .shared
     ) {
+        let navigator = WebNavigator()
         self.navigator = navigator
+        self.searchBarModel = SearchBarModel(navigator: navigator)
         self.pullDrawer = PullDrawerModel(height: 104.0, ratio: 1.25, activationDistance: 16)
         self.settingsModel = SettingsModel()
         self.bluetoothSystem = bluetoothSystem
@@ -72,8 +74,8 @@ public final class NavBarModel {
         isSettingsPresented.toggle()
     }
 
-    func deriveProgress(loadingState: WebPageLoadingState) -> Float? {
-        switch loadingState {
+    var progress: Float? {
+        switch navigator.loadingState {
         case .initializing:
             return 0.0
         case let .inProgress(progress):

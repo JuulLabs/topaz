@@ -14,7 +14,18 @@ public final class WebNavigator {
     public private(set) var canGoForward: Bool = false
     public private(set) var canGoBack: Bool = false
 
-    public init() {
+    public private(set) var loadingState: WebPageLoadingState = .initializing {
+        willSet {
+            if case .complete = newValue, let url = webView?.url {
+                onPageLoaded(url)
+            }
+        }
+    }
+
+    var onPageLoaded: (URL) -> Void = { _ in }
+
+    public init(loadingState: WebPageLoadingState = .initializing) {
+        self.loadingState = loadingState
     }
 
     public func goForward() {
@@ -42,5 +53,31 @@ public final class WebNavigator {
         self.backForwardList = webView.backForwardList
         self.canGoForward = webView.canGoForward
         self.canGoBack = webView.canGoBack
+    }
+
+    func updateLoadingState(isLoading: Bool) async {
+        if isLoading {
+            // We are usually already in progress by the time isLoading flips to true
+            guard case .inProgress = loadingState else {
+                loadingState = .inProgress(0.0)
+                return
+            }
+        } else {
+            if loadingState.isProgressIncomplete {
+                // Smooth out the transition to 100% with a small delay
+                loadingState = .inProgress(1.0)
+                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 15)
+                // Double check state didn't change while we slept
+                if loadingState.isProgressComplete {
+                    loadingState = .complete
+                }
+            } else {
+                loadingState = .complete
+            }
+        }
+    }
+
+    func updateLoadingProgress(progress: Float) async {
+        loadingState = .inProgress(progress)
     }
 }
