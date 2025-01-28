@@ -1,4 +1,4 @@
-// swiftlint:disable file_length force_try
+// swiftlint:disable file_length
 import Bluetooth
 @testable import BluetoothAction
 import Foundation
@@ -32,6 +32,7 @@ struct OptionsTests {
         // { filters: [ {services: ["A", "B"]} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -45,6 +46,7 @@ struct OptionsTests {
         // { filters: [ {services: [A, B]}, {services: [C, D]} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]], ["services": [uuid_3.uuidString, uuid_4.uuidString]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -59,6 +61,7 @@ struct OptionsTests {
         // { filters: [ {services: [A, B]} ], optionalServices: [E] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString, uuid_2.uuidString]]]), "optionalServices": JsType.bridge([uuid_3.uuidString])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -74,6 +77,7 @@ struct OptionsTests {
         // { filters: [ {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["name": "Batman's Shark Repellant"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -87,6 +91,7 @@ struct OptionsTests {
         // { filters: [ {namePrefix: "Device"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Batman's"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -100,6 +105,7 @@ struct OptionsTests {
         // { filters: [ {name: "First De"}, {name: "First Device"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["name": "Bat"], ["name": "Batman"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -117,6 +123,7 @@ struct OptionsTests {
         // { filters: [ {namePrefix: "First"}, {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"], ["name": "Robin"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -134,6 +141,7 @@ struct OptionsTests {
         // { filters: [ {services: [C], namePrefix: "Device"}, {name: "Unique Name"} ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString], "namePrefix": "Bat"], ["name": "Batman"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -151,6 +159,7 @@ struct OptionsTests {
         // { filters: [{namePrefix: "Device"}], exclusionFilters: [{name: "Device Third"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["name": "Batman"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -167,6 +176,7 @@ struct OptionsTests {
         // { filters: [{namePrefix: "Device"}], exclusionFilters: [{namePrefix: "Device F"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["namePrefix": "Rob"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -183,6 +193,7 @@ struct OptionsTests {
         // { filters: [{services: [C]}, {namePrefix: "Device"}], exclusionFilters: [{services: [A]}, {name: "Device Fourth"}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_3.uuidString]], ["namePrefix": "Bat"]]), "exclusionFilters": JsType.bridge([["services": [uuid_1.uuidString]], ["name": "Robin"]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -203,6 +214,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -219,6 +231,7 @@ struct OptionsTests {
         // { filters: [{ serviceData: [{ service: "A" }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -235,6 +248,7 @@ struct OptionsTests {
         // { filters: [ { manufacturerData: [{ companyIdentifier: 17 }] }, { serviceData: [{ service: "A" }] } ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]]], ["serviceData": [["service": uuid_1.uuidString]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -256,6 +270,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }], serviceData: [{ service: "A" }] } ] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351]], "serviceData": [["service": uuid_1.uuidString]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -279,6 +294,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3]]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -296,6 +312,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3, 4]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3, 4]]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -313,6 +330,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1]) }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1]]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -330,6 +348,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57])}]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -348,6 +367,7 @@ struct OptionsTests {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17 }, { companyIdentifier: 18 }]}] }
         let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 17], ["companyIdentifier": 18]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -473,6 +493,7 @@ struct OptionsTests {
         // { filters: [{ serviceData: [{ service: "A", dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57]) }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         let resultingFilters = result.filters
@@ -491,6 +512,7 @@ struct OptionsTests {
         // { optionalManufacturerData: [1, 2, 3, 4] }
         let web_bluetooth_options = ["optionalManufacturerData": JsType.bridge([1, 2, 3, 4])]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         #expect(result.optionalManufacturerData == [1, 2, 3, 4])
@@ -501,6 +523,7 @@ struct OptionsTests {
         // { acceptAllDevices: true }
         let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(true)]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         #expect(result.acceptAllDevices == true)
@@ -511,6 +534,7 @@ struct OptionsTests {
         // { acceptAllDevices: false }
         let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(false)]
 
+        // swiftlint:disable:next force_try
         let result = try! sut.decode(from: web_bluetooth_options)
 
         #expect(result.acceptAllDevices == false)
