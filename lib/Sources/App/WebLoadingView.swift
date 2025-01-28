@@ -9,15 +9,11 @@ import WebKit
 
 struct WebLoadingView: View {
     let model: WebLoadingModel
-    let searchBarModel: SearchBarModel
 
     var body: some View {
         ZStack {
             if let webContainerModel = model.webContainerModel {
-                WebContainerView(
-                    webContainerModel: webContainerModel,
-                    searchBarModel: searchBarModel
-                )
+                WebContainerView(webContainerModel: webContainerModel)
             }
             if model.shouldShowFreshPageOverlay {
                 FreshPageView(model: model.freshPageModel)
@@ -29,8 +25,7 @@ struct WebLoadingView: View {
 
 #Preview("Empty") {
     WebLoadingView(
-        model: previewModel(),
-        searchBarModel: SearchBarModel()
+        model: previewModel()
     )
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -40,8 +35,7 @@ struct WebLoadingView: View {
 #Preview("Loading") {
     let model: WebLoadingModel = previewModel()
     WebLoadingView(
-        model: model,
-        searchBarModel: SearchBarModel()
+        model: model
     )
     .task {
         model.freshPageModel.isLoading = true
@@ -54,8 +48,7 @@ struct WebLoadingView: View {
 #Preview("Loaded") {
     let model: WebLoadingModel = previewModel()
     WebLoadingView(
-        model: model,
-        searchBarModel: SearchBarModel()
+        model: model
     )
     .task {
         model.freshPageModel.isLoading = true
@@ -70,20 +63,26 @@ struct WebLoadingView: View {
 
 @MainActor
 private func previewModel() -> WebLoadingModel {
-    let freshPageModel = FreshPageModel(searchBarModel: SearchBarModel())
-    return WebLoadingModel(freshPageModel: freshPageModel)
+    let navBarModel = NavBarModel()
+    let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
+    return WebLoadingModel(
+        freshPageModel: freshPageModel,
+        navBarModel: navBarModel
+    )
 }
 
 @MainActor
 private func webModel(url: URL) -> WebContainerModel {
-    WebContainerModel(
+    let navBarModel = NavBarModel()
+    return WebContainerModel(
         webPageModel: WebPageModel(
             tab: 0,
             url: url,
             config: previewWebConfig(),
-            messageProcessorFactory: staticMessageProcessorFactory()
+            messageProcessorFactory: staticMessageProcessorFactory(),
+            navigator: navBarModel.navigator
         ),
-        navBarModel: NavBarModel(),
+        navBarModel: navBarModel,
         selector: DeviceSelector()
     )
 }

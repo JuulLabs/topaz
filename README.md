@@ -89,9 +89,4 @@ $ make clean
 
 ### Publishing To App Store
 
-To trigger the `publish.yml` GitHub Action push a tag of the form `release/x.y.z` e.g.:
-
-```sh
-$ git tag -a release/1.2.3 -m "Verison 1.2.3 App Store Release"
-$ git push origin release/1.2.3
-```
+Please see the [detailed instructions here](documentation/releases.md).

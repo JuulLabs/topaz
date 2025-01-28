@@ -32,12 +32,12 @@ public final class WebContainerModel {
 
     static func loadAsync(
         selector: DeviceSelector,
+        navBarModel: NavBarModel,
         webConfigLoader: WebConfigLoader,
         buildWebModel: @escaping (WKWebViewConfiguration) -> WebPageModel
     ) async throws -> WebContainerModel {
         let config = try await webConfigLoader.loadConfig()
         let webPageModel = buildWebModel(config)
-        let navBarModel = NavBarModel(navigator: webPageModel.navigator)
         return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector)
     }
 }

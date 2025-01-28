@@ -3,8 +3,6 @@ import SwiftUI
 import WebView
 
 struct NavBarView: View {
-    let loadingState: WebPageLoadingState
-    let searchBarModel: SearchBarModel
     let model: NavBarModel
 
     var body: some View {
@@ -12,7 +10,7 @@ struct NavBarView: View {
             if model.shouldShowErrorState {
                 BluetoothErrorView(state: model.bluetoothSystem.systemState)
             }
-            if let progress = model.deriveProgress(loadingState: loadingState) {
+            if let progress = model.progress {
                 ProgressView(value: progress)
                     .tint(.white)
                     .frame(height: 4)
@@ -23,7 +21,7 @@ struct NavBarView: View {
                     .frame(height: 4)
             }
             VStack(spacing: 12) {
-                SearchBarView(model: searchBarModel)
+                SearchBarView(model: model.searchBarModel)
                     .padding(.bottom, 12)
                 NavIconStrip(model: model)
             }
@@ -37,8 +35,6 @@ struct NavBarView: View {
 
 #Preview {
     NavBarView(
-        loadingState: .initializing,
-        searchBarModel: SearchBarModel(),
         model: NavBarModel()
     )
 }
