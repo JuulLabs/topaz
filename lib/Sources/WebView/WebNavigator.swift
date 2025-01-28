@@ -17,12 +17,12 @@ public final class WebNavigator {
     public private(set) var loadingState: WebPageLoadingState = .initializing {
         willSet {
             if case .complete = newValue, let url = webView?.url {
-                onPageLoaded(url)
+                onPageLoaded(url, webView?.title)
             }
         }
     }
 
-    public var onPageLoaded: (URL) -> Void = { _ in }
+    public var onPageLoaded: (URL, String?) -> Void = { _, _ in }
 
     public init(loadingState: WebPageLoadingState = .initializing) {
         self.loadingState = loadingState

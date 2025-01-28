@@ -8,15 +8,20 @@ public struct SettingsView: View {
         self.model = model
     }
 
+    private var shareSubject: Text? {
+        model.shareItem.subject.map(Text.init)
+    }
+
     public var body: some View {
         List {
             Section {
-                LabeledContent("Share page") {
-                    Image(systemName: "square.and.arrow.up")
+                ShareLink(item: model.shareItem.url, subject: shareSubject) {
+                    LabeledContent("Share page") {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.shareButtonTapped()
-                }
+                .listRowBackground(Color.topaz800)
+                .disabled(model.shareItem.isDisabled)
 
                 LabeledContent("New tab") {
                     Image(systemName: "plus")
