@@ -21,8 +21,8 @@ public struct AppContentView: View {
     }
 
     public var body: some View {
-        if let (webLoadingModel, searchBarModel) = model.activePageModels {
-            WebLoadingView(model: webLoadingModel, searchBarModel: searchBarModel)
+        if let webLoadingModel = model.activePageModel {
+            WebLoadingView(model: webLoadingModel)
         } else {
             TabGridView(model: model.tabsModel)
         }
@@ -38,8 +38,9 @@ public struct AppContentView: View {
     AppContentView(model: model)
         .task {
             try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
-            let url = URL.init(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-            model.activePageModels?.1.onSubmit(url)
+            let searchModel = model.activePageModel?.navBarModel.searchBarModel
+            searchModel?.searchString = "https://googlechrome.github.io/samples/web-bluetooth/index.html"
+            searchModel?.didSubmitSearchString()
         }
 }
 

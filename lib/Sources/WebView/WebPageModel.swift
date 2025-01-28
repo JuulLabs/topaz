@@ -15,8 +15,6 @@ public class WebPageModel {
     public let tab: Int
     public private(set) var url: URL
 
-    public var loadingState: WebPageLoadingState = .initializing
-
     /// This remains true until we are somewhat confident that content can render
     /// Showing the WKWebView earlier than this will just display a black void
     public var isPerformingInitialContentLoad: Bool = true
@@ -32,20 +30,19 @@ public class WebPageModel {
         url.host(percentEncoded: false) ?? "unknown"
     }
 
-    public var onPageLoaded: (URL) -> Void = { _ in }
-
     public init(
         tab: Int,
         url: URL,
         config: WKWebViewConfiguration,
-        messageProcessorFactory: JsMessageProcessorFactory
+        messageProcessorFactory: JsMessageProcessorFactory,
+        navigator: WebNavigator
     ) {
         self.contextId = JsContextIdentifier(tab: tab, url: url)
         self.tab = tab
         self.url = url
         self.config = config
         self.messageProcessorFactory = messageProcessorFactory
-        self.navigator = WebNavigator()
+        self.navigator = navigator
     }
 
     public func loadNewPage(url: URL) {
@@ -69,43 +66,18 @@ public class WebPageModel {
     }
 
     private func monitorLoadingProgress(of webView: WKWebView) {
-        let loading = webView.observe(\.isLoading, options: .new) { [weak self] webView, change in
+        let loading = webView.observe(\.isLoading, options: .new) { [weak navigator] _, change in
             guard let isLoading = change.newValue else { return }
             Task { @MainActor in
-                guard let self else { return }
-                if isLoading {
-                    // We are usually already in progress by the time isLoading flips to true
-                    guard case .inProgress = self.loadingState else {
-                        self.loadingState = .inProgress(0.0)
-                        return
-                    }
-                } else {
-                    if self.loadingState.isProgressIncomplete {
-                        // Smooth out the transition to 100% with a small delay
-                        self.loadingState = .inProgress(1.0)
-                        try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 15)
-                        // Double check state didn't change while we slept
-                        if self.loadingState.isProgressComplete {
-                            self.loadingState = .complete
-                            if let url = webView.url {
-                                self.onPageLoaded(url)
-                            }
-                        }
-                    } else {
-                        self.loadingState = .complete
-                        if let url = webView.url {
-                            self.onPageLoaded(url)
-                        }
-                    }
-                }
+                await navigator?.updateLoadingState(isLoading: isLoading)
             }
         }
         kvoStore.append(loading)
 
-        let progress = webView.observe(\.estimatedProgress, options: .new) { [weak self] _, change in
+        let progress = webView.observe(\.estimatedProgress, options: .new) { [weak navigator] _, change in
             guard let progress = change.newValue, progress < 1.0 else { return }
             Task { @MainActor in
-                self?.loadingState = .inProgress(Float(progress))
+                await navigator?.updateLoadingProgress(progress: Float(progress))
             }
         }
         kvoStore.append(progress)

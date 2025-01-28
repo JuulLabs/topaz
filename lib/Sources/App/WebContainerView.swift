@@ -12,7 +12,6 @@ import WebKit
 
 struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
-    let searchBarModel: SearchBarModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -23,11 +22,7 @@ struct WebContainerView: View {
                     }
                 }
             if !webContainerModel.navBarModel.isFullscreen {
-                NavBarView(
-                    loadingState: webContainerModel.webPageModel.loadingState,
-                    searchBarModel: searchBarModel,
-                    model: webContainerModel.navBarModel
-                )
+                NavBarView(model: webContainerModel.navBarModel)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -48,8 +43,7 @@ struct WebContainerView: View {
 
 #Preview("DevicePicker") {
     WebContainerView(
-        webContainerModel: previewModel(),
-        searchBarModel: SearchBarModel()
+        webContainerModel: previewModel()
     )
 }
 
@@ -70,15 +64,17 @@ private func previewModel() -> WebContainerModel {
     let factory = staticMessageProcessorFactory(
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
+    let navBarModel = NavBarModel()
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
         config: previewWebConfig(),
-        messageProcessorFactory: factory
+        messageProcessorFactory: factory,
+        navigator: navBarModel.navigator
     )
     return WebContainerModel(
         webPageModel: webPageModel,
-        navBarModel: NavBarModel(),
+        navBarModel: navBarModel,
         selector: selector
     )
 }
