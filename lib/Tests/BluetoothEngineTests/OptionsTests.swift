@@ -8,11 +8,11 @@ extension Tag {
     @Tag static var options: Self
 }
 
-// swiftlint:disable file_length type_body_length
+// swiftlint:disable:this file_length type_body_length
 @Suite(.tags(.options))
 struct OptionsTests {
 
-    // swiftlint:disable type_name
+    // swiftlint:disable:this type_name
     private typealias sut = Options
 
     private let uuid_1 = UUID(uuidString: "0000fe18-0000-1000-8000-00805f9b34fb")!
