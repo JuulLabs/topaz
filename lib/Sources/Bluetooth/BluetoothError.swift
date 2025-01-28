@@ -10,6 +10,7 @@ public enum BluetoothError: Error, Sendable {
     case characteristicNotificationsNotSupported(characteristic: UUID)
     case noSuchDescriptor(characteristic: UUID, descriptor: UUID)
     case nullService(characteristic: UUID)
+    case nullCharacteristic(descriptor: UUID)
     case unavailable
     case unknown
 }
@@ -35,6 +36,8 @@ extension BluetoothError: LocalizedError {
             "No such descriptor \(descriptorUuid.uuidString.lowercased()) under characteristic \(characteristicUuid.uuidString.lowercased())"
         case let .nullService(characteristicUuid):
             "Characteristic \(characteristicUuid) is missing parent service"
+        case let .nullCharacteristic(descriptorUuid):
+            "Descriptor \(descriptorUuid) is missing parent characteristic"
         case .unavailable:
             "Bluetooth not available"
         case .unknown:

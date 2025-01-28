@@ -3,6 +3,7 @@ import Bluetooth
 import BluetoothClient
 import BluetoothMessage
 import Foundation
+import TestHelpers
 import Testing
 import XCTest
 
@@ -23,12 +24,14 @@ struct StopNotificationsTests {
     }
 
     @Test
-    func execute_withBasicPeripheral_callsStopNotifications() async throws {
-        let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    func execute_withBasicPeripheral_clientShouldStopNotifications() async throws {
+        let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
         let stopInvokedExpectation = XCTestExpectation(description: "onStopNotifications invoked")
         let mockBluetoothClient = mockBluetoothClient {
-            $0.onStopNotifications = { _, _ in
-                stopInvokedExpectation.fulfill()
+            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
+                if startNotifying == false {
+                    stopInvokedExpectation.fulfill()
+                }
                 return basicCharacteristic
             }
         }
@@ -73,8 +76,8 @@ struct StopNotificationsTests {
 
 private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
     var client = MockBluetoothClient()
-    let basicCharacteristic = CharacteristicEvent(.startNotifications, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-    client.onStopNotifications = { _, _ in
+    let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+    client.onCharacteristicSetNotifications = { _, _, _ in
         basicCharacteristic
     }
     modify?(&client)

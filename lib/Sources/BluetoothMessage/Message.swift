@@ -26,14 +26,11 @@ public struct Message {
         case readCharacteristic
         case writeCharacteristic
         case discoverDescriptors
-
-        // GATT Descriptor
-        case readDescriptor
-
         case startNotifications
         case stopNotifications
 
-        // TODO: moar descriptors, read/write value
+        // GATT Descriptor
+        case readDescriptor
     }
 
     public let action: Action

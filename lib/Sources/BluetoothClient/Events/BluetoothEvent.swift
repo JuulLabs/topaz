@@ -1,6 +1,6 @@
 import Bluetooth
+import Foundation
 
 public protocol BluetoothEvent: Sendable {
-    var name: EventName { get }
-    var key: EventKey { get }
+    var lookup: EventLookup { get }
 }

@@ -2,7 +2,6 @@ import Bluetooth
 import Foundation
 
 public struct CharacteristicChangedEvent: BluetoothEvent {
-    public let name: EventName = .characteristicValue
     public let peripheralId: UUID
     public let characteristicId: UUID
     public let instance: UInt32
@@ -15,7 +14,7 @@ public struct CharacteristicChangedEvent: BluetoothEvent {
         self.data = data
     }
 
-    public var key: EventKey {
-        .characteristic(name, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance)
+    public var lookup: EventLookup {
+        .exact(key: .characteristic(.characteristicValue, peripheralId: peripheralId, characteristicId: characteristicId, instance: instance))
     }
 }
