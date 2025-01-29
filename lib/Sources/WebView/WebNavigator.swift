@@ -16,7 +16,7 @@ public final class WebNavigator {
 
     public private(set) var loadingState: WebPageLoadingState = .initializing {
         willSet {
-            if case .complete = newValue, let url = webView?.url {
+            if case let .complete(url) = newValue {
                 onPageLoaded(url, webView?.title)
             }
         }
@@ -63,21 +63,26 @@ public final class WebNavigator {
                 return
             }
         } else {
+            guard let url = webView?.url else { return }
             if loadingState.isProgressIncomplete {
                 // Smooth out the transition to 100% with a small delay
                 loadingState = .inProgress(1.0)
                 try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 15)
                 // Double check state didn't change while we slept
                 if loadingState.isProgressComplete {
-                    loadingState = .complete
+                    loadingState = .complete(url)
                 }
             } else {
-                loadingState = .complete
+                loadingState = .complete(url)
             }
         }
     }
 
     func updateLoadingProgress(progress: Float) async {
         loadingState = .inProgress(progress)
+    }
+
+    func redirect(to document: SimpleHtmlDocument) {
+        webView?.loadHTMLString(document.render(), baseURL: nil)
     }
 }

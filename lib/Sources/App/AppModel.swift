@@ -65,19 +65,23 @@ public class AppModel {
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
         let settingsModel = SettingsModel()
         let navigator = WebNavigator()
-        navigator.onPageLoaded = { [weak self] url, title in
+        let searchBarModel = SearchBarModel(navigator: navigator)
+        navigator.onPageLoaded = { [weak self, weak searchBarModel] url, title in
+            guard !url.isAboutBlank() else { return }
             settingsModel.shareItem = SharingUrl(url: url, subject: title)
             self?.tabsModel.update(url: url, at: tabIndex)
+            searchBarModel?.searchString = url.absoluteString
         }
         settingsModel.tabAction = { [weak self] in
             self?.activePageModel = nil
         }
-        return NavBarModel(navigator: navigator, settingsModel: settingsModel)
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel)
     }
 
     private func performInitialLoad(on loadingModel: WebLoadingModel, tabIndex: Int, initialUrl url: URL) {
         loadingModel.freshPageModel.isLoading = true
         loadingModel.freshPageModel.searchBarFocusOnLoad = false
+        loadingModel.navBarModel.searchBarModel.searchString = url.absoluteString
         Task {
             loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel)
         }

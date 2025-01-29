@@ -37,10 +37,22 @@ extension Coordinator: WKNavigationDelegate {
     }
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
-        navigatingToUrl = nil
+        let document = errorDocument(error: error, url: navigatingToUrl)
+        redirectDueToError(to: document)
     }
 
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
-        navigatingToUrl = nil
+        let document = errorDocument(error: error, url: navigatingToUrl)
+        redirectDueToError(to: document)
     }
+}
+
+private func errorDocument(error: any Error, url: URL?) -> SimpleHtmlDocument {
+    var document = SimpleHtmlDocument(title: "Error")
+    document.addElement(.h1, "Error")
+    if let url {
+        document.addElement(.p, "Unable to load \(url.absoluteString)")
+    }
+    document.addElement(.p, error.localizedDescription)
+    return document
 }

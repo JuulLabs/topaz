@@ -10,6 +10,10 @@ public extension Color {
         Color(hex: "#1C1C23")!
     }
 
+    static var redNotification: Color {
+        Color(hex: "#E71A40")!
+    }
+
     static var steel600: Color {
         Color(hex: "#1A1A1A")!
     }
