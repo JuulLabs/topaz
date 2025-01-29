@@ -436,7 +436,7 @@ struct OptionsTests {
         // { filters: [...], acceptAllDevices:true }
         let web_bluetooth_options = ["filters": JsType.bridge([["services": [uuid_1.uuidString]]]), "acceptAllDevices": JsType.bridge(true)]
 
-        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")) {
+        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevices to true if other options are provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }
@@ -446,7 +446,7 @@ struct OptionsTests {
         // { exclusionFilters: [...], acceptAllDevices:true }
         let web_bluetooth_options = ["exclusionFilters": JsType.bridge([["services": [uuid_1.uuidString]]]), "acceptAllDevices": JsType.bridge(true)]
 
-        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")) {
+        #expect(throws: OptionsError.invalidInput("Cannot set acceptAllDevices to true if other options are provided")) {
             try sut.decode(from: web_bluetooth_options)
         }
     }

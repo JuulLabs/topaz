@@ -31,7 +31,7 @@ extension Options {
 
         if acceptAllDevices == true {
             guard filters == nil && exclusionFilters == nil && optionalServices == nil && optionalManufacturerData == nil else {
-                throw OptionsError.invalidInput("Cannot set acceptAllDevicesTo true if other options are provided")
+                throw OptionsError.invalidInput("Cannot set acceptAllDevices to true if other options are provided")
             }
         }
 
