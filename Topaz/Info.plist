@@ -6,6 +6,11 @@
 	<false/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Allow web pages opened in Topaz to find and connect to your Bluetooth devices.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoadsInWebContent</key>
+		<true/>
+	</dict>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

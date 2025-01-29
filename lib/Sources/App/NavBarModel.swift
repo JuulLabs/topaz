@@ -27,10 +27,11 @@ public final class NavBarModel {
     init(
         navigator: WebNavigator = WebNavigator(),
         settingsModel: SettingsModel = SettingsModel(),
+        searchBarModel: SearchBarModel? = nil,
         bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.navigator = navigator
-        self.searchBarModel = SearchBarModel(navigator: navigator)
+        self.searchBarModel = searchBarModel ?? SearchBarModel(navigator: navigator)
         self.pullDrawer = PullDrawerModel(height: 104.0, ratio: 1.25, activationDistance: 16)
         self.settingsModel = settingsModel
         self.bluetoothSystem = bluetoothSystem

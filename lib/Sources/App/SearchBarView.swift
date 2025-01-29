@@ -11,7 +11,20 @@ struct SearchBarView: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            styledIcon(systemName: "magnifyingglass")
+            if let mode = model.infoIconMode {
+                Button {
+                    model.infoButtonTapped()
+                } label: {
+                    switch mode {
+                    case .showSecure:
+                        styledIcon(systemName: "lock.fill")
+                    case .showInsecure:
+                        styledIcon(systemName: "exclamationmark.triangle.fill", color: .redNotification)
+                    }
+                }
+            } else {
+                styledIcon(systemName: "magnifyingglass")
+            }
             TextField("Paste or enter website address", text: $model.searchString)
                 .font(.dogpatch(.subheadline))
                 .foregroundStyle(Color.steel600)
@@ -45,14 +58,19 @@ struct SearchBarView: View {
         .frame(maxWidth: .infinity, minHeight: 48)
         .animation(.interactiveSpring, value: model.stopOrReloadMode)
         .synchronize($model.focusedField, $focusedField)
+        .sheet(item: $model.presentingInfoSheet) { mode in
+            SecurityInfoView(mode: mode)
+                .presentationDetents([.medium, .large])
+        }
     }
 
     @ViewBuilder private func styledIcon(
-        systemName: String
+        systemName: String,
+        color: Color = Color.steel600
     ) -> some View {
         Image(systemName: systemName)
             .font(.subheadline.weight(.light))
-            .foregroundStyle(Color.steel600)
+            .foregroundStyle(color)
     }
 }
 
@@ -87,7 +105,17 @@ fileprivate extension View {
 }
 
 #Preview("Complete") {
-    let navigator = WebNavigator(loadingState: .complete)
+    let url = URL(string: "https://example.com")!
+    let navigator = WebNavigator(loadingState: .complete(url))
+    let model = SearchBarModel(navigator: navigator)
+    SearchBarView(model: model)
+        .padding(40)
+        .background(Color.topaz600)
+}
+
+#Preview("CompleteHTTP") {
+    let url = URL(string: "http://neverssl.com")!
+    let navigator = WebNavigator(loadingState: .complete(url))
     let model = SearchBarModel(navigator: navigator)
     SearchBarView(model: model)
         .padding(40)
