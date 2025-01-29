@@ -11,7 +11,7 @@ extension Tag {
 
 @Suite(.tags(.options))
 // swiftlint:disable:next type_body_length
-struct OptionsTests {
+struct Options_DecodeTests {
 
     // swiftlint:disable:next type_name
     private typealias sut = Options

@@ -29,7 +29,7 @@ public func FakePeripheral(
 }
 
 extension Peripheral {
-    public func fakeAd(rssi: Int) -> Advertisement {
+    public func fakeAd(rssi: Int = 0) -> Advertisement {
         Advertisement(
             peripheralId: id,
             peripheralName: name,
