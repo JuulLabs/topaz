@@ -2,6 +2,7 @@ import Design
 import SwiftUI
 
 struct SecurityInfoView: View {
+    @Environment(\.dismiss) private var dismiss
     let mode: SearchBarModel.InfoIconMode
 
     private var hostString: String {
@@ -30,6 +31,14 @@ struct SecurityInfoView: View {
                 Text("Encryption keeps information private when communicating with \(hostString).")
                     .font(.body)
             }
+            Button {
+                dismiss()
+            } label: {
+                Text("Ok")
+                    .font(.title2)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
         }
         .padding()
     }
