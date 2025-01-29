@@ -10,6 +10,24 @@ public final class SearchBarModel {
         case searchBar
     }
 
+    enum InfoIconMode: Identifiable {
+        case showSecure(URL), showInsecure(URL)
+
+        var id: Bool {
+            switch self {
+            case .showSecure: true
+            case .showInsecure: false
+            }
+        }
+
+        var url: URL {
+            switch self {
+            case let .showSecure(url): url
+            case let .showInsecure(url): url
+            }
+        }
+    }
+
     enum StopOrReloadMode {
         case showStopLoading, showReload
     }
@@ -17,6 +35,7 @@ public final class SearchBarModel {
     let navigator: WebNavigator
 
     var focusedField: FocusedField?
+    var presentingInfoSheet: InfoIconMode?
     var searchString: String = ""
     var onSubmit: (URL) -> Void = { _ in }
 
@@ -34,6 +53,17 @@ public final class SearchBarModel {
         }
     }
 
+    var infoIconMode: InfoIconMode? {
+        guard case let .complete(url) = navigator.loadingState else {
+            return nil
+        }
+        return switch url.scheme?.lowercased() {
+        case "http": .showInsecure(url)
+        case "https": .showSecure(url)
+        default: nil
+        }
+    }
+
     var stopOrReloadMode: StopOrReloadMode? {
         switch navigator.loadingState {
         case .inProgress: .showStopLoading
@@ -47,7 +77,16 @@ public final class SearchBarModel {
     }
 
     func reloadButtonTapped() {
+        guard case let .complete(url) = navigator.loadingState, !url.isAboutBlank() else {
+            // We did not manage to load anything - re-submit the original query
+            didSubmitSearchString()
+            return
+        }
         navigator.reload()
+    }
+
+    func infoButtonTapped() {
+        presentingInfoSheet = infoIconMode
     }
 
     private func searchUrl(query: String) -> URL? {

@@ -3,7 +3,7 @@ import Foundation
 public enum WebPageLoadingState {
     case initializing
     case inProgress(Float)
-    case complete
+    case complete(URL)
 
     var isProgressIncomplete: Bool {
         switch self {

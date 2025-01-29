@@ -72,6 +72,11 @@ public class Coordinator: NSObject {
     func didFinishNavigation(to url: URL, in webView: WKWebView) {
         viewModel?.navigator.update(webView: webView)
     }
+
+    func redirectDueToError(to document: SimpleHtmlDocument) {
+        navigatingToUrl = nil
+        viewModel?.navigator.redirect(to: document)
+    }
 }
 
 extension WKWebView {
