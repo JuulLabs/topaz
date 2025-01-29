@@ -18,7 +18,7 @@ struct EndToEndBluetoothEngineTests {
         handlerName: "bluetooth",
         body: [
             "action": .string("requestDevice"),
-            "options": .dictionary([:]),
+            "data": .dictionary(["options": JsType.bridge(["acceptAllDevices": true])]),
         ]
     )
 

@@ -2,23 +2,24 @@ import Bluetooth
 import BluetoothClient
 
 struct NativeScanner: BluetoothScanner {
-    private let filter: Filter
+    private let options: Options?
     private let coordinator: Coordinator
     private let continuation: AsyncStream<AdvertisementEvent>.Continuation
 
     let advertisements: AsyncStream<AdvertisementEvent>
 
-    init(filter: Filter, coordinator: Coordinator) {
-        self.filter = filter
+    init(options: Options?, coordinator: Coordinator) {
+        self.options = options
         self.coordinator = coordinator
         let (stream, continuation) = AsyncStream<AdvertisementEvent>.makeStream()
         self.advertisements = stream
         self.continuation = continuation
-        coordinator.startScanning(filter: filter, callback: handleEvent)
+        let services = options?.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
+        coordinator.startScanning(serviceUuids: services, callback: handleEvent)
     }
 
     func handleEvent(_ event: AdvertisementEvent) {
-        // TODO: apply filter here
+        // TODO: apply options here
         continuation.yield(event)
     }
 

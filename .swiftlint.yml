@@ -3,6 +3,7 @@ disabled_rules:
   - leading_whitespace
   - line_length
   - todo
+  - nesting
 
 trailing_comma:
   mandatory_comma: true
