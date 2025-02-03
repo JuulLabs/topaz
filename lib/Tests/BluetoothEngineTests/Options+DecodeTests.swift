@@ -553,9 +553,9 @@ struct Options_DecodeTests {
     }
 
     @Test
-    func decode_acceptAllDevicesFalse_returnsCorrectOptionsObject() {
+    func decode_acceptAllDevicesFalseManuallySet_returnsCorrectOptionsObject() {
         // { acceptAllDevices: false }
-        let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(false)]
+        let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "acceptAllDevices": JsType.bridge(false)]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)

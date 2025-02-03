@@ -29,17 +29,23 @@ public func FakePeripheral(
 }
 
 extension Peripheral {
-    public func fakeAd(rssi: Int = 0) -> Advertisement {
+    public func fakeAd(
+        rssi: Int = 0,
+        localName: String? = nil,
+        manufacturerData: ManufacturerData? = nil,
+        serviceData: ServiceData = ServiceData([:]),
+        serviceUUIDs: [UUID] = []
+    ) -> Advertisement {
         Advertisement(
             peripheralId: id,
             peripheralName: name,
             rssi: rssi,
             isConnectable: nil,
-            localName: nil,
-            manufacturerData: nil,
+            localName: localName,
+            manufacturerData: manufacturerData,
             overflowServiceUUIDs: [],
-            serviceData: ServiceData([:]),
-            serviceUUIDs: [],
+            serviceData: serviceData,
+            serviceUUIDs: serviceUUIDs,
             solicitedServiceUUIDs: [],
             txPowerLevel: nil
         )

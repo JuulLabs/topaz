@@ -23,9 +23,9 @@ extension Options {
         let exclusionFilters = try data?[exclusionFiltersKey]?.array?.compactMap { try Options.Filter.decode(from: $0.dictionary) }
         let optionalServices = data?[optionalServicesKey]?.array?.compactMapToUUIDs()
         let optionalManufacturerData = data?[optionalManufacturerDataKey]?.array?.compactMapToUint16Array()
-        let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue
+        let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue ?? false
 
-        guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices != nil else {
+        guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices else {
             throw OptionsError.invalidInput("Empty options provided")
         }
 

@@ -19,7 +19,14 @@ struct NativeScanner: BluetoothScanner {
     }
 
     func handleEvent(_ event: AdvertisementEvent) {
-        if let options = options, options.includeAdvertisementEventInDeviceList(event) {
+        // If no options are provided, yield all
+        guard let options = options else {
+            continuation.yield(event)
+            return
+        }
+
+        // If options are provided, only yield events that pass the filters
+        if options.includeAdvertisementEventInDeviceList(event) {
             continuation.yield(event)
         }
     }
