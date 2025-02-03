@@ -4,9 +4,6 @@ import Foundation
 
 extension Options {
     func includeAdvertisementEventInDeviceList(_ advertisementEvent: AdvertisementEvent) -> Bool {
-
-//        let advertisedServices = advertisementEvent.advertisement.serviceUUIDs
-
         guard acceptAllDevices == false else {
             return true
         }
@@ -16,57 +13,6 @@ extension Options {
         let matchesOnExclusionFilters = self.exclusionFilters?.compactMap { $0.matches(with: advertisementEvent) }.reduce(false, { partialResult, next in partialResult || next }) ?? false
 
         return matchesOnFilters && !matchesOnExclusionFilters
-
-//        for filter in self.filters ?? [] {
-//
-//
-//            filter.matches(with: advertisementEvent)
-
-//            var filterChecks = FilterChecks(filter: filter)
-//
-//            if let filteredServices = filter.services?.compactMap({ $0 }), advertisedServices.contains(filteredServices) {
-//                filterChecks.servicesMatch = true
-//            }
-//
-//            if let localName = advertisementEvent.advertisement.localName, filter.name == localName {
-//                filterChecks.namesMatch = true
-//            }
-//
-//            if let localName = advertisementEvent.advertisement.localName, let namePrefix = filter.namePrefix, localName.hasPrefix(namePrefix) {
-//                filterChecks.prefixedNamesMatch = true
-//            }
-//
-//            if filterChecks.matchesFilter() {
-//                return true
-//            }
-
-//            return servicesMatch && namesMatch
-//        }
-
-//        let advertisedServices = advertisementEvent.peripheral.services.map { $0.uuid }
-
-//        let serviceFilters = self.filters?.compactMap { $0.services?.compactMap { $0 } } ?? []
-//
-//        for serviceFilter in serviceFilters {
-//            if advertisedServices.contains(serviceFilter) {
-//                return true
-//            }
-//        }
-
-//        if let filters = self.filters, let localName = advertisementEvent.advertisement.localName, filters.contains(where: { $0.name == localName }) {
-//            return true
-//        }
-
-//        if let filters = self.filters, let localName = advertisementEvent.advertisement.localName, filters.contains(where: {
-//            guard let namePrefix = $0.namePrefix else {
-//                return false
-//            }
-//            return localName.hasPrefix(namePrefix)
-//        }) {
-//            return true
-//        }
-
-//        return matchesOnFilters
     }
 }
 
@@ -107,69 +53,17 @@ extension Options.Filter.ManufacturerData {
         }
 
         return advertisedManufacturerData.data.matches(with: self.dataPrefix, using: self.mask)
-
-
-//        if let dataPrefix = self.dataPrefix {
-//
-////            let balls = advertisedManufacturerData.data & self.mask
-////            for byte in advertisedManufacturerData.data {
-////                let but = byte & (self.mask?[0])!
-////            }
-//
-//            if let mask = self.mask {
-////                for i in 0..<mask.count {
-////                    let anded = advertisedManufacturerData.data[i] & mask[i]
-////                    let twod = dataPrefix[i] & mask[i]
-////                    print(anded)
-////                    print(twod)
-////                }
-//
-//                let a = zip(mask, dataPrefix).compactMap { $0.0 & $0.1 }
-//                let b = zip(mask, advertisedManufacturerData.data).compactMap { $0.0 & $0.1 }
-//
-//                return zip(mask, dataPrefix).compactMap { $0.0 & $0.1 } == zip(mask, advertisedManufacturerData.data).compactMap { $0.0 & $0.1 }
-//            }
-//
-//
-//
-//            return advertisedManufacturerData.data.starts(with: dataPrefix)
-//
-////            let balls = Data(dataPrefix).compactMap { $0 as? UInt8 }
-////
-////            for i in 0..<Data(dataPrefix).count {
-////                
-////            }
-////
-////            for byte in Data(dataPrefix) {
-////
-////            }
-////            return advertisedManufacturerData.data == Data(dataPrefix)
-//        }
-//
-//        return true
     }
 }
 
 extension Options.Filter.ServiceData {
     func matches(with advertisedServiceData: ServiceData) -> Bool {
-
         // Ensures the UUID from the filter is in the advertisedData
         guard let advertisedData = advertisedServiceData.data(for: self.service) else {
             return false
         }
 
         return advertisedData.matches(with: self.dataPrefix, using: self.mask)
-
-//        if let dataPrefix = self.dataPrefix {
-//
-//            if let mask = self.mask {
-//                return zip(mask, dataPrefix).compactMap { $0.0 & $0.1 } == zip(mask, advertisedData).compactMap { $0.0 & $0.1 }
-//            }
-//
-//            return advertisedData.starts(with: dataPrefix)
-//        }
-//
-//        return true
     }
 }
 
@@ -188,19 +82,6 @@ extension Data {
     }
 }
 
-//private func match(advertisedData: Data, with dataPrefix: [UInt8]?, using mask: [UInt8]?) -> Bool {
-//    if let dataPrefix = dataPrefix {
-//
-//        if let mask = mask {
-//            return zip(mask, dataPrefix).compactMap { $0.0 & $0.1 } == zip(mask, advertisedData).compactMap { $0.0 & $0.1 }
-//        }
-//
-//        return advertisedData.starts(with: dataPrefix)
-//    }
-//
-//    return true
-//}
-
 private struct FilterChecks {
     var servicesMatch: Bool? = nil
     var namesMatch: Bool? = nil
@@ -209,32 +90,15 @@ private struct FilterChecks {
     var serviceDatumMatch: Bool? = nil
 
     init(filter: Options.Filter) {
-
-        if let _ = filter.services {
-            servicesMatch = false
-        }
-
-        if let _ = filter.name {
-            namesMatch = false
-        }
-
-        if let _ = filter.namePrefix {
-            prefixedNamesMatch = false
-        }
-
-        if let _ = filter.manufacturerData {
-            manufacturerDatumMatch = false
-        }
-
-        if let _ = filter.serviceData {
-            serviceDatumMatch = false
-        }
+        servicesMatch = initCheck(shouldBeEnabled: filter.services != nil)
+        namesMatch = initCheck(shouldBeEnabled: filter.name != nil)
+        prefixedNamesMatch = initCheck(shouldBeEnabled: filter.namePrefix != nil)
+        manufacturerDatumMatch = initCheck(shouldBeEnabled: filter.manufacturerData != nil)
+        serviceDatumMatch = initCheck(shouldBeEnabled: filter.serviceData != nil)
     }
 
     func matchesFilter() -> Bool {
-        let mirror = Mirror(reflecting: self)
-
-        for child in mirror.children {
+        for child in Mirror(reflecting: self).children {
             if let check = child.value as? Bool {
                 guard check else {
                     return false
@@ -244,14 +108,11 @@ private struct FilterChecks {
 
         return true
     }
-}
 
-// investigate this option. might be cleaner
-extension Options.Filter {
-    var servicesMatch: Bool? {
-        if self.services != nil {
-            return false
-        }
-        return nil
+    private func initCheck(shouldBeEnabled: Bool) -> Bool? {
+        // If the filter has a non-nil field, we should check against this filter--starting
+        // by assuming the check will fail. Otherwise, set the check to nil, as we will not
+        // check on it.
+        return shouldBeEnabled ? false : nil
     }
 }
