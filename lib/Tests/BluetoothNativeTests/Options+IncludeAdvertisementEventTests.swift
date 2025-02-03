@@ -51,7 +51,7 @@ struct Options_IncludeAdvertisementEventTests {
             "D2": AdvertisementEvent(fakePeripheral_D2, fakePeripheral_D2.fakeAd(localName: nil, serviceData: ServiceData([service_A.uuid: Data([01, 02, 03])]), serviceUUIDs: [service_A.uuid, service_B.uuid, service_E.uuid])),
             "D3": AdvertisementEvent(fakePeripheral_D3, fakePeripheral_D3.fakeAd(localName: "Device Third", serviceUUIDs: [service_C.uuid, service_D.uuid])),
             "D4": AdvertisementEvent(fakePeripheral_D4, fakePeripheral_D4.fakeAd(localName: "Device Fourth", serviceUUIDs: [service_E.uuid])),
-            "D5": AdvertisementEvent(fakePeripheral_D5, fakePeripheral_D5.fakeAd(localName: "Unique Name"))
+            "D5": AdvertisementEvent(fakePeripheral_D5, fakePeripheral_D5.fakeAd(localName: "Unique Name")),
         ]
     }
 

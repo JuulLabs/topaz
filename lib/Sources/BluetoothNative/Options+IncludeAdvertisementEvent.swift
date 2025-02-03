@@ -8,9 +8,9 @@ extension Options {
             return true
         }
 
-        let matchesOnFilters = self.filters?.compactMap { $0.matches(with: advertisementEvent) }.reduce(false, { partialResult, next in partialResult || next }) ?? true
+        let matchesOnFilters = self.filters?.compactMap { $0.matches(with: advertisementEvent) }.contains { $0 == true } ?? true
 
-        let matchesOnExclusionFilters = self.exclusionFilters?.compactMap { $0.matches(with: advertisementEvent) }.reduce(false, { partialResult, next in partialResult || next }) ?? false
+        let matchesOnExclusionFilters = self.exclusionFilters?.compactMap { $0.matches(with: advertisementEvent) }.contains { $0 == true } ?? false
 
         return matchesOnFilters && !matchesOnExclusionFilters
     }
@@ -34,11 +34,11 @@ extension Options.Filter {
             filterChecks.prefixedNamesMatch = true
         }
 
-        if let manufacturerData = advertisementEvent.advertisement.manufacturerData, self.manufacturerData?.compactMap({ $0.matches(with: manufacturerData) }).reduce(true, { partial, next in partial && next }) ?? true {
+        if let manufacturerData = advertisementEvent.advertisement.manufacturerData, self.manufacturerData?.compactMap({ $0.matches(with: manufacturerData) }).allSatisfy({ $0 == true }) ?? true {
             filterChecks.manufacturerDatumMatch = true
         }
 
-        if self.serviceData?.compactMap({ $0.matches(with: advertisementEvent.advertisement.serviceData) }).reduce(true, { partial, next in partial && next}) ?? true {
+        if self.serviceData?.compactMap({ $0.matches(with: advertisementEvent.advertisement.serviceData) }).allSatisfy({ $0 == true }) ?? true {
             filterChecks.serviceDatumMatch = true
         }
 
@@ -83,11 +83,11 @@ extension Data {
 }
 
 private struct FilterChecks {
-    var servicesMatch: Bool? = nil
-    var namesMatch: Bool? = nil
-    var prefixedNamesMatch: Bool? = nil
-    var manufacturerDatumMatch: Bool? = nil
-    var serviceDatumMatch: Bool? = nil
+    var servicesMatch: Bool?
+    var namesMatch: Bool?
+    var prefixedNamesMatch: Bool?
+    var manufacturerDatumMatch: Bool?
+    var serviceDatumMatch: Bool?
 
     init(filter: Options.Filter) {
         servicesMatch = initCheck(shouldBeEnabled: filter.services != nil)
