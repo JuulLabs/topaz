@@ -13,6 +13,7 @@ public struct Message {
         // General
         case getAvailability
         case requestDevice
+        case requestLEScan
 
         // GATT Server
         case connect

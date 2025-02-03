@@ -2,6 +2,7 @@ import type { BluetoothDevice } from "./BluetoothDevice";
 import type { BluetoothRemoteGATTCharacteristic } from "./BluetoothRemoteGATTCharacteristic";
 import type { BluetoothRemoteGATTDescriptor } from "./BluetoothRemoteGATTDescriptor";
 import type { BluetoothRemoteGATTService } from "./BluetoothRemoteGATTService";
+import { appLog } from "./WebKit";
 
 type CharacteristicKey = string
 
@@ -39,6 +40,17 @@ class Store {
     }
 
     getDevice = (uuid: string): BluetoothDevice | undefined => {
+        appLog('getDevice ' + uuid);
+        const d = this.#devices;
+        appLog('getDevice 1 ' + d);
+        const d1 = this.#devices.get(uuid);
+        appLog('getDevice 2 ' + d1);
+        const d2 = this.#devices.get(uuid)?.device;
+        if (d2) {
+            appLog('getDevice 2.1 ' + d2.id);
+        } else {
+            appLog('getDevice 2.1 nothing');;
+        }
         return this.#devices.get(uuid)?.device;
     }
 
@@ -47,6 +59,7 @@ class Store {
         if (deviceRecord) {
             // Perform any cleanup necessary here
         }
+        appLog('addDevice ' + device.id);
         this.#devices.set(device.id, { uuid: device.id, device, services: new Map() });
     }
 

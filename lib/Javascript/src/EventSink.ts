@@ -1,11 +1,27 @@
+import { createDevice } from "./Bluetooth";
+import { BluetoothAdvertisingEvent } from "./BluetoothAdvertisingEvent";
 import { base64ToDataView } from "./Data";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
+import { appLog } from "./WebKit";
 
 export type TargetedEvent = {
     id: string;
     name: string;
     data?: any;
+}
+
+type AdvertisementEvent = {
+    advertisement: {
+        uuids: string[];
+        name: string;
+        rssi: number;
+        txPower: number;
+    };
+    device: {
+        uuid: string;
+        name: string;
+    }; 
 }
 
 export const processEvent = (event: TargetedEvent) => {
@@ -15,7 +31,9 @@ export const processEvent = (event: TargetedEvent) => {
     if (event.id === 'bluetooth') {
         // This is the magic ID for the global Bluetooth object
         targets.push(globalThis.topaz.bluetooth);
-    } else if (event.name === 'gattserverdisconnected') {
+    }
+    
+    if (event.name === 'gattserverdisconnected') {
         // Forward this to the specific device
         const device = store.getDevice(event.id);
         if (device) {
@@ -27,6 +45,28 @@ export const processEvent = (event: TargetedEvent) => {
         const characteristic = store.updateCharacteristicValue(event.id, data);
         targets.push(characteristic);
         eventToSend = new ValueEvent(event.name, { value: data });
+    } else if (event.name === 'advertisementreceived') {
+        appLog('processEvent advertisementreceived ' + JSON.stringify(event));
+        const adEvent: AdvertisementEvent = event.data;
+        appLog('getDevice uuid=' + adEvent.device.uuid);
+        let device = store.getDevice(adEvent.device.uuid);
+        appLog('gotDevice ' + device);
+        if (!device) {
+            appLog('createDevice uuid=' + adEvent.device.uuid + ' name=' + adEvent.device.name);
+            device = createDevice(adEvent.device.uuid, adEvent.device.name);
+            appLog('did createDevice');
+            // TODO: track these and throw them away when the scan ends
+        }
+        appLog('gotDevice x ' + device.id);
+        eventToSend = new BluetoothAdvertisingEvent(event.name, {
+            device: device,
+            uuids: adEvent.advertisement.uuids,
+            name: adEvent.advertisement.name,
+            rssi: adEvent.advertisement.rssi,
+            txPower: adEvent.advertisement.txPower,
+            // TODO: manufacturerData and serviceData
+        });
+        appLog('send: ' + eventToSend);
     }
 
     if (!eventToSend) {

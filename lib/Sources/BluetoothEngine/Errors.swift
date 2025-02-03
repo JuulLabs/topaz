@@ -15,6 +15,8 @@ extension BluetoothError: DomErrorConvertable {
         case .characteristicNotificationsNotSupported: .notSupported
         case .nullService: .operation
         case .nullCharacteristic: .operation
+        case .turnedOff: .invalidState
+        case .unauthorized: .notAllowed
         case .unavailable: .operation
         case .unknown: .unknown
         }
