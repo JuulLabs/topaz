@@ -10,7 +10,7 @@ extension Tag {
 }
 
 @Suite(.tags(.options))
-// swiftlint:disable:next type_body_length
+// swiftlint:disable:next type_body_length type_name
 struct Options_DecodeTests {
 
     // swiftlint:disable:next type_name

@@ -15,7 +15,7 @@ private let service_D = FakeService(uuid: UUID(uuidString: "00001000-0000-1000-8
 private let service_E = FakeService(uuid: UUID(uuidString: "65ae0bb2-6699-458d-8770-21d3a1f1db6e")!)
 
 @Suite(.tags(.options))
-// swiftlint:disable:next type_body_length
+// swiftlint:disable:next type_name
 struct Options_IncludeAdvertisementEventTests {
 
     /*
