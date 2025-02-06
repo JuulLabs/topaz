@@ -45,8 +45,15 @@ public class AppModel {
 
         Task {
             await tabsModel.performInitialLoad()
+
+            
+            var urlFromClipboard: URL? = nil
+            if UIPasteboard.general.hasURLs {
+                urlFromClipboard = UIPasteboard.general.url
+            }
+
             if tabsModel.isEmpty {
-                self.activePageModel = buildPageModel(tabIndex: 1)
+                self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
             }
         }
     }
