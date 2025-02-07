@@ -19,6 +19,7 @@ extension Options {
 }
 
 extension Options.Filter {
+    // swiftlint:disable:next cyclomatic_complexity
     func matches(with advertisement: Advertisement) -> Bool {
 
         if let services = self.services {
