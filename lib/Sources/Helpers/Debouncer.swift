@@ -1,5 +1,5 @@
 
-public actor Debouncer: Sendable {
+public actor Debouncer {
     private(set) var task: Task<(), Error>?
 
     public init() {
