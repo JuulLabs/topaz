@@ -23,9 +23,9 @@ extension Options {
         let exclusionFilters = try data?[exclusionFiltersKey]?.array?.compactMap { try Options.Filter.decode(from: $0.dictionary) }
         let optionalServices = data?[optionalServicesKey]?.array?.compactMapToUUIDs()
         let optionalManufacturerData = data?[optionalManufacturerDataKey]?.array?.compactMapToUint16Array()
-        let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue
+        let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue ?? false
 
-        guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices != nil else {
+        guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices else {
             throw OptionsError.invalidInput("Empty options provided")
         }
 
@@ -59,7 +59,7 @@ extension Options.Filter {
             throw OptionsError.invalidInput("namePrefix cannot be an empty string")
         }
 
-        let manufacturerDataFilters = data?[manufacturerDataKey]?.array?.compactMap { Options.Filter.ManufacturerData.decode(from: $0.dictionary) }
+        let manufacturerDataFilters = try data?[manufacturerDataKey]?.array?.compactMap { try Options.Filter.ManufacturerData.decode(from: $0.dictionary) }
 
         if let manufacturerDataFilters = manufacturerDataFilters {
             guard manufacturerDataFilters.isEmpty == false else {
@@ -67,7 +67,7 @@ extension Options.Filter {
             }
         }
 
-        let serviceDataFilters = data?[serviceDataKey]?.array?.compactMap { Options.Filter.ServiceData.decode(from: $0.dictionary) }
+        let serviceDataFilters = try data?[serviceDataKey]?.array?.compactMap { try Options.Filter.ServiceData.decode(from: $0.dictionary) }
 
         if let serviceDataFilters = serviceDataFilters {
             guard serviceDataFilters.isEmpty == false else {
@@ -84,7 +84,7 @@ extension Options.Filter {
 }
 
 extension Options.Filter.ManufacturerData {
-    static func decode(from data: [String: JsType]?) -> Self? {
+    static func decode(from data: [String: JsType]?) throws -> Self? {
         guard let companyIdentifier = data?[companyIdentifierKey]?.number?.uint16Value else {
             return nil
         }
@@ -93,12 +93,18 @@ extension Options.Filter.ManufacturerData {
 
         let mask = data?[maskKey]?.array?.compactMapToUint8Array()
 
+        if mask != nil {
+            guard dataPrefix != nil else {
+                throw OptionsError.invalidInput("manufacturerData.mask, if provided, must also have a dataPrefix")
+            }
+        }
+
         return Options.Filter.ManufacturerData(companyIdentifier: companyIdentifier, dataPrefix: dataPrefix, mask: mask)
     }
 }
 
 extension Options.Filter.ServiceData {
-    static func decode(from data: [String: JsType]?) -> Self? {
+    static func decode(from data: [String: JsType]?) throws -> Self? {
         guard let service = data?[serviceKey]?.string.toUuid() else {
             return nil
         }
@@ -106,6 +112,12 @@ extension Options.Filter.ServiceData {
         let dataPrefix = data?[dataPrefixKey]?.array?.compactMapToUint8Array()
 
         let mask = data?[maskKey]?.array?.compactMapToUint8Array()
+
+        if mask != nil {
+            guard dataPrefix != nil else {
+                throw OptionsError.invalidInput("serviceData.mask, if provided, must also have a dataPrefix")
+            }
+        }
 
         return Options.Filter.ServiceData(service: service, dataPrefix: dataPrefix, mask: mask)
     }

@@ -41,7 +41,7 @@ struct EndToEndBluetoothEngineTests {
 
         await engineSut.didAttach(to: context)
         async let promise = await engineSut.process(request: requestDeviceRequest, in: context)
-        scanner.continuation.yield(AdvertisementEvent(fake, fake.fakeAd(rssi: 0)))
+        scanner.continuation.yield(AdvertisementEvent(fake, fake.fakeAdvertisement(rssi: 0)))
         let advertisements = await selectorSut.advertisements.first(where: { !$0.isEmpty })
         #expect(advertisements!.count == 1)
 
