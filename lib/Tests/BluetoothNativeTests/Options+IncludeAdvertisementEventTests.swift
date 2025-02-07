@@ -47,11 +47,11 @@ struct Options_IncludeAdvertisementEventTests {
         let fakePeripheral_D5 = FakePeripheral(id: UUID(), name: "D5")
 
         advertisementEvents = [
-            "D1": AdvertisementEvent(fakePeripheral_D1, fakePeripheral_D1.fakeAd(localName: "First De...", manufacturerData: ManufacturerData(code: 17, data: Data([01, 02, 03])), serviceUUIDs: [service_A.uuid, service_B.uuid, service_C.uuid, service_D.uuid])),
-            "D2": AdvertisementEvent(fakePeripheral_D2, fakePeripheral_D2.fakeAd(localName: nil, serviceData: ServiceData([service_A.uuid: Data([01, 02, 03])]), serviceUUIDs: [service_A.uuid, service_B.uuid, service_E.uuid])),
-            "D3": AdvertisementEvent(fakePeripheral_D3, fakePeripheral_D3.fakeAd(localName: "Device Third", serviceUUIDs: [service_C.uuid, service_D.uuid])),
-            "D4": AdvertisementEvent(fakePeripheral_D4, fakePeripheral_D4.fakeAd(localName: "Device Fourth", serviceUUIDs: [service_E.uuid])),
-            "D5": AdvertisementEvent(fakePeripheral_D5, fakePeripheral_D5.fakeAd(localName: "Unique Name")),
+            "D1": AdvertisementEvent(fakePeripheral_D1, fakePeripheral_D1.fakeAdvertisement(localName: "First De...", manufacturerData: ManufacturerData(code: 17, data: Data([01, 02, 03])), serviceUUIDs: [service_A.uuid, service_B.uuid, service_C.uuid, service_D.uuid])),
+            "D2": AdvertisementEvent(fakePeripheral_D2, fakePeripheral_D2.fakeAdvertisement(localName: nil, serviceData: ServiceData([service_A.uuid: Data([01, 02, 03])]), serviceUUIDs: [service_A.uuid, service_B.uuid, service_E.uuid])),
+            "D3": AdvertisementEvent(fakePeripheral_D3, fakePeripheral_D3.fakeAdvertisement(localName: "Device Third", serviceUUIDs: [service_C.uuid, service_D.uuid])),
+            "D4": AdvertisementEvent(fakePeripheral_D4, fakePeripheral_D4.fakeAdvertisement(localName: "Device Fourth", serviceUUIDs: [service_E.uuid])),
+            "D5": AdvertisementEvent(fakePeripheral_D5, fakePeripheral_D5.fakeAdvertisement(localName: "Unique Name")),
         ]
     }
 

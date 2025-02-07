@@ -29,7 +29,7 @@ public func FakePeripheral(
 }
 
 extension Peripheral {
-    public func fakeAd(
+    public func fakeAdvertisement(
         rssi: Int = 0,
         localName: String? = nil,
         manufacturerData: ManufacturerData? = nil,

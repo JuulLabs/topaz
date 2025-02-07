@@ -8,41 +8,56 @@ extension Options {
             return true
         }
 
-        let matchesOnFilters = self.filters?.compactMap { $0.matches(with: advertisementEvent) }.contains { $0 == true } ?? true
+        let advertisement = advertisementEvent.advertisement
 
-        let matchesOnExclusionFilters = self.exclusionFilters?.compactMap { $0.matches(with: advertisementEvent) }.contains { $0 == true } ?? false
+        let matchesOnFilters = self.filters?.contains { $0.matches(with: advertisement) } ?? true
+
+        let matchesOnExclusionFilters = self.exclusionFilters?.contains { $0.matches(with: advertisement) } ?? false
 
         return matchesOnFilters && !matchesOnExclusionFilters
     }
 }
 
 extension Options.Filter {
-    func matches(with advertisementEvent: AdvertisementEvent) -> Bool {
+    func matches(with advertisement: Advertisement) -> Bool {
 
-        let advertisedServices = advertisementEvent.advertisement.serviceUUIDs
-        var filterChecks = FilterChecks(filter: self)
-
-        if let filteredServices = self.services?.compactMap({ $0 }), advertisedServices.contains(filteredServices) {
-            filterChecks.servicesMatch = true
+        if let services = self.services {
+            if !advertisement.serviceUUIDs.contains(services) {
+                return false
+            }
         }
 
-        if let localName = advertisementEvent.advertisement.localName, self.name == localName {
-            filterChecks.namesMatch = true
+        if let name = self.name {
+            if name != advertisement.localName {
+                return false
+            }
         }
 
-        if let localName = advertisementEvent.advertisement.localName, let namePrefix = self.namePrefix, localName.hasPrefix(namePrefix) {
-            filterChecks.prefixedNamesMatch = true
+        if let namePrefix = self.namePrefix {
+            guard let advertisementLocalName = advertisement.localName else {
+                return false
+            }
+            if !advertisementLocalName.hasPrefix(namePrefix) {
+                return false
+            }
         }
 
-        if let manufacturerData = advertisementEvent.advertisement.manufacturerData, self.manufacturerData?.compactMap({ $0.matches(with: manufacturerData) }).allSatisfy({ $0 == true }) ?? true {
-            filterChecks.manufacturerDatumMatch = true
+        if let manufacturerData = self.manufacturerData {
+            guard let advertisementManufacturerData = advertisement.manufacturerData else {
+                return false
+            }
+            if !manufacturerData.allSatisfy({ $0.matches(with: advertisementManufacturerData) }) {
+                return false
+            }
         }
 
-        if self.serviceData?.compactMap({ $0.matches(with: advertisementEvent.advertisement.serviceData) }).allSatisfy({ $0 == true }) ?? true {
-            filterChecks.serviceDatumMatch = true
+        if let serviceData = self.serviceData {
+            if !serviceData.allSatisfy({ $0.matches(with: advertisement.serviceData) }) {
+                return false
+            }
         }
 
-        return filterChecks.matchesFilter()
+        return true
     }
 }
 
@@ -79,40 +94,5 @@ extension Data {
         }
 
         return true
-    }
-}
-
-private struct FilterChecks {
-    var servicesMatch: Bool?
-    var namesMatch: Bool?
-    var prefixedNamesMatch: Bool?
-    var manufacturerDatumMatch: Bool?
-    var serviceDatumMatch: Bool?
-
-    init(filter: Options.Filter) {
-        servicesMatch = initCheck(shouldBeEnabled: filter.services != nil)
-        namesMatch = initCheck(shouldBeEnabled: filter.name != nil)
-        prefixedNamesMatch = initCheck(shouldBeEnabled: filter.namePrefix != nil)
-        manufacturerDatumMatch = initCheck(shouldBeEnabled: filter.manufacturerData != nil)
-        serviceDatumMatch = initCheck(shouldBeEnabled: filter.serviceData != nil)
-    }
-
-    func matchesFilter() -> Bool {
-        for child in Mirror(reflecting: self).children {
-            if let check = child.value as? Bool {
-                guard check else {
-                    return false
-                }
-            }
-        }
-
-        return true
-    }
-
-    private func initCheck(shouldBeEnabled: Bool) -> Bool? {
-        // If the filter has a non-nil field, we should check against this filter--starting
-        // by assuming the check will fail. Otherwise, set the check to nil, as we will not
-        // check on it.
-        return shouldBeEnabled ? false : nil
     }
 }
