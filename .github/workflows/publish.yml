@@ -40,7 +40,7 @@ on:
 
 jobs:
   publish:
-    runs-on: [self-hosted, ConX, macOS, ARM64]
+    runs-on: [macOS-15]
     # Set a timeout to kill if it hangs which can happen if permissions need fixing and it hangs on a GUI prompt
     timeout-minutes: 10
     env:
