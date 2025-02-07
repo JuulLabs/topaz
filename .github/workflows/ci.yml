@@ -18,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: xcrun simctl list devices available
+      - run: xcodes select
+      - run: xcodebuild -version
       - run: make build
   test:
     name: Test
@@ -25,4 +27,6 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - run: xcodes select
+      - run: xcodebuild -version
       - run: make test

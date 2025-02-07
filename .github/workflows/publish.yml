@@ -102,6 +102,9 @@ jobs:
           echo "Build Number: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
           echo "Git Tag: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
 
+      - run: xcodes select
+      - run: xcodebuild -version
+
       - run: make clean
       - run: >
           make
