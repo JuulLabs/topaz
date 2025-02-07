@@ -21,10 +21,9 @@ struct Options_IncludeAdvertisementEventTests {
     /*
      Similar to Options+DecodeTests, examples from here:
      https://webbluetoothcg.github.io/web-bluetooth/#example-filter-by-services
-     are being used to construct the test cases. Each numbered example has a list of
-     nearby devices that will be tested against, and each sub-example will have a
-     different Options configuration to test against that list. The list of nearby
-     devices will be commented at the top of each example section.
+     are being used to construct the test cases. All numbered examples will use this list of
+     nearby devices, and each sub-example will have a different Options configuration
+     to test against it.
      */
 
     /*
