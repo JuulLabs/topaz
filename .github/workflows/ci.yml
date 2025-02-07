@@ -7,22 +7,27 @@ on:
 jobs:
   lint:
     name: Lint
-    runs-on: [self-hosted, ConX, macOS]
+    runs-on: [macOS-15]
     steps:
       - uses: actions/checkout@v4
+      - run: brew install swiftlint
       - run: swiftlint --version
       - run: swiftlint lint --strict --reporter github-actions-logging
   build:
     name: Build
-    runs-on: [self-hosted, ConX, macOS]
+    runs-on: [macOS-15]
     steps:
       - uses: actions/checkout@v4
       - run: xcrun simctl list devices available
+      - run: xcodes select
+      - run: xcodebuild -version
       - run: make build
   test:
     name: Test
-    runs-on: [self-hosted, ConX, macOS]
+    runs-on: [macOS-15]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - run: xcodes select
+      - run: xcodebuild -version
       - run: make test

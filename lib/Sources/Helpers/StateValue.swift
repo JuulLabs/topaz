@@ -4,7 +4,7 @@ import Semaphore
 /**
  Holds a value that can change over time, and provides a mechanism for consumers to await those changes.
  */
-public actor StateValue<Value: Sendable>: Sendable {
+public actor StateValue<Value: Sendable> {
     private var value: Value
     private let semaphore: AsyncSemaphore
 
