@@ -4,7 +4,7 @@ import Semaphore
 /**
  Holds a value that may arrive in the future.
  */
-public actor DeferredValue<Value: Sendable>: Sendable {
+public actor DeferredValue<Value: Sendable> {
     private var value: Value?
     private let semaphore = AsyncSemaphore(value: 0)
 

@@ -4,7 +4,7 @@ import Foundation
 /**
  Represents the current state of the bluetooth system.
  */
-public actor BluetoothState: Sendable {
+public actor BluetoothState {
     public private(set) var systemState: SystemState
     public private(set) var peripherals: [UUID: Peripheral]
 
