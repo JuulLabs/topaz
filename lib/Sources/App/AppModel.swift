@@ -46,7 +46,7 @@ public class AppModel {
         Task {
             await tabsModel.performInitialLoad()
             if tabsModel.isEmpty {
-                var urlFromClipboard: URL? = nil
+                var urlFromClipboard: URL?
                 if UIPasteboard.general.hasURLs {
                     urlFromClipboard = UIPasteboard.general.url
                 }
