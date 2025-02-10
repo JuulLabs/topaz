@@ -15,10 +15,6 @@ struct FreshPageView: View {
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
             centerAlignedSearchView
-            Button("Paste") {
-                let url = UIPasteboard.general.url
-                print(url)
-            }
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
