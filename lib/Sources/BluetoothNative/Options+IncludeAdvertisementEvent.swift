@@ -19,43 +19,30 @@ extension Options {
 }
 
 extension Options.Filter {
-    // swiftlint:disable:next cyclomatic_complexity
     func matches(with advertisement: Advertisement) -> Bool {
 
-        if let services = self.services {
-            if !advertisement.serviceUUIDs.contains(services) {
+        if let services, !advertisement.serviceUUIDs.contains(services) {
+            return false
+        }
+
+        if let name, name != advertisement.localName {
+            return false
+        }
+
+        if let namePrefix {
+            guard advertisement.localName?.hasPrefix(namePrefix) == true else {
                 return false
             }
         }
 
-        if let name = self.name {
-            if name != advertisement.localName {
+        if let manufacturerData {
+            guard manufacturerData.allSatisfy({ advertisement.manufacturerData.map($0.matches) ?? false }) else {
                 return false
             }
         }
 
-        if let namePrefix = self.namePrefix {
-            guard let advertisementLocalName = advertisement.localName else {
-                return false
-            }
-            if !advertisementLocalName.hasPrefix(namePrefix) {
-                return false
-            }
-        }
-
-        if let manufacturerData = self.manufacturerData {
-            guard let advertisementManufacturerData = advertisement.manufacturerData else {
-                return false
-            }
-            if !manufacturerData.allSatisfy({ $0.matches(with: advertisementManufacturerData) }) {
-                return false
-            }
-        }
-
-        if let serviceData = self.serviceData {
-            if !serviceData.allSatisfy({ $0.matches(with: advertisement.serviceData) }) {
-                return false
-            }
+        if let serviceData, !serviceData.allSatisfy({ $0.matches(with: advertisement.serviceData) }) {
+            return false
         }
 
         return true
@@ -85,15 +72,12 @@ extension Options.Filter.ServiceData {
 
 extension Data {
     func matches(with dataPrefix: [UInt8]?, using mask: [UInt8]?) -> Bool {
-        if let dataPrefix = dataPrefix {
-
-            if let mask = mask {
-                return zip(mask, dataPrefix).compactMap { $0.0 & $0.1 } == zip(mask, self).compactMap { $0.0 & $0.1 }
-            }
-
-            return self.starts(with: dataPrefix)
+        guard let dataPrefix else {
+            return true
         }
-
-        return true
+        guard let mask else {
+            return starts(with: dataPrefix)
+        }
+        return zip(mask, dataPrefix).map { $0.0 & $0.1 } == zip(mask, self).map { $0.0 & $0.1 }
     }
 }
