@@ -10,8 +10,8 @@ extension Tag {
 }
 
 @Suite(.tags(.options))
-// swiftlint:disable:next type_body_length
-struct OptionsTests {
+// swiftlint:disable:next type_body_length type_name
+struct Options_DecodeTests {
 
     // swiftlint:disable:next type_name
     private typealias sut = Options
@@ -509,6 +509,26 @@ struct OptionsTests {
     // written to ensure coverage.
 
     @Test
+    func decode_providesMaskInManufacturerDataButNoDataPrefix_throwsInvalidInputError() {
+        // { filters: [{ manufacturerData: [{ companyIdentifier: 17, mask: Uint8Array([0x0f, 0x57])}]}] }
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "mask": [0x0f, 0x57]]]]])]
+
+        #expect(throws: OptionsError.invalidInput("manufacturerData.mask, if provided, must also have a dataPrefix")) {
+            try sut.decode(from: web_bluetooth_options)
+        }
+    }
+
+    @Test
+    func decode_providesMaskInServiceDataButNoDataPrefix_throwsInvalidInputError() {
+        // { filters: [{ serviceData: [{ service: "A", mask: Uint8Array([0x0f, 0x57]) }] }] }
+        let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "mask": [0x0f, 0x57]]]]])]
+
+        #expect(throws: OptionsError.invalidInput("serviceData.mask, if provided, must also have a dataPrefix")) {
+            try sut.decode(from: web_bluetooth_options)
+        }
+    }
+
+    @Test
     func decode_fullServiceDataFilter_returnsCorrectOptionsObject() {
         // { filters: [{ serviceData: [{ service: "A", dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57]) }] }] }
         let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
@@ -553,9 +573,9 @@ struct OptionsTests {
     }
 
     @Test
-    func decode_acceptAllDevicesFalse_returnsCorrectOptionsObject() {
+    func decode_acceptAllDevicesFalseManuallySet_returnsCorrectOptionsObject() {
         // { acceptAllDevices: false }
-        let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(false)]
+        let web_bluetooth_options = ["filters": JsType.bridge([["namePrefix": "Bat"]]), "acceptAllDevices": JsType.bridge(false)]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)

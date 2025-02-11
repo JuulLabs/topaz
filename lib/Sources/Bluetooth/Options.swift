@@ -6,7 +6,13 @@ public enum OptionsError: LocalizedError, Equatable {
 
 public struct Options: Sendable {
 
-    public init(filters: [Filter]? = nil, exclusionFilters: [Filter]? = nil, optionalServices: [UUID]? = nil, optionalManufacturerData: [UInt16]? = nil, acceptAllDevices: Bool? = false) {
+    public init(
+        filters: [Filter]? = nil,
+        exclusionFilters: [Filter]? = nil,
+        optionalServices: [UUID]? = nil,
+        optionalManufacturerData: [UInt16]? = nil,
+        acceptAllDevices: Bool = false
+    ) {
         self.filters = filters
         self.exclusionFilters = exclusionFilters
         self.optionalServices = optionalServices
@@ -18,11 +24,17 @@ public struct Options: Sendable {
     public let exclusionFilters: [Filter]?
     public let optionalServices: [UUID]?
     public let optionalManufacturerData: [UInt16]?
-    public let acceptAllDevices: Bool?
+    public let acceptAllDevices: Bool
 
     public struct Filter: Sendable {
 
-        public init(services: [UUID]? = nil, name: String? = nil, namePrefix: String? = nil, manufacturerData: [ManufacturerData]? = nil, serviceData: [ServiceData]? = nil) {
+        public init(
+            services: [UUID]? = nil,
+            name: String? = nil,
+            namePrefix: String? = nil,
+            manufacturerData: [ManufacturerData]? = nil,
+            serviceData: [ServiceData]? = nil
+        ) {
             self.services = services
             self.name = name
             self.namePrefix = namePrefix
