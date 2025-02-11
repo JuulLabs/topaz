@@ -22,6 +22,10 @@ public class AppModel {
 
     var activePageModel: WebLoadingModel?
 
+    @ObservationIgnored
+    @AppStorage("userHasBeenPromptedToPasteUrl")
+    private var userHasBeenPromptedToPasteUrl: Bool = false
+
     public init(
         messageProcessorFactory: JsMessageProcessorFactory,
         deviceSelector: DeviceSelector,
@@ -47,8 +51,9 @@ public class AppModel {
             await tabsModel.performInitialLoad()
             if tabsModel.isEmpty {
                 var urlFromClipboard: URL?
-                if UIPasteboard.general.hasURLs {
+                if userHasBeenPromptedToPasteUrl == false, UIPasteboard.general.hasURLs {
                     urlFromClipboard = UIPasteboard.general.url
+                    userHasBeenPromptedToPasteUrl = true
                 }
 
                 self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
