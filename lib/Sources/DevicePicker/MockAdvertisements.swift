@@ -21,7 +21,7 @@ extension DeviceSelector {
                 try? await Task.sleep(nanoseconds: NSEC_PER_SEC / 2 * delay)
                 let fake = peripherals.randomElement()!
                 let rssi = Int.random(in: -90 ... -60)
-                await showAdvertisement(peripheral: fake, advertisement: fake.fakeAd(rssi: rssi))
+                await showAdvertisement(peripheral: fake, advertisement: fake.fakeAdvertisement(rssi: rssi))
             }
         }
     }
