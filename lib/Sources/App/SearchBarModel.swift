@@ -54,7 +54,7 @@ public final class SearchBarModel {
         if let derivedUrl = URL(string: sanitized), derivedUrl.isHttp {
             onSubmit(derivedUrl)
         // If the user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
-        } else if let hostnameRegex, let _ = try? hostnameRegex.wholeMatch(in: sanitized), gethostbyname(sanitized) != nil, let url = URL(string: "https://" + sanitized) {
+        } else if let hostnameRegex, (try? hostnameRegex.wholeMatch(in: sanitized)) != nil, gethostbyname(sanitized) != nil, let url = URL(string: "https://" + sanitized) {
             onSubmit(url)
         // Treat what they typed as a search query
         } else if let derivedUrl = searchUrl(query: sanitized) {
