@@ -22,6 +22,10 @@ public class AppModel {
 
     var activePageModel: WebLoadingModel?
 
+    @ObservationIgnored
+    @AppStorage("userHasBeenPromptedToPasteUrl")
+    private var userHasBeenPromptedToPasteUrl: Bool = false
+
     public init(
         messageProcessorFactory: JsMessageProcessorFactory,
         deviceSelector: DeviceSelector,
@@ -46,7 +50,13 @@ public class AppModel {
         Task {
             await tabsModel.performInitialLoad()
             if tabsModel.isEmpty {
-                self.activePageModel = buildPageModel(tabIndex: 1)
+                var urlFromClipboard: URL?
+                if userHasBeenPromptedToPasteUrl == false, UIPasteboard.general.hasURLs {
+                    urlFromClipboard = UIPasteboard.general.url
+                    userHasBeenPromptedToPasteUrl = true
+                }
+
+                self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
             }
         }
     }
