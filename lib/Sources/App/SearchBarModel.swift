@@ -6,6 +6,9 @@ import WebView
 @MainActor
 @Observable
 public final class SearchBarModel {
+
+    private let hostnameRegex = try? Regex("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]).)*([A-Za-z]|[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9])$")
+
     enum FocusedField {
         case searchBar
     }
@@ -46,8 +49,14 @@ public final class SearchBarModel {
     func didSubmitSearchString() {
         guard let sanitized = sanitizeInput(query: searchString) else { return }
         self.focusedField = nil
+
+        // If the user typed a full URL
         if let derivedUrl = URL(string: sanitized), derivedUrl.isHttp {
             onSubmit(derivedUrl)
+        // If the user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
+        } else if let url = hostNameUrl(hostname: sanitized) {
+            onSubmit(url)
+        // Treat what they typed as a search query
         } else if let derivedUrl = searchUrl(query: sanitized) {
             onSubmit(derivedUrl)
         }
@@ -97,6 +106,16 @@ public final class SearchBarModel {
     private func sanitizeInput(query: String) -> String? {
         let stripped = query.trimmingCharacters(in: .whitespacesAndNewlines)
         return stripped.count > 0 ? stripped : nil
+    }
+
+    private func hostNameUrl(hostname: String) -> URL? {
+        guard (try? hostnameRegex?.wholeMatch(in: hostname)) != nil else {
+            return nil
+        }
+        guard gethostbyname(hostname) != nil else {
+            return nil
+        }
+        return URL(string: "https://" + hostname)
     }
 }
 
