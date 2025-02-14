@@ -47,13 +47,6 @@ public struct SettingsView: View {
                 }
                 .listRowBackground(Color.topaz800)
 
-                LabeledContent("Logs") {
-                    Image(systemName: "chevron.right")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.logsButtonTapped()
-                }
-
                 /* TODO: Implement
                 VStack(alignment: .leading, spacing: 8) {
                     // Use HStack with a spacer to force a full-width hitbox
