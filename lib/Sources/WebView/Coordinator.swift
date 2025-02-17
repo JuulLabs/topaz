@@ -13,12 +13,17 @@ public class Coordinator: NSObject {
 
     var navigatingToUrl: URL?
 
+    // Used for debug logging:
+    var tab: Int {
+        viewModel?.tab ?? -1
+    }
+
     override init() {}
 
     func initialize(webView: WKWebView, model: WebPageModel) {
         self.viewModel = model
         self.messageProcessorFactory = model.messageProcessorFactory
-        self.contextId = JsContextIdentifier(tab: model.tab, url: model.url)
+        self.contextId = model.contextId
 
         webView.customUserAgent = model.customUserAgent
         webView.navigationDelegate = self
@@ -76,6 +81,15 @@ public class Coordinator: NSObject {
     func redirectDueToError(to document: SimpleHtmlDocument) {
         navigatingToUrl = nil
         viewModel?.navigator.redirect(to: document)
+    }
+
+    func openLinkInNewTab(url: URL?) {
+        guard let launchNewPage = viewModel?.launchNewPage, let url else {
+            return
+        }
+        navigatingToUrl = nil
+        viewModel?.navigator.stopLoading()
+        launchNewPage(url)
     }
 }
 

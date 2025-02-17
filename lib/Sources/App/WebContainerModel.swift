@@ -1,9 +1,7 @@
-import Bluetooth
 import DevicePicker
 import Observation
 import SwiftUI
 import WebView
-import WebKit
 
 @MainActor
 @Observable
@@ -28,16 +26,5 @@ public final class WebContainerModel {
                 selector.cancel()
             }
         )
-    }
-
-    static func loadAsync(
-        selector: DeviceSelector,
-        navBarModel: NavBarModel,
-        webConfigLoader: WebConfigLoader,
-        buildWebModel: @escaping (WKWebViewConfiguration) -> WebPageModel
-    ) async throws -> WebContainerModel {
-        let config = try await webConfigLoader.loadConfig()
-        let webPageModel = buildWebModel(config)
-        return .init(webPageModel: webPageModel, navBarModel: navBarModel, selector: selector)
     }
 }

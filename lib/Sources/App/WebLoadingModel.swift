@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-public final class WebLoadingModel {
+public final class WebLoadingModel: Identifiable, Equatable {
     let freshPageModel: FreshPageModel
     let navBarModel: NavBarModel
     var webContainerModel: WebContainerModel?
@@ -21,5 +21,9 @@ public final class WebLoadingModel {
     var shouldShowFreshPageOverlay: Bool {
         guard let webContainerModel else { return true }
         return webContainerModel.webPageModel.isPerformingInitialContentLoad
+    }
+
+    nonisolated public static func == (lhs: WebLoadingModel, rhs: WebLoadingModel) -> Bool {
+        lhs.id == rhs.id
     }
 }

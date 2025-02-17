@@ -8,6 +8,10 @@ public final class TabGridModel {
     private let store: CodableStorage?
     private var tabs: [Int: TabModel]
 
+    private var nextIndex: Int {
+        (tabs.keys.max() ?? 0) + 1
+    }
+
     public var openTab: (TabModel) -> Void = { _ in }
     public var openNewTab: (Int) -> Void = { _ in }
 
@@ -43,7 +47,6 @@ public final class TabGridModel {
     }
 
     func newTabButtonTapped() {
-        let nextIndex = (tabs.keys.max() ?? 0) + 1
         openNewTab(nextIndex)
     }
 
@@ -56,6 +59,19 @@ public final class TabGridModel {
         if let urls: [URL] = try? await store?.load(for: .tabURLsKey) {
             self.tabs = Self.urlsToTabs(urls)
         }
+    }
+
+    public func findOrCreateTab(for url: URL) -> TabModel {
+        if let tabModel = sortedTabs.first(where: { $0.url == url }) {
+            return tabModel
+        }
+        return createTab(for: url)
+    }
+
+    public func createTab(for url: URL) -> TabModel {
+        let newTabModel = TabModel(index: nextIndex, url: url)
+        update(url: url, at: newTabModel.index)
+        return newTabModel
     }
 
     // TODO: store a thumbnail image for the rendered URL content
