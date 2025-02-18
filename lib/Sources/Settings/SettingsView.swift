@@ -30,12 +30,14 @@ public struct SettingsView: View {
                     model.newTabButtonTapped()
                 }
 
+                /* TODO: Implement
                 LabeledContent("Set as default homepage") {
                     Image(systemName: "star")
                 }
                 .listRowTintedButton(color: Color.topaz800) {
                     model.setDefaultHomeButtonTapped()
                 }
+                 */
 
                 SearchEngineSelectorView(model: model.searchEngineSelectorModel)
 
@@ -45,13 +47,7 @@ public struct SettingsView: View {
                 }
                 .listRowBackground(Color.topaz800)
 
-                LabeledContent("Logs") {
-                    Image(systemName: "chevron.right")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.logsButtonTapped()
-                }
-
+                /* TODO: Implement
                 VStack(alignment: .leading, spacing: 8) {
                     // Use HStack with a spacer to force a full-width hitbox
                     HStack {
@@ -86,6 +82,7 @@ public struct SettingsView: View {
                 .listRowTintedButton(color: Color.topaz800) {
                     model.privacyPolicyButtonTapped()
                 }
+                 */
             }
             .listRowSeparatorTint(Color.borderActive)
         }
