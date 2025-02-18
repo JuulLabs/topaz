@@ -1,11 +1,11 @@
 import SwiftUI
 
 struct URLPreviewImage: View {
-    let url: URL
+    let url: URL?
 
     var body: some View {
         // TODO: load image from storage
-        Text("\(url.absoluteString)")
+        Text("\(url?.absoluteString ?? "New Page")")
             .padding()
             .foregroundStyle(Color.white)
     }

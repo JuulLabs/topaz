@@ -20,6 +20,7 @@ public class AppModel {
     let messageProcessorFactory: JsMessageProcessorFactory
     let tabsModel: TabGridModel
 
+    var previousActivePageModel: WebLoadingModel?
     var activePageModel: WebLoadingModel?
 
     @ObservationIgnored
@@ -45,6 +46,11 @@ public class AppModel {
         tabsModel.openTab = { [weak self] tab in
             guard let self else { return }
             self.activePageModel = buildPageModel(tabIndex: tab.index, initialUrl: tab.url)
+        }
+
+        tabsModel.restoreLastOpenedTab = { [weak self] in
+            guard let self else { return }
+            self.activePageModel = self.previousActivePageModel
         }
 
         Task {
@@ -83,6 +89,7 @@ public class AppModel {
             searchBarModel?.searchString = url.absoluteString
         }
         settingsModel.tabAction = { [weak self] in
+            self?.previousActivePageModel = self?.activePageModel
             self?.activePageModel = nil
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel)

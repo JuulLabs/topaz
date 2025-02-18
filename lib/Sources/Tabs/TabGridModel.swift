@@ -10,6 +10,7 @@ public final class TabGridModel {
 
     public var openTab: (TabModel) -> Void = { _ in }
     public var openNewTab: (Int) -> Void = { _ in }
+    public var restoreLastOpenedTab: () -> Void = { }
 
     init(urls: [URL] = []) {
         self.store = nil
@@ -25,7 +26,7 @@ public final class TabGridModel {
         sortedTabs.map(TabCell.tab) + [TabCell.new]
     }
 
-    var urls: [URL] { sortedTabs.map(\.url) }
+    var urls: [URL?] { sortedTabs.map(\.url) }
 
     private var sortedTabs: [TabModel] { tabs.values.sorted(by: { $0.index < $1.index }) }
 
@@ -42,7 +43,13 @@ public final class TabGridModel {
         openTab(tab)
     }
 
-    func newTabButtonTapped() {
+    func createNewTabButtonTapped() {
+        let nextIndex = (tabs.keys.max() ?? 0) + 1
+        tabs[nextIndex] = TabModel(index: nextIndex, url: nil)
+        saveAll()
+    }
+
+    func openNewTabButtonTapped() {
         let nextIndex = (tabs.keys.max() ?? 0) + 1
         openNewTab(nextIndex)
     }
@@ -50,6 +57,10 @@ public final class TabGridModel {
     func deleteButtonTapped(tab: TabModel) {
         tabs.removeValue(forKey: tab.index)
         saveAll()
+    }
+
+    func doneButtonTapped() {
+        restoreLastOpenedTab()
     }
 
     public func performInitialLoad() async {
