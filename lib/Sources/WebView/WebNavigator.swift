@@ -29,10 +29,12 @@ public final class WebNavigator {
     }
 
     public func goForward() {
+        self.webView?.stopLoading()
         self.webView?.goForward()
     }
 
     public func goBack() {
+        self.webView?.stopLoading()
         self.webView?.goBack()
     }
 

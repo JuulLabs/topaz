@@ -29,9 +29,6 @@ public final class SettingsModel {
     func setDefaultHomeButtonTapped() {
     }
 
-    func logsButtonTapped() {
-    }
-
     func clearHistoryButtonTapped() {
     }
 
