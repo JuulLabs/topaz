@@ -122,7 +122,7 @@ public final class SearchBarModel {
 
     private func hostnameResolves(_ hostname: String, within seconds: Int) async -> Bool {
         let resolveTask = Task {
-            let taskResult = await hostnameResolves(hostname)
+            let taskResult = gethostbyname(hostname) != nil
             try Task.checkCancellation()
             return taskResult
         }
@@ -139,10 +139,6 @@ public final class SearchBarModel {
         } catch {
             return false
         }
-    }
-
-    private func hostnameResolves(_ hostname: String) async -> Bool {
-        await Task { return gethostbyname(hostname) != nil }.value
     }
 }
 
