@@ -128,7 +128,7 @@ public final class SearchBarModel {
         }
 
         let timeoutTask = Task {
-            try await Task.sleep(nanoseconds: UInt64(seconds) * NSEC_PER_SEC)
+            try await Task.sleep(for: .seconds(seconds))
             resolveTask.cancel()
         }
 
