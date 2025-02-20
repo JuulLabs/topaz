@@ -22,6 +22,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
     public var onCharacteristicWrite: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ value: Data, _ withResponse: Bool) async throws -> CharacteristicEvent
     public var onDescriptorRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor) async throws -> DescriptorChangedEvent
+    public var onDescriptorWrite: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor, _ value: Data) async throws -> DescriptorEvent
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()
@@ -43,6 +44,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onCharacteristicRead = { _, _ in fatalError("Not implemented") }
         self.onCharacteristicWrite = { _, _, _, _ in fatalError("Not implemented") }
         self.onDescriptorRead = { _, _, _ in fatalError("Not implemented") }
+        self.onDescriptorWrite = { _, _, _, _ in fatalError("Not implemented") }
     }
 
     public func enable() async {
@@ -107,5 +109,9 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {
         try await onDescriptorRead(peripheral, characteristic, descriptor)
+    }
+
+    public func descriptorWrite(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor, value: Data) async throws -> DescriptorEvent {
+        try await onDescriptorWrite(peripheral, characteristic, descriptor, value)
     }
 }
