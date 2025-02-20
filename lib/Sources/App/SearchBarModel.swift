@@ -7,6 +7,8 @@ import WebView
 @Observable
 public final class SearchBarModel {
 
+    private struct LookupError: Error {}
+
     private let hostnameRegex = try? Regex("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]).)*([A-Za-z]|[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9])$")
 
     enum FocusedField {
@@ -54,10 +56,20 @@ public final class SearchBarModel {
             // If the user typed a full URL
             if let derivedUrl = URL(string: sanitized), derivedUrl.isHttp {
                 onSubmit(derivedUrl)
-                // If the user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
-            } else if let url = await hostNameUrl(hostname: sanitized) {
+                return
+            }
+
+            // If the user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
+            let result = await buildHostNameUrl(hostname: sanitized)
+
+            // Some sort of network error happened during DNS lookup and the operation timed out
+            guard case let .success(url) = result else {
+                return
+            }
+
+            if let url {
                 onSubmit(url)
-                // Treat what they typed as a search query
+            // Treat what they typed as a search query
             } else if let derivedUrl = searchUrl(query: sanitized) {
                 onSubmit(derivedUrl)
             }
@@ -110,18 +122,22 @@ public final class SearchBarModel {
         return stripped.count > 0 ? stripped : nil
     }
 
-    private func hostNameUrl(hostname: String) async -> URL? {
+    private func buildHostNameUrl(hostname: String) async -> Result<URL?, Error> {
         guard (try? hostnameRegex?.wholeMatch(in: hostname)) != nil else {
-            return nil
+            return .failure(LookupError())
         }
-        guard await hostnameResolves(hostname, within: 5) else {
-            return nil
+
+        return await hostnameResolves(hostname, within: 10).map { domainFound in
+            if domainFound {
+                return URL(string: "https://" + hostname)
+            } else {
+                return nil
+            }
         }
-        return URL(string: "https://" + hostname)
     }
 
-    private func hostnameResolves(_ hostname: String, within seconds: Int) async -> Bool {
-        let resolveTask = Task {
+    private func hostnameResolves(_ hostname: String, within seconds: Int) async -> Result<Bool, any Error> {
+        let resolveTask = Task.detached {
             let taskResult = gethostbyname(hostname) != nil
             try Task.checkCancellation()
             return taskResult
@@ -135,9 +151,9 @@ public final class SearchBarModel {
         do {
             let result = try await resolveTask.value
             timeoutTask.cancel()
-            return result
+            return .success(result)
         } catch {
-            return false
+            return .failure(LookupError())
         }
     }
 }
