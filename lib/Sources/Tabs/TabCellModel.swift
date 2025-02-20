@@ -2,7 +2,7 @@ import Foundation
 
 public struct TabModel: Equatable {
     public let index: Int
-    public let url: URL?
+    public let url: URL
 }
 
 enum TabCell: Equatable {

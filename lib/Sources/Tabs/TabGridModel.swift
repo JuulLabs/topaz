@@ -26,7 +26,7 @@ public final class TabGridModel {
         sortedTabs.map(TabCell.tab) + [TabCell.new]
     }
 
-    var urls: [URL?] { sortedTabs.map(\.url) }
+    var urls: [URL] { sortedTabs.map(\.url) }
 
     private var sortedTabs: [TabModel] { tabs.values.sorted(by: { $0.index < $1.index }) }
 
@@ -45,7 +45,7 @@ public final class TabGridModel {
 
     func createNewTabButtonTapped() {
         let nextIndex = (tabs.keys.max() ?? 0) + 1
-        tabs[nextIndex] = TabModel(index: nextIndex, url: nil)
+        tabs[nextIndex] = TabModel(index: nextIndex, url: URL(string: "about:blank")!)
         saveAll()
     }
 
