@@ -14,6 +14,7 @@ public final class TabGridModel {
 
     public var openTab: (TabModel) -> Void = { _ in }
     public var openNewTab: (Int) -> Void = { _ in }
+    public var restoreLastOpenedTab: () -> Void = { }
 
     init(urls: [URL] = []) {
         self.store = nil
@@ -46,13 +47,21 @@ public final class TabGridModel {
         openTab(tab)
     }
 
-    func newTabButtonTapped() {
+    func createNewTabButtonTapped() {
+        createTab(for: URL(string: "about:blank")!)
+    }
+
+    func openNewTabButtonTapped() {
         openNewTab(nextIndex)
     }
 
     func deleteButtonTapped(tab: TabModel) {
         tabs.removeValue(forKey: tab.index)
         saveAll()
+    }
+
+    func doneButtonTapped() {
+        restoreLastOpenedTab()
     }
 
     public func performInitialLoad() async {

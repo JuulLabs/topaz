@@ -20,7 +20,7 @@ public final class WebLoadingModel: Identifiable, Equatable {
 
     var shouldShowFreshPageOverlay: Bool {
         guard let webContainerModel else { return true }
-        return webContainerModel.webPageModel.isPerformingInitialContentLoad
+        return webContainerModel.webPageModel.isPerformingInitialContentLoad || webContainerModel.webPageModel.url.isAboutBlank()
     }
 
     nonisolated public static func == (lhs: WebLoadingModel, rhs: WebLoadingModel) -> Bool {

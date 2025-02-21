@@ -72,6 +72,10 @@ public final class NavBarModel {
         }
     }
 
+    func tabManagementButtonTapped() {
+        settingsModel.tabAction()
+    }
+
     func settingsButtonTapped() {
         isSettingsPresented.toggle()
     }
