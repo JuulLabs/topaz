@@ -53,7 +53,7 @@ extension Coordinator: WKNavigationDelegate {
         if (error as NSError).code == -999 {
            return
         }
-        
+
         let document = errorDocument(error: error, url: navigatingToUrl)
         redirectDueToError(to: document)
     }
