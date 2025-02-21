@@ -11,6 +11,12 @@ public final class SearchBarModel {
 
     private let hostnameRegex = try? Regex("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9-]*[a-zA-Z0-9]).)*([A-Za-z]|[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9])$")
 
+    private enum HostnameLookup {
+        case none
+        case success(URL)
+        case timeout
+    }
+
     enum FocusedField {
         case searchBar
     }
@@ -59,19 +65,18 @@ public final class SearchBarModel {
                 return
             }
 
-            // If the user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
-            let result = await buildHostNameUrl(hostname: sanitized)
-
-            // Some sort of network error happened during DNS lookup and the operation timed out
-            guard case let .success(url) = result else {
-                return
-            }
-
-            if let url {
+            switch await buildHostNameUrl(hostname: sanitized) {
+            case .none:
+                // Treat what they typed as a search query
+                if let derivedUrl = searchUrl(query: sanitized) {
+                    onSubmit(derivedUrl)
+                }
+            case let .success(url):
+                // The user typed something that resolves to a host. i.e. www.google.com or amazon.co.uk
                 onSubmit(url)
-            // Treat what they typed as a search query
-            } else if let derivedUrl = searchUrl(query: sanitized) {
-                onSubmit(derivedUrl)
+            case .timeout:
+                // Some sort of network error happened during DNS lookup and the operation timed out
+                return
             }
         }
     }
@@ -116,23 +121,30 @@ public final class SearchBarModel {
         loadPreferredSearchEngine().searchUrl(for: query)
     }
 
-    // TODO: appply valid-character-only filter to input as it is typed instead
+    // TODO: apply valid-character-only filter to input as it is typed instead
     private func sanitizeInput(query: String) -> String? {
         let stripped = query.trimmingCharacters(in: .whitespacesAndNewlines)
         return stripped.count > 0 ? stripped : nil
     }
 
-    private func buildHostNameUrl(hostname: String) async -> Result<URL?, Error> {
+    private func buildHostNameUrl(hostname: String) async -> HostnameLookup {
         guard (try? hostnameRegex?.wholeMatch(in: hostname)) != nil else {
-            return .failure(LookupError())
+            return .none
         }
 
-        return await hostnameResolves(hostname, within: 10).map { domainFound in
-            if domainFound {
-                return URL(string: "https://" + hostname)
+        let result = await hostnameResolves(hostname, within: 10).map { domainFound in
+            if domainFound, let url = URL(string: "https://" + hostname) {
+                return HostnameLookup.success(url)
             } else {
-                return nil
+               return HostnameLookup.none
             }
+        }
+
+        switch result {
+        case .success(let lookup):
+            return lookup
+        case .failure(_):
+            return .timeout
         }
     }
 
