@@ -134,9 +134,9 @@ public final class SearchBarModel {
 
         let result = await hostnameResolves(hostname, within: 10).map { domainFound in
             if domainFound, let url = URL(string: "https://" + hostname) {
-                return HostnameLookup.success(url)
+                HostnameLookup.success(url)
             } else {
-               return HostnameLookup.none
+               HostnameLookup.none
             }
         }
 
