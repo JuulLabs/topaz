@@ -71,7 +71,7 @@ public class AppModel {
         let navBarModel = buildNavModel(tabIndex: tabIndex)
         let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
         let loadingModel = WebLoadingModel(freshPageModel: freshPageModel, navBarModel: navBarModel)
-        if let url = initialUrl {
+        if let url = initialUrl, url.isAboutBlank() == false {
             performInitialLoad(on: loadingModel, tabIndex: tabIndex, initialUrl: url)
         }
         configureSubmitAction(on: loadingModel, tabIndex: tabIndex)
