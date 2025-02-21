@@ -20,6 +20,6 @@ public final class WebLoadingModel {
 
     var shouldShowFreshPageOverlay: Bool {
         guard let webContainerModel else { return true }
-        return webContainerModel.webPageModel.isPerformingInitialContentLoad
+        return webContainerModel.webPageModel.isPerformingInitialContentLoad || webContainerModel.webPageModel.url.isAboutBlank()
     }
 }
