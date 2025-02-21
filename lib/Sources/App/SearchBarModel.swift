@@ -143,7 +143,7 @@ public final class SearchBarModel {
         switch result {
         case .success(let lookup):
             return lookup
-        case .failure(_):
+        case .failure:
             return .timeout
         }
     }
