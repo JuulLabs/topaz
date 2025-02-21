@@ -13,27 +13,30 @@ public struct TabGridView: View {
     }
 
     public var body: some View {
-        ScrollView(.vertical) {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(model.tabCells) { tabCell in
-                    switch tabCell {
-                    case let .tab(tab):
-                        TabCellView(tab: tab) {
-                            model.tabButtonTapped(tab: tab)
-                        } delete: {
-                            model.deleteButtonTapped(tab: tab)
-                        }
-                    case .new:
-                        NewTabCellView {
-                            model.newTabButtonTapped()
+        VStack(spacing: 0) {
+            ScrollView(.vertical) {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(model.tabCells) { tabCell in
+                        switch tabCell {
+                        case let .tab(tab):
+                            TabCellView(tab: tab) {
+                                model.tabButtonTapped(tab: tab)
+                            } delete: {
+                                model.deleteButtonTapped(tab: tab)
+                            }
+                        case .new:
+                            NewTabCellView {
+                                model.createNewTabButtonTapped()
+                            }
                         }
                     }
                 }
+                .padding(16)
             }
-            .padding(16)
+            .animation(.smooth, value: model.tabCells)
+            .background(Color.topaz800)
+            TabManagementToolbarView(model: model)
         }
-        .animation(.smooth, value: model.tabCells)
-        .background(Color.topaz600)
     }
 }
 
