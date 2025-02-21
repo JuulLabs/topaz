@@ -28,6 +28,12 @@ struct NavIconStrip: View {
             .disabled(model.fullscreenButtonDisabled)
             Spacer()
             Button {
+                model.tabManagementButtonTapped()
+            } label: {
+                systemIcon(imageName: "square.on.square", size: 28)
+            }
+            Spacer()
+            Button {
                 model.settingsButtonTapped()
             } label: {
                 customIcon(image: .settingsIcon)
@@ -37,10 +43,11 @@ struct NavIconStrip: View {
 
     @ViewBuilder private func systemIcon(
         imageName: String,
-        disabled: Bool = false
+        disabled: Bool = false,
+        size: CGFloat = 32
     ) -> some View {
         Image(systemName: imageName)
-            .font(.system(size: 32).weight(.light))
+            .font(.system(size: size).weight(.light))
             .foregroundStyle(Color(white: 1.0, opacity: disabled ? 0.5 : 1.0))
             .padding(8) // For a larger hit box
     }
