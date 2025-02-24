@@ -22,3 +22,5 @@ export const base64ToDataView = (base64: string): DataView => {
 export function copyOf(data: DataView): DataView {
     return new DataView(data.buffer.slice(0))
 }
+
+export const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => (source as ArrayBufferView).buffer !== undefined;

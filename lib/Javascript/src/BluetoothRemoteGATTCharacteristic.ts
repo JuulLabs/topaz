@@ -6,6 +6,7 @@ import { bluetoothRequest } from "./WebKit";
 import { BluetoothUUID } from "./BluetoothUUID";
 import { copyOf } from "./Data";
 import { EmptyObject } from "./EmptyObject";
+import { isView } from "./Data";
 import { store } from "./Store";
 
 type DiscoverDescriptorsRequest = {
@@ -171,5 +172,3 @@ export class BluetoothRemoteGATTCharacteristic extends EventTarget {
         return this._writeValue(value, false)
     }
 }
-
-const isView = (source: ArrayBuffer | ArrayBufferView): source is ArrayBufferView => (source as ArrayBufferView).buffer !== undefined;

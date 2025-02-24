@@ -145,6 +145,14 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
+    func writeDescriptor(peripheral: Peripheral, descriptor: Descriptor, value: Data) {
+        queue.async {
+            guard let nativePeripheral = peripheral.rawValue else { return }
+            guard let nativeDescriptor = descriptor.rawValue else { return }
+            nativePeripheral.writeValue(value, for: nativeDescriptor)
+        }
+    }
+
     func setNotify(peripheral: Peripheral, characteristic: Characteristic, value: Bool) {
         queue.async {
             guard let nativePeripheral = peripheral.rawValue else { return }

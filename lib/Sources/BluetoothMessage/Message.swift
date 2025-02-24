@@ -31,6 +31,7 @@ public struct Message {
 
         // GATT Descriptor
         case readDescriptor
+        case writeDescriptor
     }
 
     public let action: Action
