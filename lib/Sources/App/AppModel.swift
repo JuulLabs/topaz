@@ -9,6 +9,7 @@ import Observation
 import Settings
 import SwiftUI
 import Tabs
+import WebKit
 import WebView
 
 @MainActor
@@ -43,9 +44,9 @@ public class AppModel {
             self.activePageModel = buildPageModel(tabIndex: tabIndex)
         }
 
-        tabsModel.openTab = { [weak self] tab in
+        tabsModel.openTab = { [weak self] tabModel in
             guard let self else { return }
-            self.activePageModel = buildPageModel(tabIndex: tab.index, initialUrl: tab.url)
+            self.activePageModel = buildPageModel(tabModel: tabModel)
         }
 
         tabsModel.restoreLastOpenedTab = { [weak self] in
@@ -67,7 +68,11 @@ public class AppModel {
         }
     }
 
-    private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel? {
+    private func buildPageModel(tabModel: TabModel) -> WebLoadingModel {
+        buildPageModel(tabIndex: tabModel.index, initialUrl: tabModel.url)
+    }
+
+    private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel {
         let navBarModel = buildNavModel(tabIndex: tabIndex)
         let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
         let loadingModel = WebLoadingModel(freshPageModel: freshPageModel, navBarModel: navBarModel)
@@ -123,23 +128,29 @@ public class AppModel {
 
     private func loadWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel) async -> WebContainerModel? {
         do {
-            return try await WebContainerModel.loadAsync(
-                selector: deviceSelector,
-                navBarModel: navBarModel,
-                webConfigLoader: webConfigLoader
-            ) { [messageProcessorFactory] config in
-                WebPageModel(
-                    tab: tab,
-                    url: url,
-                    config: config,
-                    messageProcessorFactory: messageProcessorFactory,
-                    navigator: navBarModel.navigator
-                )
-            }
+            let config = try await webConfigLoader.loadConfig()
+            return buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
         } catch {
             // TODO: navigate away due to failure and try again
             print("Unable to load \(error)")
             return nil
         }
+    }
+
+    private func buildWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel, config: WKWebViewConfiguration) -> WebContainerModel {
+        let webPageModel = WebPageModel(
+            tab: tab,
+            url: url,
+            config: config,
+            messageProcessorFactory: messageProcessorFactory,
+            navigator: navBarModel.navigator
+        )
+        webPageModel.launchNewPage = { [weak self] newUrl in
+            guard let self else { return }
+            let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
+            let webLoadingModel = self.buildPageModel(tabModel: newTab)
+            self.activePageModel = webLoadingModel
+        }
+        return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector)
     }
 }

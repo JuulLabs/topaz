@@ -6,7 +6,7 @@ import WebKit
 
 @MainActor
 @Observable
-public class WebPageModel {
+public class WebPageModel: Identifiable {
     @ObservationIgnored
     private var kvoStore: [NSKeyValueObservation] = []
 
@@ -20,6 +20,8 @@ public class WebPageModel {
     public var isPerformingInitialContentLoad: Bool = true
 
     public let navigator: WebNavigator
+
+    public var launchNewPage: ((URL) -> Void)?
 
     let messageProcessorFactory: JsMessageProcessorFactory
 
@@ -47,6 +49,12 @@ public class WebPageModel {
 
     public func loadNewPage(url: URL) {
         self.url = url
+    }
+
+    func createWebView() -> WKWebView {
+         let webView = WKWebView(frame: .zero, configuration: config)
+         webView.allowsBackForwardNavigationGestures = true
+         return webView
     }
 
     func didInitializeWebView(_ webView: WKWebView) {
