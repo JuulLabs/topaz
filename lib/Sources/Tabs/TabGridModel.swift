@@ -77,7 +77,8 @@ public final class TabGridModel {
         return createTab(for: url)
     }
 
-    public func createTab(for url: URL) -> TabModel {
+    @discardableResult
+    private func createTab(for url: URL) -> TabModel {
         let newTabModel = TabModel(index: nextIndex, url: url)
         update(url: url, at: newTabModel.index)
         return newTabModel
