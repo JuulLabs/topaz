@@ -46,12 +46,22 @@ extension Coordinator: WKNavigationDelegate {
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
         log.debug("didFailProvisionalNavigation navigation=\(navigation) \(self.extraDebugInfo) error=\(error)")
+        // -999 occurs when an asynchronous load is canceled. This can happen when a loading page triggers didStartProvisionalNavigation
+        // over and over (google does this a lot), which causes reloads on our webView stack. Ignoring -999 appears to be safe for now.
+        if (error as NSError).code == -999 {
+           return
+        }
         let document = errorDocument(error: error, url: navigatingToUrl)
         redirectDueToError(to: document)
     }
 
     public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
         log.debug("didFailNavigation navigation=\(navigation) \(self.extraDebugInfo) error=\(error)")
+        // -999 occurs when an asynchronous load is canceled. This can happen when a loading page triggers didStartProvisionalNavigation
+        // over and over (google does this a lot), which causes reloads on our webView stack. Ignoring -999 appears to be safe for now.
+        if (error as NSError).code == -999 {
+           return
+        }
         let document = errorDocument(error: error, url: navigatingToUrl)
         redirectDueToError(to: document)
     }
