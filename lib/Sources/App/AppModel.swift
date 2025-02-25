@@ -55,7 +55,7 @@ public class AppModel {
 
         tabsModel.openTab = { [weak self] tabModel in
             guard let self else { return }
-            lastOpenedTabIndex = tab.index
+            lastOpenedTabIndex = tabModel.index
             self.activePageModel = buildPageModel(tabModel: tabModel)
         }
 
