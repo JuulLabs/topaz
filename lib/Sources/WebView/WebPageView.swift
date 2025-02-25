@@ -17,6 +17,7 @@ public struct WebPageView: View {
 
     public var body: some View {
         _WebPageView(model: model, scrollView: $scrollView)
+            .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
     }
 
@@ -31,8 +32,7 @@ public struct WebPageView: View {
         }
 
         func makeUIView(context: Context) -> WKWebView {
-            let webView = WKWebView(frame: .zero, configuration: model.config)
-            webView.allowsBackForwardNavigationGestures = true
+            let webView = model.createWebView()
             context.coordinator.initialize(webView: webView, model: model)
             Task { @MainActor in
                 scrollView = webView.scrollView

@@ -19,6 +19,7 @@ struct WebLoadingView: View {
                 FreshPageView(model: model.freshPageModel)
             }
         }
+        .id(model.id)
         .animation(.easeInOut, value: model.shouldShowFreshPageOverlay)
     }
 }
