@@ -77,6 +77,8 @@ public final class TabGridModel {
 
     public var isEmpty: Bool { tabs.isEmpty }
 
+    public func urlForIndex(index: Int) -> URL? { tabs[index]?.url }
+
     private func saveAll() {
         guard let store else { return }
         Task { [urls] in

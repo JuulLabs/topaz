@@ -27,6 +27,14 @@ public class AppModel {
     @AppStorage("userHasBeenPromptedToPasteUrl")
     private var userHasBeenPromptedToPasteUrl: Bool = false
 
+    @ObservationIgnored
+    @AppStorage("lastOpenedTabIndex")
+    private var lastOpenedTabIndex: Int?
+
+    @ObservationIgnored
+    @AppStorage("lastOpenedTabWasInFullscreenMode")
+    private var lastOpenedTabWasInFullscreenMode: Bool?
+
     public init(
         messageProcessorFactory: JsMessageProcessorFactory,
         deviceSelector: DeviceSelector,
@@ -40,11 +48,13 @@ public class AppModel {
 
         tabsModel.openNewTab = { [weak self] tabIndex in
             guard let self else { return }
+            lastOpenedTabIndex = tabIndex
             self.activePageModel = buildPageModel(tabIndex: tabIndex)
         }
 
         tabsModel.openTab = { [weak self] tab in
             guard let self else { return }
+            lastOpenedTabIndex = tab.index
             self.activePageModel = buildPageModel(tabIndex: tab.index, initialUrl: tab.url)
         }
 
@@ -61,8 +71,10 @@ public class AppModel {
                     urlFromClipboard = UIPasteboard.general.url
                     userHasBeenPromptedToPasteUrl = true
                 }
-
+                self.lastOpenedTabIndex = 1
                 self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
+            } else if let lastOpenedTabIndex {
+                self.activePageModel = buildPageModel(tabIndex: lastOpenedTabIndex, initialUrl: tabsModel.urlForIndex(index: lastOpenedTabIndex))
             }
         }
     }
@@ -89,10 +101,13 @@ public class AppModel {
             searchBarModel?.searchString = url.absoluteString
         }
         settingsModel.tabAction = { [weak self] in
+            self?.lastOpenedTabIndex = nil
             self?.previousActivePageModel = self?.activePageModel
             self?.activePageModel = nil
         }
-        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel)
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
+            self.lastOpenedTabWasInFullscreenMode = newValue
+        }
     }
 
     private func performInitialLoad(on loadingModel: WebLoadingModel, tabIndex: Int, initialUrl url: URL) {
