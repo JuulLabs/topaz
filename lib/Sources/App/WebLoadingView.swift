@@ -64,7 +64,7 @@ struct WebLoadingView: View {
 
 @MainActor
 private func previewModel() -> WebLoadingModel {
-    let navBarModel = NavBarModel() { _ in }
+    let navBarModel = NavBarModel { _ in }
     let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
     return WebLoadingModel(
         freshPageModel: freshPageModel,
@@ -74,7 +74,7 @@ private func previewModel() -> WebLoadingModel {
 
 @MainActor
 private func webModel(url: URL) -> WebContainerModel {
-    let navBarModel = NavBarModel() { _ in }
+    let navBarModel = NavBarModel { _ in }
     return WebContainerModel(
         webPageModel: WebPageModel(
             tab: 0,
