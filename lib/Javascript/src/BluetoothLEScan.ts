@@ -85,20 +85,25 @@ export type BluetoothLEScanOptions = {
     // external
 }
 
-type RequestLEScanResponse = {
-    scanId: string;
+type RequestLEScanRequest = {
+    scanId?: string;
+    stop?: boolean;
+    options?: BluetoothLEScanOptions;
 }
 
-type ScanStopRequest = {
+type RequestLEScanResponse = {
     scanId: string;
-    stop: boolean;
+    active: boolean;
+    acceptAllAdvertisements: boolean;
+    keepRepeatedDevices: boolean;
+    filters: BluetoothLEScanFilter[];
 }
 
 // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#bluetoothlescan
 export class BluetoothLEScan {
 
     constructor(
-        private id: string,
+        private scanId: string,
         public filters: BluetoothLEScanFilter[],
         public keepRepeatedDevices: boolean,
         public acceptAllAdvertisements: boolean,
@@ -107,21 +112,26 @@ export class BluetoothLEScan {
     }
 
     stop = () => {
-        bluetoothRequest<ScanStopRequest, EmptyObject>(
+        bluetoothRequest<RequestLEScanRequest, RequestLEScanResponse>(
             'requestLEScan',
-            { scanId: this.id, stop: true }
-        );
+            { scanId: this.scanId, stop: true }
+        ).then(() => {
+            this.active = false;
+        });
     }
 }
 
 // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#scanning
 export const doRequestLEScan = async (options?: BluetoothLEScanOptions): Promise<BluetoothLEScan> => {
-    const response = await bluetoothRequest<BluetoothLEScanOptions, RequestLEScanResponse>(
+    const response = await bluetoothRequest<RequestLEScanRequest, RequestLEScanResponse>(
         'requestLEScan',
         { options: options }
     );
-    // TODO: convert request to Js BluetoothLEScan response
-    // Attach the scan object to the object graph for later reference
-    // when stopped, find the reference and flip the active flag to false and discard
-    return new BluetoothLEScan(response.scanId, [], false, false, true);
+    return new BluetoothLEScan(
+        response.scanId,
+        response.filters, // TODO: need to map these from Swift to Js data structures
+        response.keepRepeatedDevices,
+        response.acceptAllAdvertisements,
+        response.active
+    );
 }

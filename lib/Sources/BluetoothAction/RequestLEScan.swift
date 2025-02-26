@@ -138,8 +138,8 @@ extension AdvertisementEvent {
             "name": advertisement.localName ?? jsNull,
             "rssi": advertisement.rssi,
             "txPower": advertisement.txPowerLevel ?? jsNull,
-            "manufacturerData": jsNull, // TODO
-            "serviceData": jsNull, // TODO
+            "manufacturerData": advertisement.manufacturerData?.asJsDictionary(),
+            "serviceData": advertisement.serviceData.asJsDictionary(),
         ]
         let jsDevice: [String: JsConvertable] = [
             "uuid": peripheral.id,
@@ -150,5 +150,19 @@ extension AdvertisementEvent {
             "device": jsDevice,
         ]
         return JsEvent(targetId: "bluetooth", eventName: "advertisementreceived", body: body)
+    }
+}
+
+extension ManufacturerData {
+    func asJsDictionary() -> [String: JsConvertable] {
+        ["code": code, "data": data]
+    }
+}
+
+extension ServiceData {
+    func asJsDictionary() -> [String: JsConvertable] {
+        rawData.reduce(into: [:]) { dict, item in
+            dict[item.key.uuidString.lowercased()] = item.value
+        }
     }
 }

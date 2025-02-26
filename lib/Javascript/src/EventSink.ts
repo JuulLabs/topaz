@@ -17,6 +17,13 @@ type AdvertisementEvent = {
         name: string;
         rssi: number;
         txPower: number;
+        manufacturerData?: {
+            code: number;
+            data: string;
+        };
+        serviceData: {
+            [key: string]: string;
+        };
     };
     device: {
         uuid: string;
@@ -46,27 +53,28 @@ export const processEvent = (event: TargetedEvent) => {
         targets.push(characteristic);
         eventToSend = new ValueEvent(event.name, { value: data });
     } else if (event.name === 'advertisementreceived') {
-        appLog('processEvent advertisementreceived ' + JSON.stringify(event));
         const adEvent: AdvertisementEvent = event.data;
-        appLog('getDevice uuid=' + adEvent.device.uuid);
         let device = store.getDevice(adEvent.device.uuid);
-        appLog('gotDevice ' + device);
         if (!device) {
-            appLog('createDevice uuid=' + adEvent.device.uuid + ' name=' + adEvent.device.name);
             device = createDevice(adEvent.device.uuid, adEvent.device.name);
-            appLog('did createDevice');
-            // TODO: track these and throw them away when the scan ends
         }
-        appLog('gotDevice x ' + device.id);
+        let manufacturerData = new Map<number, DataView>();
+        if (adEvent.advertisement.manufacturerData) {
+            manufacturerData.set(adEvent.advertisement.manufacturerData.code, base64ToDataView(adEvent.advertisement.manufacturerData.data));
+        };
+        let serviceData = new Map<string, DataView>();
+        for (const [key, value] of Object.entries(adEvent.advertisement.serviceData)) {
+            serviceData.set(key, base64ToDataView(value));
+        };
         eventToSend = new BluetoothAdvertisingEvent(event.name, {
             device: device,
             uuids: adEvent.advertisement.uuids,
             name: adEvent.advertisement.name,
             rssi: adEvent.advertisement.rssi,
             txPower: adEvent.advertisement.txPower,
-            // TODO: manufacturerData and serviceData
+            manufacturerData: manufacturerData,
+            serviceData: serviceData,
         });
-        appLog('send: ' + eventToSend);
     }
 
     if (!eventToSend) {

@@ -1,5 +1,5 @@
 // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
- 
+
 import { BluetoothDevice } from "./BluetoothDevice";
 
 export interface BluetoothAdvertisingEventInit extends EventInit {
