@@ -1,8 +1,5 @@
 import Foundation
 
-public enum OptionsError: LocalizedError, Equatable {
-    case invalidInput(String)
-}
 
 public struct Options: Sendable {
 
