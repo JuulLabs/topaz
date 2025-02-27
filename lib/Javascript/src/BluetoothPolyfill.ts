@@ -2,7 +2,6 @@
 
 import { Topaz } from "./Topaz";
 import { BluetoothUUID } from "./BluetoothUUID";
-import { appLog } from "./WebKit";
 
 if (typeof((navigator as any).bluetooth) === 'undefined') {
     globalThis.topaz = new Topaz();

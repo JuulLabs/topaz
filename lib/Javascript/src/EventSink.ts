@@ -1,9 +1,7 @@
-import { createDevice } from "./Bluetooth";
-import { BluetoothAdvertisingEvent } from "./BluetoothAdvertisingEvent";
+import { convertToAdvertisingEvent } from "./BluetoothAdvertisingEvent";
 import { base64ToDataView } from "./Data";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
-import { appLog } from "./WebKit";
 
 export type TargetedEvent = {
     id: string;
@@ -11,25 +9,6 @@ export type TargetedEvent = {
     data?: any;
 }
 
-type AdvertisementEvent = {
-    advertisement: {
-        uuids: string[];
-        name: string;
-        rssi: number;
-        txPower: number;
-        manufacturerData?: {
-            code: number;
-            data: string;
-        };
-        serviceData: {
-            [key: string]: string;
-        };
-    };
-    device: {
-        uuid: string;
-        name: string;
-    }; 
-}
 
 export const processEvent = (event: TargetedEvent) => {
     let eventToSend: Event;
@@ -53,28 +32,7 @@ export const processEvent = (event: TargetedEvent) => {
         targets.push(characteristic);
         eventToSend = new ValueEvent(event.name, { value: data });
     } else if (event.name === 'advertisementreceived') {
-        const adEvent: AdvertisementEvent = event.data;
-        let device = store.getDevice(adEvent.device.uuid);
-        if (!device) {
-            device = createDevice(adEvent.device.uuid, adEvent.device.name);
-        }
-        let manufacturerData = new Map<number, DataView>();
-        if (adEvent.advertisement.manufacturerData) {
-            manufacturerData.set(adEvent.advertisement.manufacturerData.code, base64ToDataView(adEvent.advertisement.manufacturerData.data));
-        };
-        let serviceData = new Map<string, DataView>();
-        for (const [key, value] of Object.entries(adEvent.advertisement.serviceData)) {
-            serviceData.set(key, base64ToDataView(value));
-        };
-        eventToSend = new BluetoothAdvertisingEvent(event.name, {
-            device: device,
-            uuids: adEvent.advertisement.uuids,
-            name: adEvent.advertisement.name,
-            rssi: adEvent.advertisement.rssi,
-            txPower: adEvent.advertisement.txPower,
-            manufacturerData: manufacturerData,
-            serviceData: serviceData,
-        });
+        eventToSend = convertToAdvertisingEvent(event);
     }
 
     if (!eventToSend) {

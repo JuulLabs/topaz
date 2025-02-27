@@ -1,88 +1,21 @@
 // https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
 
-import { BluetoothUUID } from "./BluetoothUUID";
-import { EmptyObject } from "./EmptyObject";
+import { Bluetooth } from "./Bluetooth";
 import { bluetoothRequest } from "./WebKit";
 
-// export type BluetoothServiceUUID = string | number;
-
-// export interface BluetoothDataFilterInit {
-//     dataPrefix?: ArrayBuffer;
-// 	mask?: ArrayBuffer;
-// }
-
-// export class BluetoothDataFilter {
-//     dataPrefix: ArrayBuffer;
-//     mask: ArrayBuffer;
-
-//     constructor(
-//         init: BluetoothDataFilterInit = {}
-//     ) {
-//         this.dataPrefix = init.dataPrefix ? new Uint8Array(init.dataPrefix.slice(0)) : new ArrayBuffer(0);
-//         this.mask = init.mask ? new Uint8Array(init.mask.slice(0)) : new ArrayBuffer(0);
-//     }
-// }
-
-// export interface BluetoothManufacturerDataFilterInit extends BluetoothDataFilterInit {
-//     companyIdentifier: BluetoothServiceUUID;
-// }
-
-// export interface BluetoothServiceDataFilterInit extends BluetoothDataFilterInit {
-//     service: BluetoothServiceUUID;
-// }
-
-// export class BluetoothManufacturerDataFilter extends Map<BluetoothServiceUUID, BluetoothDataFilter> {
-    
-//     // companyIdentifier: BluetoothServiceUUID;
-
-//     constructor(
-//         init: BluetoothManufacturerDataFilterInit
-//     ) {
-//         super();
-//         this.set(init.companyIdentifier, new BluetoothDataFilter(init));
-//     }
-// }
-
-// export class BluetoothServiceDataFilter {
-// }
-
-// export interface BluetoothLEScanFilterInit {
-//     services?: Array<BluetoothServiceUUID>;
-//     name?: string;
-//     namePrefix?: string;
-//     manufacturerData?: Array<BluetoothManufacturerDataFilterInit>;
-//     serviceData?: Array<BluetoothServiceDataFilterInit>;
-// }
-
-// export class BluetoothLEScanFilter {
-//     // constructor(optional BluetoothLEScanFilterInit init = {});
-//     // readonly attribute DOMString? name;
-//     // readonly attribute DOMString? namePrefix;
-//     // readonly attribute FrozenArray<UUID> services;
-//     // readonly attribute BluetoothManufacturerDataFilter manufacturerData;
-//     // readonly attribute BluetoothServiceDataFilter serviceData;
-    
-//     name?: string;
-//     namePrefix?: string;
-//     services?: Array<BluetoothServiceUUID>;
-//     manufacturerData: BluetoothManufacturerDataFilter;
-//     serviceData: BluetoothServiceDataFilter;
-
-//     constructor(
-//         init: BluetoothLEScanFilterInit = {}
-//     ) {
-//         this.name = init.name;
-//         this.namePrefix = init.namePrefix;
-//         this.services = init.services?.map((service) => BluetoothUUID.getService(service)) ?? [];
-//     }
-// }
-
-type BluetoothLEScanFilter = {
-    // external
+export type BluetoothLEScanFilter = {
+    // NOTE: Taking a shortcut here, rather than define all of the types we just pass through the input.
+    // This is technically incorrect and we should define the types because the specification requires that
+    // the `BluetoothLEScanFilterInit` objects be used to conjure the `BluetoothLEScanFilter` objects.
+    // These things just get parked on the `BluetoothLEScan` object for reference, and as they are derived
+    // from the original input it is hard to imagine what the use case it for this so lets not do it for now.
+    // If we do end up defining the types, we should also update the `RequestDeviceOptions`.
 }
 
 export type BluetoothLEScanOptions = {
-    // external
+    keepRepeatedDevices: boolean;
+    acceptAllAdvertisements: boolean;
+    filters: BluetoothLEScanFilter[];
 }
 
 type RequestLEScanRequest = {
@@ -96,14 +29,24 @@ type RequestLEScanResponse = {
     active: boolean;
     acceptAllAdvertisements: boolean;
     keepRepeatedDevices: boolean;
-    filters: BluetoothLEScanFilter[];
+}
+
+const addToActiveScans = (scan: BluetoothLEScan) => {
+    const bluetooth: Bluetooth = globalThis.topaz.bluetooth;
+    removeFromActiveScans(scan.scanId);
+    bluetooth.activeScans.push(scan);
+}
+
+const removeFromActiveScans = (scanId: string) => {
+    const bluetooth: Bluetooth = globalThis.topaz.bluetooth;
+    bluetooth.activeScans = bluetooth.activeScans.filter((s) => s.scanId !== scanId);
 }
 
 // https://webbluetoothcg.github.io/web-bluetooth/scanning.html#bluetoothlescan
 export class BluetoothLEScan {
 
     constructor(
-        private scanId: string,
+        public scanId: string,
         public filters: BluetoothLEScanFilter[],
         public keepRepeatedDevices: boolean,
         public acceptAllAdvertisements: boolean,
@@ -112,12 +55,12 @@ export class BluetoothLEScan {
     }
 
     stop = () => {
+        this.active = false;
+        removeFromActiveScans(this.scanId);
         bluetoothRequest<RequestLEScanRequest, RequestLEScanResponse>(
             'requestLEScan',
             { scanId: this.scanId, stop: true }
-        ).then(() => {
-            this.active = false;
-        });
+        );
     }
 }
 
@@ -127,11 +70,13 @@ export const doRequestLEScan = async (options?: BluetoothLEScanOptions): Promise
         'requestLEScan',
         { options: options }
     );
-    return new BluetoothLEScan(
+    const newScan = new BluetoothLEScan(
         response.scanId,
-        response.filters, // TODO: need to map these from Swift to Js data structures
+        options.filters, // Note: Passing through the input filters as a shortcut here
         response.keepRepeatedDevices,
         response.acceptAllAdvertisements,
         response.active
     );
+    addToActiveScans(newScan);
+    return newScan;
 }

@@ -29,6 +29,7 @@ export const createDevice = (uuid: string, name?: string): BluetoothDevice => {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth
 export class Bluetooth extends EventTarget {
+    activeScans: BluetoothLEScan[] = [];
 
     constructor() {
         super();
