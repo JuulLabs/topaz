@@ -51,7 +51,9 @@ public class AppModel {
 
         tabsModel.restoreLastOpenedTab = { [weak self] in
             guard let self else { return }
-            self.activePageModel = self.previousActivePageModel
+            if let webPageModel = self.previousActivePageModel?.webContainerModel?.webPageModel {
+                self.activePageModel = self.buildPageModel(tabIndex: webPageModel.tab, initialUrl: webPageModel.url)
+            }
         }
 
         Task {
