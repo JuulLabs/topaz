@@ -27,7 +27,6 @@ struct NativeScanner: BluetoothScanner {
 
         // If options are provided, only yield events that pass the filters
         if options.includeAdvertisementEventInDeviceList(event) {
-            print("Yield matching advertisement")
             continuation.yield(event)
         }
     }

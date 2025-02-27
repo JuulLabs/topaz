@@ -20,11 +20,9 @@ struct RequestLEScanOptions: JsMessageDecodable {
     func decodeAndValidateFilters() throws -> [Options.Filter] {
         let filters = try rawFilters.compactMap { try Options.Filter.decode(from: $0.dictionary) }
         if acceptAllAdvertisements && !filters.isEmpty {
-            // TODO: should actually throw a TypeError not a DOMError
             throw OptionsError.invalidInput("Cannot set acceptAllAdvertisements to true if filters are provided")
         }
         if !acceptAllAdvertisements && filters.isEmpty {
-            // TODO: should actually throw a TypeError not a DOMError
             throw OptionsError.invalidInput("Cannot set acceptAllAdvertisements to false without providing filters")
         }
         return filters
@@ -56,7 +54,6 @@ enum RequestLEScanResponse: JsMessageEncodable {
                 "active": scan.active,
                 "acceptAllAdvertisements": scan.acceptAllAdvertisements,
                 "keepRepeatedDevices": scan.keepRepeatedDevices,
-                "filters": [], // TODO: map to Js values
             ])
         case .stop:
             .body([
@@ -86,12 +83,11 @@ struct RequestLEScan: BluetoothAction {
         case let .start(options):
             try await executeStart(state: state, client: client, options: options)
         case let .stop(scanId):
-            try await executeStop(state: state, client: client, scanId: scanId)
+            try await executeStop(state: state, scanId: scanId)
         }
     }
 
     private func executeStart(state: BluetoothState, client: BluetoothClient, options: RequestLEScanOptions) async throws -> RequestLEScanResponse {
-        print("executeStart")
         let scanId = UUID().uuidString
         let filters = try options.decodeAndValidateFilters()
         let activeScan = BluetoothLEScan(
@@ -101,68 +97,26 @@ struct RequestLEScan: BluetoothAction {
             active: true
         )
         let task = Task { [jsEventForwarder] in
-            print("Start scanning now")
             let scanner = await client.scan(options: activeScan.toFilterOptions())
             defer {
-                print("Scanner cancelled")
                 scanner.cancel()
             }
-            print("Await advertisements")
             for await event in scanner.advertisements {
                 guard !Task.isCancelled else { return }
-                print("TODO: got advertisement \(event.advertisement.localName ?? "unnamed")")
-                await jsEventForwarder.forwardEvent(event.jsAdvertismentEvent())
-                // TODO: keep track of these devices because Js will try to connect one of them next
+                await jsEventForwarder.forwardEvent(event.toJs())
+                // TODO: Keep track of these devices and after the scan concludes discard them if they do not request connection
+                await state.putPeripheral(event.peripheral)
             }
         }
         let scanTask = ScanTask(id: scanId, scan: activeScan, task: task)
         await state.addScanTask(scanTask)
-        // TODO: add scan to navigator.bluetooth.[[activeScans]]
         return .start(id: scanId, scan: activeScan)
     }
 
-    private func executeStop(state: BluetoothState, client: BluetoothClient, scanId: String) async throws -> RequestLEScanResponse {
-        print("executeStop")
+    private func executeStop(state: BluetoothState, scanId: String) async throws -> RequestLEScanResponse {
         if let scanTask = await state.removeScanTask(id: scanId) {
             scanTask.cancel()
         }
         return .stop
-    }
-}
-
-extension AdvertisementEvent {
-    public func jsAdvertismentEvent() -> JsEvent {
-        // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
-        let jsAdvertisement: [String: JsConvertable] = [
-            "uuids": peripheral.services.map { $0.uuid },
-            "name": advertisement.localName ?? jsNull,
-            "rssi": advertisement.rssi,
-            "txPower": advertisement.txPowerLevel ?? jsNull,
-            "manufacturerData": advertisement.manufacturerData?.asJsDictionary(),
-            "serviceData": advertisement.serviceData.asJsDictionary(),
-        ]
-        let jsDevice: [String: JsConvertable] = [
-            "uuid": peripheral.id,
-            "name": peripheral.name ?? jsNull,
-        ]
-        let body: [String: JsConvertable] = [
-            "advertisement": jsAdvertisement,
-            "device": jsDevice,
-        ]
-        return JsEvent(targetId: "bluetooth", eventName: "advertisementreceived", body: body)
-    }
-}
-
-extension ManufacturerData {
-    func asJsDictionary() -> [String: JsConvertable] {
-        ["code": code, "data": data]
-    }
-}
-
-extension ServiceData {
-    func asJsDictionary() -> [String: JsConvertable] {
-        rawData.reduce(into: [:]) { dict, item in
-            dict[item.key.uuidString.lowercased()] = item.value
-        }
     }
 }
