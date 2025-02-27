@@ -4,8 +4,8 @@ import Foundation
 import JsMessage
 
 extension AdvertisementEvent {
+    // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
     func toJs() -> JsEvent {
-        // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
         let jsAdvertisement: [String: JsConvertable] = [
             "uuids": peripheral.services.map { $0.uuid },
             "name": advertisement.localName ?? jsNull,

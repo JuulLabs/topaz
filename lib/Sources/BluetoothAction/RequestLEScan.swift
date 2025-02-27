@@ -5,7 +5,7 @@ import Foundation
 import JsMessage
 
 struct RequestLEScanOptions: JsMessageDecodable {
-    let rawFilters: [JsType]
+    private let rawFilters: [JsType]
     let acceptAllAdvertisements: Bool
     let keepRepeatedDevices: Bool
 
@@ -103,9 +103,9 @@ struct RequestLEScan: BluetoothAction {
             }
             for await event in scanner.advertisements {
                 guard !Task.isCancelled else { return }
-                await jsEventForwarder.forwardEvent(event.toJs())
-                // TODO: Keep track of these devices and after the scan concludes discard them if they do not request connection
+                // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
                 await state.putPeripheral(event.peripheral)
+                await jsEventForwarder.forwardEvent(event.toJs())
             }
         }
         let scanTask = ScanTask(id: scanId, scan: activeScan, task: task)

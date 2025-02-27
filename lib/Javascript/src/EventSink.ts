@@ -9,7 +9,6 @@ export type TargetedEvent = {
     data?: any;
 }
 
-
 export const processEvent = (event: TargetedEvent) => {
     let eventToSend: Event;
     let targets: EventTarget[] = [];
@@ -18,7 +17,7 @@ export const processEvent = (event: TargetedEvent) => {
         // This is the magic ID for the global Bluetooth object
         targets.push(globalThis.topaz.bluetooth);
     }
-    
+
     if (event.name === 'gattserverdisconnected') {
         // Forward this to the specific device
         const device = store.getDevice(event.id);

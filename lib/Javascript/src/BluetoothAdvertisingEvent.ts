@@ -38,8 +38,8 @@ export class BluetoothAdvertisingEvent extends Event {
         this.appearance = eventInitDict.appearance;
         this.txPower = eventInitDict.txPower;
         this.rssi = eventInitDict.rssi;
-        this.manufacturerData = eventInitDict.manufacturerData || new Map();
-        this.serviceData = eventInitDict.serviceData || new Map();
+        this.manufacturerData = eventInitDict.manufacturerData ?? new Map();
+        this.serviceData = eventInitDict.serviceData ?? new Map();
     }
 };
 
