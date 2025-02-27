@@ -92,7 +92,9 @@ public final class TabGridModel {
 
     public var isEmpty: Bool { tabs.isEmpty }
 
-    public func urlForIndex(index: Int) -> URL? { tabs[index]?.url }
+    public func findTab(for index: Int) -> TabModel? {
+        tabs[index]
+    }
 
     private func saveAll() {
         guard let store else { return }

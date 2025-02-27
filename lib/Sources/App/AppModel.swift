@@ -74,8 +74,8 @@ public class AppModel {
                 }
                 self.lastOpenedTabIndex = 1
                 self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
-            } else if let lastOpenedTabIndex {
-                self.activePageModel = buildPageModel(tabIndex: lastOpenedTabIndex, initialUrl: tabsModel.urlForIndex(index: lastOpenedTabIndex))
+            } else if let lastOpenedTabIndex, let tabModel = tabsModel.findTab(for: lastOpenedTabIndex) {
+                self.activePageModel = buildPageModel(tabModel: tabModel)
             }
         }
     }
