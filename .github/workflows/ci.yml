@@ -22,6 +22,8 @@ jobs:
       - run: xcrun simctl list devices available iOS
       - run: xcodes select
       - run: xcodebuild -version
+      - name: Install iOS 18.2 again to workaround bad runner config
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.2
       - run: make build
   test:
     name: Test
