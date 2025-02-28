@@ -1,6 +1,5 @@
 import Foundation
 
-
 public struct Options: Sendable {
 
     public init(
