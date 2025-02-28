@@ -23,26 +23,32 @@ public final class NavBarModel {
     }
 
     private(set) var isFullscreen: Bool = false
+    private let onFullscreenChanged: (Bool) -> Void
 
     init(
         navigator: WebNavigator = WebNavigator(),
         settingsModel: SettingsModel = SettingsModel(),
         searchBarModel: SearchBarModel? = nil,
-        bluetoothSystem: BluetoothSystemState = .shared
+        bluetoothSystem: BluetoothSystemState = .shared,
+        isFullscreen: Bool = false,
+        onFullscreenChanged: @escaping (Bool) -> Void
     ) {
         self.navigator = navigator
         self.searchBarModel = searchBarModel ?? SearchBarModel(navigator: navigator)
         self.pullDrawer = PullDrawerModel(height: 104.0, ratio: 1.25, activationDistance: 16)
         self.settingsModel = settingsModel
         self.bluetoothSystem = bluetoothSystem
+        self.isFullscreen = isFullscreen
+        self.onFullscreenChanged = onFullscreenChanged
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }
-        self.pullDrawer.disabled = true
+        self.pullDrawer.disabled = !isFullscreen
         self.pullDrawer.onExtendedPull = { [weak self] in
             self?.pullDrawer.close()
             self?.pullDrawer.disabled = true
             self?.isFullscreen = false
+            self?.onFullscreenChanged(false)
         }
     }
 
@@ -64,6 +70,7 @@ public final class NavBarModel {
 
     func fullscreenButtonTapped() {
         isFullscreen.toggle()
+        onFullscreenChanged(isFullscreen)
         if isFullscreen {
             pullDrawer.disabled = false
         } else {
