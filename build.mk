@@ -16,11 +16,16 @@ endif
 DERIVED_DATA_ROOT := .derivedData
 DERIVED_DATA_PATH := $(DERIVED_DATA_ROOT)/$(XCODE_CONFIG)
 
+define get_ios_version
+$(shell xcrun simctl list runtimes | grep '^iOS' | sort -r | head -1 | cut -d\  -f 2)
+endef
+
 define udid_for
 $(shell xcrun simctl list devices available '$(1)' | grep '$(2)' | sort -r | head -1 | awk -F '[()]' '{ print $$(NF-3) }')
 endef
 
-PLATFORM_IOS := platform=iOS Simulator,id=$(call udid_for,iOS,iPhone \d\+ Pro [^M])
+BEST_IOS_VERSION := $(call get_ios_version)
+PLATFORM_IOS := platform=iOS Simulator,id=$(call udid_for,iOS $(BEST_IOS_VERSION),iPhone \d\+ Pro [^M])
 PLATFORM_MACOS := platform=macOS,arch=arm64,variant=Designed for iPad
 PLATFORM_GENERIC := generic/platform=iOS
 
@@ -63,7 +68,8 @@ test: $(TEST_MODULES)
 
 boot-simulator:
 	@if [ ! -z "$(PLATFORM_ID)" ]; then \
-		echo "Booting simulator with id: $(PLATFORM_ID)"; \
+		xcrun simctl list devices available 'iOS $(BEST_IOS_VERSION)'; \
+		echo "Booting simulator for iOS $(BEST_IOS_VERSION) with id: $(PLATFORM_ID)"; \
 		xcrun simctl list | grep $(PLATFORM_ID) | grep -q Booted || xcrun simctl boot $(PLATFORM_ID); \
 		open -a Simulator --args -CurrentDeviceUDID $(PLATFORM_ID); \
 	fi
