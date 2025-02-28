@@ -118,4 +118,10 @@ struct NativeBluetoothClient: BluetoothClient {
             coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
         }
     }
+
+    func descriptorWrite(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor, value: Data) async throws -> DescriptorEvent {
+        return try await server.awaitEvent(key: .descriptor(.descriptorWrite, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)) {
+            coordinator.writeDescriptor(peripheral: peripheral, descriptor: descriptor, value: value)
+        }
+    }
 }
