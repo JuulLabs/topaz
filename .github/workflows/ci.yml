@@ -18,7 +18,8 @@ jobs:
     runs-on: [macOS-15]
     steps:
       - uses: actions/checkout@v4
-      - run: xcrun simctl list devices available
+      - run: xcrun simctl list runtimes
+      - run: xcrun simctl list devices available iOS
       - run: xcodes select
       - run: xcodebuild -version
       - run: make build
