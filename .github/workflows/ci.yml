@@ -33,4 +33,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: xcodes select
       - run: xcodebuild -version
+      - name: Install iOS 18.2 again to workaround bad runner config
+        run: xcodebuild -downloadPlatform iOS -buildVersion 18.2
       - run: make test
