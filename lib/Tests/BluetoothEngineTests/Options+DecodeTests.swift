@@ -584,6 +584,19 @@ struct Options_DecodeTests {
         }
     }
 
+    @Test
+    func decode_acceptAllDeviceWithOptionalServices_isAllowed() {
+        // { acceptAllDevices: true, optionalServices:[E] }
+        let web_bluetooth_options = ["acceptAllDevices": JsType.bridge(true), "optionalServices": JsType.bridge([uuid_3.uuidString])]
+
+        #expect(throws: Never.self) {
+            let result = try sut.decode(from: web_bluetooth_options)
+
+            #expect(result.acceptAllDevices == true)
+            #expect(result.optionalServices == [uuid_3])
+        }
+    }
+
     private func expect(filters: [Options.Filter]?, expectedCount: Int) {
         #expect(filters != nil)
         #expect(filters?.count == expectedCount)
