@@ -18,6 +18,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private let state: BluetoothState
     private let client: BluetoothClient
     private let deviceSelector: InteractiveDeviceSelector
+    private var jsEventForwarder: JsEventForwarder
     private var task: Task<Void, Never>?
 
     public init(
@@ -30,6 +31,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         self.client = client
         self.deviceSelector = deviceSelector
         self.enableDebugLogging = enableDebugLogging
+        self.jsEventForwarder = JsEventForwarder { _ in }
     }
 
     // MARK: - Bluetooth Events
@@ -70,6 +72,9 @@ public actor BluetoothEngine: JsMessageProcessor {
                     await handleDelegateEvent(event)
                 }
             }
+            self.jsEventForwarder = JsEventForwarder { [weak self] event in
+                await self?.sendEvent(event)
+            }
         }
     }
 
@@ -81,6 +86,10 @@ public actor BluetoothEngine: JsMessageProcessor {
         // Shut down the delegate event handler
         self.task?.cancel()
         self.task = nil
+        self.jsEventForwarder = JsEventForwarder { _ in }
+
+        // Shut down any active scans
+        await state.removeAllScanTasks().forEach { $0.cancel() }
 
         // Tell the system to disconnect all known peripherals and then shutdown
         let peripherals = await state.removeAllPeripherals()
@@ -115,7 +124,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     func processAction(message: Message) async throws -> JsMessageEncodable {
-        let action = try message.buildAction(client: client, selector: deviceSelector).get()
+        let action = try message.buildAction(client: client, selector: deviceSelector, jsEventForwarder: jsEventForwarder).get()
         if action.requiresReadyState {
             try await bluetoothReadyState()
         }
@@ -131,7 +140,11 @@ public actor BluetoothEngine: JsMessageProcessor {
             switch state {
             case .poweredOn:
                 true
-            case .unsupported, .unauthorized, .poweredOff:
+            case .poweredOff:
+                throw BluetoothError.turnedOff
+            case .unauthorized:
+                throw BluetoothError.unauthorized
+            case .unsupported:
                 throw BluetoothError.unavailable
             case .unknown, .resetting:
                 // Keep waiting - the system emits unknown until it has finished starting up

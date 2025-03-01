@@ -20,6 +20,12 @@ extension Int: JsConvertable {
     }
 }
 
+extension UInt16: JsConvertable {
+    public var jsValue: Any {
+        NSNumber(value: self)
+    }
+}
+
 extension UInt32: JsConvertable {
     public var jsValue: Any {
         NSNumber(value: self)

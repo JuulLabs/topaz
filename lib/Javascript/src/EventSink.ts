@@ -1,3 +1,4 @@
+import { convertToAdvertisingEvent } from "./BluetoothAdvertisingEvent";
 import { base64ToDataView } from "./Data";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
@@ -15,7 +16,9 @@ export const processEvent = (event: TargetedEvent) => {
     if (event.id === 'bluetooth') {
         // This is the magic ID for the global Bluetooth object
         targets.push(globalThis.topaz.bluetooth);
-    } else if (event.name === 'gattserverdisconnected') {
+    }
+
+    if (event.name === 'gattserverdisconnected') {
         // Forward this to the specific device
         const device = store.getDevice(event.id);
         if (device) {
@@ -27,6 +30,8 @@ export const processEvent = (event: TargetedEvent) => {
         const characteristic = store.updateCharacteristicValue(event.id, data);
         targets.push(characteristic);
         eventToSend = new ValueEvent(event.name, { value: data });
+    } else if (event.name === 'advertisementreceived') {
+        eventToSend = convertToAdvertisingEvent(event);
     }
 
     if (!eventToSend) {

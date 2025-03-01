@@ -7,6 +7,7 @@ import Foundation
 public actor BluetoothState {
     public private(set) var systemState: SystemState
     public private(set) var peripherals: [UUID: Peripheral]
+    public private(set) var scanTasks: [String: ScanTask]
 
     public init(
         systemState: SystemState = .unknown,
@@ -16,6 +17,7 @@ public actor BluetoothState {
         self.peripherals = peripherals.reduce(into: [UUID: Peripheral]()) { dictionary, peripheral in
             dictionary[peripheral.id] = peripheral
         }
+        self.scanTasks = [:]
     }
 
     public func setSystemState(_ systemState: SystemState) {
@@ -96,5 +98,27 @@ public actor BluetoothState {
             return
         }
         self.peripherals[peripheralId]?.services[serviceIndex].characteristics[characteristicIndex].descriptors = descriptors
+    }
+
+    public func addScanTask(_ scanTask: ScanTask) {
+        scanTasks[scanTask.id] = scanTask
+    }
+
+    public func getScanTask(id: String) -> ScanTask? {
+        scanTasks[id]
+    }
+
+    public func allScanTasks() -> [ScanTask] {
+        Array(scanTasks.values)
+    }
+
+    public func removeScanTask(id: String) -> ScanTask? {
+        scanTasks.removeValue(forKey: id)
+    }
+
+    public func removeAllScanTasks() -> [ScanTask] {
+        let allTasks = Array(scanTasks.values)
+        scanTasks.removeAll()
+        return allTasks
     }
 }
