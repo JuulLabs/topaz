@@ -1,7 +1,7 @@
 import JsMessage
 
 public protocol JsMessageDecodable: Sendable {
-    static func decode(from data: [String: JsType]?) throws -> Self?
+    static func decode(from data: [String: JsType]?) -> Self?
 }
 
 extension JsMessageDecodable {

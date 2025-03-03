@@ -6,11 +6,14 @@ import Foundation
 import JsMessage
 
 struct RequestDeviceRequest: JsMessageDecodable {
-    let options: Options?
+    private let rawOptionsData: [String: JsType]?
 
-    static func decode(from data: [String: JsType]?) throws -> Self? {
-        let optionsData = data?["options"]?.dictionary
-        return .init(options: try .decode(from: optionsData))
+    static func decode(from data: [String: JsType]?) -> Self? {
+        return .init(rawOptionsData: data?["options"]?.dictionary)
+    }
+
+    func decodeAndValidateOptions() throws -> Options {
+        try .decode(from: rawOptionsData)
     }
 }
 
@@ -42,11 +45,12 @@ struct RequestDevice: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> RequestDeviceResponse {
+        let options = try request.decodeAndValidateOptions()
         guard let selector else {
             throw BluetoothError.unavailable
         }
         let task = Task {
-            let scanner = await client.scan(options: request.options)
+            let scanner = await client.scan(options: options)
             defer { scanner.cancel() }
             for await event in scanner.advertisements {
                 try Task.checkCancellation()
