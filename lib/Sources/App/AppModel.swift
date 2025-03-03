@@ -21,12 +21,26 @@ public class AppModel {
     let messageProcessorFactory: JsMessageProcessorFactory
     let tabsModel: TabGridModel
 
-    var previousActivePageModel: WebLoadingModel?
     var activePageModel: WebLoadingModel?
+
+    // Tracks the last tab index that was opened, so it is known which tab to return
+    // to if the user hits Done on the tab management view
+    private var previouslyActivePageIndex: Int?
 
     @ObservationIgnored
     @AppStorage("userHasBeenPromptedToPasteUrl")
     private var userHasBeenPromptedToPasteUrl: Bool = false
+
+    // Tracks the last view the user was on:
+    // TabManagement view if this value is nil
+    // The tab view at the index if not nil
+    @ObservationIgnored
+    @AppStorage("lastOpenedTabIndex")
+    private var lastOpenedTabIndex: Int?
+
+    @ObservationIgnored
+    @AppStorage("lastOpenedTabWasInFullscreenMode")
+    private var lastOpenedTabWasInFullscreenMode: Bool?
 
     public init(
         messageProcessorFactory: JsMessageProcessorFactory,
@@ -41,17 +55,21 @@ public class AppModel {
 
         tabsModel.openNewTab = { [weak self] tabIndex in
             guard let self else { return }
+            lastOpenedTabIndex = tabIndex
             self.activePageModel = buildPageModel(tabIndex: tabIndex)
         }
 
         tabsModel.openTab = { [weak self] tabModel in
             guard let self else { return }
+            lastOpenedTabIndex = tabModel.index
             self.activePageModel = buildPageModel(tabModel: tabModel)
         }
 
         tabsModel.restoreLastOpenedTab = { [weak self] in
             guard let self else { return }
-            self.activePageModel = self.previousActivePageModel
+            if let index = self.previouslyActivePageIndex, let tabModel = tabsModel.findTab(for: index) {
+                self.activePageModel = self.buildPageModel(tabModel: tabModel)
+            }
         }
 
         Task {
@@ -62,8 +80,10 @@ public class AppModel {
                     urlFromClipboard = UIPasteboard.general.url
                     userHasBeenPromptedToPasteUrl = true
                 }
-
+                self.lastOpenedTabIndex = 1
                 self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
+            } else if let lastOpenedTabIndex, let tabModel = tabsModel.findTab(for: lastOpenedTabIndex) {
+                self.activePageModel = buildPageModel(tabModel: tabModel)
             }
         }
     }
@@ -94,10 +114,13 @@ public class AppModel {
             searchBarModel?.searchString = url.absoluteString
         }
         settingsModel.tabAction = { [weak self] in
-            self?.previousActivePageModel = self?.activePageModel
+            self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
+            self?.lastOpenedTabIndex = nil
             self?.activePageModel = nil
         }
-        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel)
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
+            self.lastOpenedTabWasInFullscreenMode = newValue
+        }
     }
 
     private func performInitialLoad(on loadingModel: WebLoadingModel, tabIndex: Int, initialUrl url: URL) {
