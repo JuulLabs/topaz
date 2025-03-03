@@ -1,10 +1,9 @@
 // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
 
-import { createDevice } from "./Bluetooth";
+import { getOrCreateDevice } from "./Bluetooth";
 import { BluetoothDevice } from "./BluetoothDevice";
 import { base64ToDataView } from "./Data";
 import type { TargetedEvent } from "./EventSink";
-import { store } from "./Store";
 
 export interface BluetoothAdvertisingEventInit extends EventInit {
     device: BluetoothDevice;
@@ -68,10 +67,7 @@ type AdvertisementEventPayload = {
 // Side effect: creates a new device if it doesn't exist and adds it to the store
 export const convertToAdvertisingEvent = (event: TargetedEvent): BluetoothAdvertisingEvent => {
     const payload: AdvertisementEventPayload = event.data;
-    let device = store.getDevice(payload.device.uuid);
-    if (!device) {
-        device = createDevice(payload.device.uuid, payload.device.name);
-    }
+    const device = getOrCreateDevice(payload.device.uuid, payload.device.name);
     let manufacturerData = new Map<number, DataView>();
     if (payload.advertisement.manufacturerData) {
         manufacturerData.set(

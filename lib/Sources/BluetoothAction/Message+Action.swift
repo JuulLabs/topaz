@@ -13,6 +13,8 @@ extension Message {
         switch action {
         case .getAvailability:
             return Availability.create(from: self)
+        case .getDevices:
+            return GetDevices.create(from: self)
         case .requestDevice:
             return RequestDeviceRequest.decode(from: self).map {
                 RequestDevice(request: $0, selector: selector)

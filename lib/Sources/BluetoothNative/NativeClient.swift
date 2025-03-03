@@ -53,6 +53,10 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
+    func getPeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral] {
+        await coordinator.retrievePeripherals(withIdentifiers: uuids)
+    }
+
     func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
         try await server.awaitEvent(key: .peripheral(.connect, peripheral)) {
             coordinator.connect(peripheral: peripheral)

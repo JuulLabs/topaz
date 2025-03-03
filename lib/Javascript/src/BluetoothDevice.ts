@@ -1,4 +1,13 @@
 import { BluetoothRemoteGATTServer } from "./BluetoothRemoteGATTServer";
+import { EmptyObject } from "./EmptyObject";
+import { store } from "./Store";
+import { bluetoothRequest } from "./WebKit";
+
+type ForgetDeviceRequest = {
+    uuid: string;
+}
+
+type ForgetDeviceResponse = EmptyObject;
 
 // https://developer.mozilla.org/en-US/docs/Web/API/BluetoothDevice
 export class BluetoothDevice extends EventTarget {
@@ -13,5 +22,12 @@ export class BluetoothDevice extends EventTarget {
         this.gatt = new BluetoothRemoteGATTServer(this);
     }
 
-    // TODO:
+    forget = async (): Promise<void> => {
+        await bluetoothRequest<ForgetDeviceRequest, ForgetDeviceResponse>(
+            'forgetDevice',
+            { uuid: this.id }
+        );
+        store.removeDevice(this.id);
+        return;
+    }
 }

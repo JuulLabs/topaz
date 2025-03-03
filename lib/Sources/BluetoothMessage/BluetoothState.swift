@@ -56,6 +56,20 @@ public actor BluetoothState {
         return peripheral
     }
 
+    public func rememberPeripheral(_ uuid: UUID) {
+        // TODO: persist known peripheral identifier
+    }
+
+    public func forgetPeripheral(_ uuid: UUID) {
+        self.peripherals.removeValue(forKey: uuid)
+        // TODO: un-persist known peripheral identifier
+    }
+
+    public func getKnownPeripheralIdentifiers() -> [UUID] {
+        // TODO: load peripheral identifiers from persistence
+        return Array(self.peripherals.keys)
+    }
+
     public func getService(peripheralId uuid: UUID, serviceId: UUID) throws -> Service {
         guard let service = try getPeripheral(uuid).services.first(where: { $0.uuid == serviceId }) else {
             throw BluetoothError.noSuchService(serviceId)
