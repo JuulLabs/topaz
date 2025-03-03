@@ -64,7 +64,7 @@ private func previewModel() -> WebContainerModel {
     let factory = staticMessageProcessorFactory(
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
-    let navBarModel = NavBarModel()
+    let navBarModel = NavBarModel { _ in }
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
