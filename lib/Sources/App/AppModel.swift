@@ -21,13 +21,19 @@ public class AppModel {
     let messageProcessorFactory: JsMessageProcessorFactory
     let tabsModel: TabGridModel
 
-    var previousActivePageModel: WebLoadingModel?
     var activePageModel: WebLoadingModel?
+
+    // Tracks the last tab index that was opened, so it is known which tab to return
+    // to if the user hits Done on the tab management view
+    private var previouslyActivePageIndex: Int?
 
     @ObservationIgnored
     @AppStorage("userHasBeenPromptedToPasteUrl")
     private var userHasBeenPromptedToPasteUrl: Bool = false
 
+    // Tracks the last view the user was on:
+    // TabManagement view if this value is nil
+    // The tab view at the index if not nil
     @ObservationIgnored
     @AppStorage("lastOpenedTabIndex")
     private var lastOpenedTabIndex: Int?
@@ -61,8 +67,8 @@ public class AppModel {
 
         tabsModel.restoreLastOpenedTab = { [weak self] in
             guard let self else { return }
-            if let webPageModel = self.previousActivePageModel?.webContainerModel?.webPageModel {
-                self.activePageModel = self.buildPageModel(tabIndex: webPageModel.tab, initialUrl: webPageModel.url)
+            if let index = self.previouslyActivePageIndex, let tabModel = tabsModel.findTab(for: index) {
+                self.activePageModel = self.buildPageModel(tabModel: tabModel)
             }
         }
 
@@ -108,8 +114,8 @@ public class AppModel {
             searchBarModel?.searchString = url.absoluteString
         }
         settingsModel.tabAction = { [weak self] in
+            self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
             self?.lastOpenedTabIndex = nil
-            self?.previousActivePageModel = self?.activePageModel
             self?.activePageModel = nil
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
