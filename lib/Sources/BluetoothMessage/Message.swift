@@ -16,6 +16,10 @@ public struct Message {
         case requestDevice
         case requestLEScan
 
+        // BluetoothDevice
+        case forgetDevice
+        case watchAdvertisements
+
         // GATT Server
         case connect
         case disconnect

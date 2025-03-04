@@ -37,15 +37,10 @@ export class Bluetooth extends EventTarget {
 
     constructor() {
         super();
-        this.addEventListener('availabilitychanged', (event) => {
-            this.onavailabilitychanged(event);
-        });
     }
 
-    // Alternative API to the availabilitychanged event listener
-    // https://webdocs.dev/en-us/docs/web/api/bluetooth/availabilitychanged_event
-    onavailabilitychanged = (event: ValueEvent<boolean>) => {
-    };
+    // TODO: https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-idl-attributes
+    // Events: advertisementreceived
 
     getAvailability = async (): Promise<boolean> => {
         const response = await bluetoothRequest<undefined, GetAvailabilityResponse>(

@@ -41,5 +41,10 @@ export const processEvent = (event: TargetedEvent) => {
 
     for (const target of targets) {
         target.dispatchEvent(eventToSend);
+        // Invoke the on<event> handler if it exists
+        const handler = target['on' + eventToSend.type];
+        if (handler) {
+            handler(eventToSend);
+        }
     }
 }
