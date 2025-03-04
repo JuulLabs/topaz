@@ -2,6 +2,7 @@ import { BluetoothDevice } from "./BluetoothDevice";
 import { bluetoothRequest } from "./WebKit";
 import { ValueEvent } from "./ValueEvent";
 import { store } from "./Store";
+import { BluetoothLEScan, BluetoothLEScanOptions, doRequestLEScan } from "./BluetoothLEScan";
 
 type Options = {
     // external
@@ -20,7 +21,7 @@ type RequestDeviceResponse = {
     name?: string;
 }
 
-const createDevice = (uuid: string, name?: string): BluetoothDevice => {
+export const createDevice = (uuid: string, name?: string): BluetoothDevice => {
     const device = new BluetoothDevice(uuid, name);
     store.addDevice(device);
     return device;
@@ -28,6 +29,7 @@ const createDevice = (uuid: string, name?: string): BluetoothDevice => {
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Bluetooth
 export class Bluetooth extends EventTarget {
+    activeScans: BluetoothLEScan[] = [];
 
     constructor() {
         super();
@@ -61,5 +63,9 @@ export class Bluetooth extends EventTarget {
             { options: options }
         );
         return createDevice(response.uuid, response.name);
+    }
+
+    requestLEScan = async (options?: BluetoothLEScanOptions): Promise<BluetoothLEScan> => {
+        return doRequestLEScan(options);
     }
 }

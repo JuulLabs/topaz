@@ -5,13 +5,21 @@ import DevicePicker
 import JsMessage
 
 extension Message {
-    public func buildAction(client: BluetoothClient, selector: any InteractiveDeviceSelector) -> Result<any BluetoothAction, Error> {
+    public func buildAction(
+        client: BluetoothClient,
+        selector: any InteractiveDeviceSelector,
+        jsEventForwarder: JsEventForwarder
+    ) -> Result<any BluetoothAction, Error> {
         switch action {
         case .getAvailability:
             return Availability.create(from: self)
         case .requestDevice:
             return RequestDeviceRequest.decode(from: self).map {
                 RequestDevice(request: $0, selector: selector)
+            }
+        case .requestLEScan:
+            return RequestLEScanRequest.decode(from: self).map {
+                RequestLEScan(request: $0, jsEventForwarder: jsEventForwarder)
             }
         case .connect:
             return Connector.create(from: self)
