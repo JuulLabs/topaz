@@ -49,15 +49,10 @@ public struct Message {
 
     public func decode<T: JsMessageDecodable>(_ type: T.Type) -> Result<T, Error> {
         let data = requestBody["data"]?.dictionary
-        do {
-            guard let decoded = try T.decode(from: data) else {
-                return .failure(MessageDecodeError.bodyDecodeFailed("\(T.self)"))
-            }
-
-            return .success(decoded)
-        } catch {
-            return .failure(error)
+        guard let decoded = T.decode(from: data) else {
+            return .failure(MessageDecodeError.bodyDecodeFailed("\(T.self)"))
         }
+        return .success(decoded)
     }
 }
 
