@@ -14,6 +14,8 @@ public final class SettingsModel {
     public var tabAction: () -> Void = {}
     public var shareItem: SharingUrl = .init()
 
+    public var presentClearCacheDialogue: Bool = false
+
     public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
     }
@@ -33,6 +35,7 @@ public final class SettingsModel {
     }
 
     func clearCacheButtonTapped() {
+        presentClearCacheDialogue = true
     }
 
     func privacyPolicyButtonTapped() {

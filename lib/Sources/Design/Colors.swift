@@ -2,12 +2,32 @@ import SwiftUI
 
 public extension Color {
 
+    static var blueButton: Color {
+        Color(hex: "#1895FF")!
+    }
+
     static var borderActive: Color {
         Color(hex: "#F8F8F8")!
     }
 
     static var canvasHighContrast: Color {
         Color(hex: "#1C1C23")!
+    }
+
+    static var darkGrey: Color {
+        Color(hex: "#9F9F9E")!
+    }
+
+    static var darkerGrey: Color {
+        Color(hex: "#676765")!
+    }
+
+    static var darkSteel: Color {
+        Color(hex: "#2C2C2D")!
+    }
+
+    static var redButton: Color {
+        Color(hex: "#FF2729")!
     }
 
     static var redNotification: Color {

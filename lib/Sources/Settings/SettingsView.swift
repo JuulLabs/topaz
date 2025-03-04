@@ -12,6 +12,8 @@ public struct SettingsView: View {
         model.shareItem.subject.map(Text.init)
     }
 
+//    @State private var presentClearCacheDialogue: Bool = false
+
     public var body: some View {
         List {
             Section {
@@ -61,6 +63,7 @@ public struct SettingsView: View {
                 .listRowTintedButton(color: Color.topaz800) {
                     model.clearHistoryButtonTapped()
                 }
+                 */
 
                 VStack(alignment: .leading, spacing: 8) {
                     // Use HStack with a spacer to force a full-width hitbox
@@ -68,14 +71,30 @@ public struct SettingsView: View {
                         Text("Clear website data")
                         Spacer()
                     }
+//                    Button {
+////                        model.clearCacheButtonTapped()
+//                    } label: {
+//                        Text("Clear website data")
+//                    }
+//                    .frame(maxWidth: .infinity, alignment: .leading)
+//                    .border(Color.red)
                     Text("Remove all data including caches and cookies")
                         .font(.dogpatch(.footnote))
                         .foregroundStyle(.secondary)
                 }
                 .listRowTintedButton(color: Color.topaz800) {
+//                    presentClearCacheDialogue = true
                     model.clearCacheButtonTapped()
                 }
+                .sheet(isPresented: $model.presentClearCacheDialogue, content: {
+                    ClearWebsiteDataConfirmationView()
+                        .padding(8)
+                        .presentationBackground { Color.clear }
+//                        .padding()
+                        .presentationDetents([.fraction(0.3)])
+                })
 
+                /*
                 LabeledContent("Privacy Policy") {
                     Image(systemName: "chevron.right")
                 }
