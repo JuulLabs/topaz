@@ -30,7 +30,9 @@ extension Message {
         case .forgetDevice:
             return ForgetDevice.create(from: self)
         case .watchAdvertisements:
-            return WatchAdvertisements.create(from: self)
+            return WatchAdvertisementsRequest.decode(from: self).map {
+                WatchAdvertisements(request: $0, jsEventForwarder: jsEventForwarder)
+            }
 
         // GATT Server
         case .connect:

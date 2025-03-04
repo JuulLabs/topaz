@@ -17,7 +17,7 @@ struct GetDevicesResponse: JsMessageEncodable {
         .body(
             peripherals.map { (id, name) in
                 [
-                    "uuid": id.uuidString,
+                    "uuid": id,
                     "name": name,
                 ]
             }

@@ -50,26 +50,19 @@ struct WatchAdvertisements: BluetoothAction {
     }
 
     private func executeStart(state: BluetoothState, client: BluetoothClient) async {
-        let task = Task { [jsEventForwarder] in
-            // TODO: options for this device only, but combined with others?
+        let task = Task { [jsEventForwarder, targetId = request.peripheralId] in
             let scanner = await client.scan(options: nil)
             defer {
-                // TODO: only cancel if no other watchers
                 scanner.cancel()
             }
             for await event in scanner.advertisements {
                 guard !Task.isCancelled else { return }
-                await jsEventForwarder.forwardEvent(event.toJs())
+                if event.peripheral.id == targetId {
+                    await jsEventForwarder.forwardEvent(event.toJs(targetId: targetId.uuidString.lowercased()))
+                }
             }
         }
-        // TODO: need a different kind of scan for this one
-        let activeScan = BluetoothLEScan(
-            filters: [.init(name: "")],
-            keepRepeatedDevices: false,
-            acceptAllAdvertisements: false,
-            active: true
-        )
-        let scanTask = ScanTask(id: request.peripheralId.uuidString, scan: activeScan, task: task)
+        let scanTask = ScanTask(id: request.peripheralId.uuidString, task: task)
         await state.addScanTask(scanTask)
     }
 
