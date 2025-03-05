@@ -1,63 +1,56 @@
 //
 
 import SwiftUI
+import WebKit
 
 struct ClearWebsiteDataConfirmationView: View {
+
+    let model: SettingsModel
 
     public var body: some View {
         VStack(spacing: 7) {
             VStack {
                 Text("Clear website data")
-                    .font(
-                        .custom("SF Pro", size: 14)
-                        .weight(.medium)
-                    )
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                     .foregroundStyle(Color.darkGrey)
                     .padding(.top, 10)
                 Text("Remove all website data including cache, cookies, etc.")
-                    .font(.custom("SF Pro", size: 14))
+                    .font(.subheadline)
                     .foregroundStyle(Color.darkGrey)
                     .padding(.bottom, 21)
+
                 Rectangle()
                     .foregroundStyle(Color.darkerGrey)
                     .frame(maxWidth: .infinity, maxHeight: 1)
 
                 Button {
-                    print("remove data")
+                    model.removeAllDataButtonTapped()
                 } label: {
                     Text("Remove all data")
-                        .font(
-                            Font.custom("SF Pro", size: 20)
-                            .weight(.medium)
-                        )
+                        .font(.title3)
+                        .fontWeight(.medium)
                         .foregroundStyle(Color.redButton)
                         .frame(maxWidth: .infinity)
                 }
-                .padding([.top, .bottom], 16)
-//                .border(Color.red)
-//                .padding(.top, 17)
-//                .padding(.bottom, 15)
+                .padding(.top, 7)
+                .padding(.bottom, 17)
             }
             .frame(maxWidth: .infinity)
             .background { Color.darkSteel }
             .clipShape(
                 RoundedRectangle(cornerRadius: 12)
-//                    .inset(by: 0.25)
-//                    .stroke(Color(red: 0.4, green: 0.4, blue: 0.4), lineWidth: 0.5)
             )
 
             Button {
-                print("cancel")
+                model.cancelClearCacheButtonTapped()
             } label: {
                 Text("Cancel")
-                    .font(
-                        Font.custom("SF Pro", size: 20)
-                        .weight(.medium)
-                    )
+                    .font(.title3)
+                    .fontWeight(.medium)
                     .foregroundStyle(Color.blueButton)
                     .padding([.top, .bottom], 16)
                     .frame(maxWidth: .infinity)
-//                    .border(Color.red)
             }
             .frame(maxWidth: .infinity)
             .background { Color.darkSteel }
@@ -65,10 +58,12 @@ struct ClearWebsiteDataConfirmationView: View {
                 RoundedRectangle(cornerRadius: 12)
             )
         }
-//        .frame(idealHeight: 196)
     }
 }
 
 #Preview {
-    ClearWebsiteDataConfirmationView()
+    ClearWebsiteDataConfirmationView(model: SettingsModel())
+#if targetEnvironment(simulator)
+        .forceLoadFontsInPreview()
+#endif
 }

@@ -38,6 +38,15 @@ public final class SettingsModel {
         presentClearCacheDialogue = true
     }
 
+    func removeAllDataButtonTapped() {
+        cleanWebCache()
+        presentClearCacheDialogue = false
+    }
+
+    func cancelClearCacheButtonTapped() {
+        presentClearCacheDialogue = false
+    }
+
     func privacyPolicyButtonTapped() {
     }
 
