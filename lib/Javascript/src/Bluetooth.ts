@@ -1,5 +1,5 @@
 import { BluetoothDevice } from "./BluetoothDevice";
-import { bluetoothRequest } from "./WebKit";
+import { appLog, bluetoothRequest } from "./WebKit";
 import { ValueEvent } from "./ValueEvent";
 import { store } from "./Store";
 import { BluetoothLEScan, BluetoothLEScanOptions, doRequestLEScan } from "./BluetoothLEScan";
