@@ -82,9 +82,9 @@ public struct SettingsView: View {
                     } label: {
                         Text("Remove all data")
                     }
-                }) {
+                }, message: {
                     Text("Remove all website data including cache, cookies, etc.")
-                }
+                })
 
                 /*
                 LabeledContent("Privacy Policy") {
