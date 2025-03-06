@@ -76,12 +76,15 @@ public struct SettingsView: View {
                 .listRowTintedButton(color: Color.topaz800) {
                     model.clearCacheButtonTapped()
                 }
-                .sheet(isPresented: $model.presentClearCacheDialogue, content: {
-                    ClearWebsiteDataConfirmationView(model: model)
-                        .padding(8)
-                        .presentationBackground { Color.clear }
-                        .presentationDetents([.fraction(0.3)])
-                })
+                .confirmationDialog("Clear website data", isPresented: $model.presentClearCacheDialogue, titleVisibility: .visible, actions: {
+                    Button(role: .destructive) {
+                        model.removeAllDataButtonTapped()
+                    } label: {
+                        Text("Remove all data")
+                    }
+                }) {
+                    Text("Remove all website data including cache, cookies, etc.")
+                }
 
                 /*
                 LabeledContent("Privacy Policy") {

@@ -43,10 +43,6 @@ public final class SettingsModel {
         presentClearCacheDialogue = false
     }
 
-    func cancelClearCacheButtonTapped() {
-        presentClearCacheDialogue = false
-    }
-
     func privacyPolicyButtonTapped() {
     }
 
