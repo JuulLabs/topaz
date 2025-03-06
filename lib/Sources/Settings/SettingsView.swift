@@ -61,6 +61,7 @@ public struct SettingsView: View {
                 .listRowTintedButton(color: Color.topaz800) {
                     model.clearHistoryButtonTapped()
                 }
+                 */
 
                 VStack(alignment: .leading, spacing: 8) {
                     // Use HStack with a spacer to force a full-width hitbox
@@ -75,7 +76,17 @@ public struct SettingsView: View {
                 .listRowTintedButton(color: Color.topaz800) {
                     model.clearCacheButtonTapped()
                 }
+                .confirmationDialog("Clear website data", isPresented: $model.presentClearCacheDialogue, titleVisibility: .visible, actions: {
+                    Button(role: .destructive) {
+                        model.removeAllDataButtonTapped()
+                    } label: {
+                        Text("Remove all data")
+                    }
+                }, message: {
+                    Text("Remove all website data including cache, cookies, etc.")
+                })
 
+                /*
                 LabeledContent("Privacy Policy") {
                     Image(systemName: "chevron.right")
                 }
