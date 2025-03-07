@@ -18,12 +18,17 @@ export const processEvent = (event: TargetedEvent) => {
         targets.push(globalThis.topaz.bluetooth);
     }
 
-    if (event.name === 'gattserverdisconnected') {
-        // Forward this to the specific device
-        const device = store.getDevice(event.id);
-        if (device) {
-            targets.push(device);
+    const pushDeviceTarget = () => {
+        if (event.id !== 'bluetooth') {
+            const device = store.getDevice(event.id);
+            if (device) {
+                targets.push(device);
+            }
         }
+    }
+
+    if (event.name === 'gattserverdisconnected') {
+        pushDeviceTarget();
     } else if (event.name === 'characteristicvaluechanged') {
         // Decode the data payload, update the store, and forward event to the specific characteristic
         const data = base64ToDataView(event.data);
@@ -32,6 +37,7 @@ export const processEvent = (event: TargetedEvent) => {
         eventToSend = new ValueEvent(event.name, { value: data });
     } else if (event.name === 'advertisementreceived') {
         eventToSend = convertToAdvertisingEvent(event);
+        pushDeviceTarget();
     }
 
     if (!eventToSend) {
@@ -41,5 +47,10 @@ export const processEvent = (event: TargetedEvent) => {
 
     for (const target of targets) {
         target.dispatchEvent(eventToSend);
+        // Invoke the on<event> handler if it exists
+        const handler = target['on' + eventToSend.type];
+        if (handler) {
+            handler(eventToSend);
+        }
     }
 }
