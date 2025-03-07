@@ -13,6 +13,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCancelPendingRequests: @Sendable () async -> Void
     public var onScan: @Sendable (_ options: Options?) async -> BluetoothScanner
     public var onSystemState: @Sendable () async throws -> SystemStateEvent
+    public var onGetPeripherals: @Sendable (_ uuids: [UUID]) async -> [Peripheral]
     public var onConnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
     public var onDisconnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
     public var onDiscoverServices: @Sendable (_ peripheral: Peripheral, _ filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
@@ -34,6 +35,7 @@ public struct MockBluetoothClient: BluetoothClient {
         self.onCancelPendingRequests = { fatalError("Not implemented") }
         self.onScan = { _ in fatalError("Not implemented") }
         self.onSystemState = { fatalError("Not implemented") }
+        self.onGetPeripherals = { _ in fatalError("Not implemented") }
         self.onConnect = { _ in fatalError("Not implemented") }
         self.onDisconnect = { _ in fatalError("Not implemented") }
         self.onDiscoverServices = { _, _ in fatalError("Not implemented") }
@@ -71,6 +73,10 @@ public struct MockBluetoothClient: BluetoothClient {
 
     public func systemState() async throws -> SystemStateEvent {
         try await onSystemState()
+    }
+
+    public func getPeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral] {
+        await onGetPeripherals(uuids)
     }
 
     public func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent {

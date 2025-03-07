@@ -82,6 +82,14 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
+    func retrievePeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral] {
+        queue.sync {
+            self.manager?.retrievePeripherals(withIdentifiers: uuids) ?? []
+        }.map { peripheral in
+            peripheral.erase(locker: delegate.locker)
+        }
+    }
+
     func connect(peripheral: Peripheral) {
         queue.async {
             guard let native = peripheral.rawValue else { return }

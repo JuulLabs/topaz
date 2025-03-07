@@ -12,8 +12,13 @@ public struct Message {
     public enum Action: String, CaseIterable {
         // General
         case getAvailability
+        case getDevices
         case requestDevice
         case requestLEScan
+
+        // BluetoothDevice
+        case forgetDevice
+        case watchAdvertisements
 
         // GATT Server
         case connect
