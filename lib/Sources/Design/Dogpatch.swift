@@ -1,4 +1,5 @@
 import SwiftUI
+import OSLog
 
 public enum Dogpatch: String, CaseIterable {
     case sansLight = "DogpatchSans-Light"
@@ -86,8 +87,7 @@ extension UIFont {
         let dogpatch = Dogpatch.with(weight: weight, design: design)
         let size = dogpatch.scaleMapping(for: style)
         guard let font = UIFont(name: dogpatch.rawValue, size: size) else {
-            // TODO: log this fault for developers somewhere
-            print("ERROR: font \(dogpatch.rawValue) not found")
+            fontLogger.error("Font not found: \(dogpatch.rawValue, privacy: .public)")
             return UIFont.preferredFont(forTextStyle: style.toUIFontTextStyle())
         }
         return font

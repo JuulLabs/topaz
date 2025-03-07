@@ -6,11 +6,14 @@ import DevicePicker
 import Helpers
 import JsMessage
 import Observation
+import OSLog
 import Settings
 import SwiftUI
 import Tabs
 import WebKit
 import WebView
+
+private let log = Logger(subsystem: "App", category: "AppModel")
 
 @MainActor
 @Observable
@@ -155,7 +158,7 @@ public class AppModel {
             return buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
         } catch {
             // TODO: navigate away due to failure and try again
-            print("Unable to load \(error)")
+            log.error("Unable to load \(error.localizedDescription, privacy: .public)")
             return nil
         }
     }

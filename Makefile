@@ -46,5 +46,8 @@ lint-official:
 lint-fix-official:
 	swift format -i -r .
 
+log-watch:
+	log stream --source --level debug --style compact --predicate 'process=="topaz" AND sender=="topaz.debug.dylib" AND subsystem!="WebView"'
+
 clean:
 	-rm -rf .build build $(DERIVED_DATA_ROOT) $(ARTIFACTS_ROOT)
