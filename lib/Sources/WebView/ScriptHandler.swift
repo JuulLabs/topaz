@@ -51,22 +51,7 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
         guard let processor = await getProcessor(named: request.handlerName) else {
             return (nil, "Handler not found for \(request.handlerName)")
         }
-#if DEBUG
-        if processor.enableDebugLogging {
-            print("REQUEST \(message.name): \(message.body)")
-        }
-#endif
         let result = await processor.process(request: request, in: context)
-#if DEBUG
-        switch result {
-        case let .body(value):
-            if processor.enableDebugLogging {
-                print("RESPONSE \(message.name): \(value.jsValue)")
-            }
-        case let .error(reason):
-            print("RESPONSE \(message.name) ERROR: \(reason)")
-        }
-#endif
         return switch result {
         case let .body(value):
             (value.jsValue, nil)

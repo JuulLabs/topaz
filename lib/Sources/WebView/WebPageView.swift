@@ -33,6 +33,9 @@ public struct WebPageView: View {
 
         func makeUIView(context: Context) -> WKWebView {
             let webView = model.createWebView()
+#if DEBUG
+            webView.isInspectable = true
+#endif
             context.coordinator.initialize(webView: webView, model: model)
             Task { @MainActor in
                 scrollView = webView.scrollView

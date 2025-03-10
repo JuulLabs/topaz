@@ -31,13 +31,14 @@ export const bluetoothRequest = function <Request, Response>(
 
 // Logging Channel
 
-type LogMessage = {
-    // TODO: log level
+export type LogMessage = {
+    level?: string;
     msg: string;
+    console?: boolean;
+    sensitive?: boolean;
+    data?: any;
 }
 
-export const appLog = function (msg: string): Promise<void> {
-    return window.webkit.messageHandlers.logging.postMessage<void>({
-        msg: msg
-    }).catch(rethrowAsDOMException);
+export const appLog = function (msg: LogMessage): Promise<void> {
+    return window.webkit.messageHandlers.logging.postMessage<void>(msg).catch(rethrowAsDOMException);
 }

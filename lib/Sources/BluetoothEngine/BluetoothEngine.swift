@@ -5,6 +5,9 @@ import BluetoothMessage
 import DevicePicker
 import Foundation
 import JsMessage
+import OSLog
+
+private let messageLog = Logger(subsystem: "BluetoothEngine", category: "Message")
 
 /**
  Main engine - owns state, integrates web API with native API
@@ -99,10 +102,12 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private func sendEvent(_ event: JsEvent) async {
         guard case let .running(context) = self.runState else { return }
+        if enableDebugLogging {
+            messageLog.debug("Event \(event.eventName, privacy: .public): \(event.asDebugString(), privacy: .public)")
+        }
         let result = await context.sendEvent(event)
         if case let .failure(error) = result {
-            // TODO: log this somewhere
-            print("Event send failed: \(error.localizedDescription)")
+            messageLog.error("Event send failed \(event.eventName, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -116,8 +121,10 @@ public actor BluetoothEngine: JsMessageProcessor {
         }
         do {
             let message = try request.extractMessage().get()
-            let response = try await processAction(message: message)
-            return response.toJsMessage()
+            logRequest(message: message)
+            let response = try await processAction(message: message).toJsMessage()
+            logResponse(action: message.action, response: response)
+            return response
         } catch {
             return .error(error.toDomError())
         }
@@ -157,5 +164,20 @@ public actor BluetoothEngine: JsMessageProcessor {
         let currentState = await self.state.systemState
         guard try predicate(currentState) == false else { return }
         _ = try await client.awaitSystemState(predicate: predicate)
+    }
+
+    private func logRequest(message: Message) {
+        guard enableDebugLogging else { return }
+        messageLog.debug("Request \(message.action.rawValue, privacy: .public): \(JsType.dictionaryAsString(message.rawRequestData), privacy: .public)")
+    }
+
+    private func logResponse(action: Message.Action, response: JsMessageResponse) {
+        guard enableDebugLogging else { return }
+        switch response {
+        case let .body(body):
+            messageLog.debug("Response \(action.rawValue, privacy: .public): \(body.asDebugString(), privacy: .public)")
+        case let .error(error):
+            messageLog.error("Response \(action.rawValue, privacy: .public): \(error.jsRepresentation, privacy: .public)")
+        }
     }
 }

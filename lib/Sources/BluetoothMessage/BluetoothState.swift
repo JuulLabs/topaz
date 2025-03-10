@@ -157,15 +157,6 @@ public actor BluetoothState {
     }
 }
 
-extension BluetoothState {
-
-//    fileprivate func performInitialLoad() async {
-//        if let uuids: [UUID] = try? await store?.load(for: .uuidsKey) {
-//            self.tabs = Self.urlsToTabs(urls)
-//        }
-//    }
-}
-
 fileprivate extension String {
     static let uuidsKey = "savedPeripheralUUIDs"
 }
