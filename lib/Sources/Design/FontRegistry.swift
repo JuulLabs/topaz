@@ -1,5 +1,8 @@
 import CoreText
 import Foundation
+import OSLog
+
+let fontLogger = Logger(subsystem: "Design", category: "FontRegistry")
 
 /// Invoke this from main app launch to load the fonts from the SPM bundle
 public func registerFonts() {
@@ -15,7 +18,6 @@ private func registerFont(bundle: Bundle, name: String, ext: String) {
     var error: Unmanaged<CFError>?
     if !CTFontManagerRegisterFontsForURL(url as CFURL, .none, &error) {
         let message = error?.takeRetainedValue().localizedDescription ?? "no error"
-        // TODO: log this fault for developers somewhere
-        print("Register font \(name) failed: \(message)")
+        fontLogger.error("Register font \(name, privacy: .public) failed: \(message, privacy: .public)")
     }
 }

@@ -1,5 +1,5 @@
 import { BluetoothDevice } from "./BluetoothDevice";
-import { bluetoothRequest } from "./WebKit";
+import { appLog, bluetoothRequest } from "./WebKit";
 import { ValueEvent } from "./ValueEvent";
 import { store } from "./Store";
 import { BluetoothLEScan, BluetoothLEScanOptions, doRequestLEScan } from "./BluetoothLEScan";
@@ -21,7 +21,11 @@ type RequestDeviceResponse = {
     name?: string;
 }
 
-export const createDevice = (uuid: string, name?: string): BluetoothDevice => {
+export const getOrCreateDevice = (uuid: string, name?: string): BluetoothDevice => {
+    const existing = store.getDevice(uuid);
+    if (existing) {
+        return existing;
+    }
     const device = new BluetoothDevice(uuid, name);
     store.addDevice(device);
     return device;
@@ -33,15 +37,10 @@ export class Bluetooth extends EventTarget {
 
     constructor() {
         super();
-        this.addEventListener('availabilitychanged', (event) => {
-            this.onavailabilitychanged(event);
-        });
     }
 
-    // Alternative API to the availabilitychanged event listener
-    // https://webdocs.dev/en-us/docs/web/api/bluetooth/availabilitychanged_event
-    onavailabilitychanged = (event: ValueEvent<boolean>) => {
-    };
+    // TODO: https://html.spec.whatwg.org/multipage/webappapis.html#event-handler-idl-attributes
+    // Events: advertisementreceived
 
     getAvailability = async (): Promise<boolean> => {
         const response = await bluetoothRequest<undefined, GetAvailabilityResponse>(
@@ -54,7 +53,7 @@ export class Bluetooth extends EventTarget {
         const response = await bluetoothRequest<undefined, RequestDeviceResponse[]>(
             'getDevices'
         );
-        return response.map(device => createDevice(device.uuid, device.name));
+        return response.map(device => getOrCreateDevice(device.uuid, device.name));
     }
 
     requestDevice = async (options?: Options): Promise<BluetoothDevice> => {
@@ -62,7 +61,7 @@ export class Bluetooth extends EventTarget {
             'requestDevice',
             { options: options }
         );
-        return createDevice(response.uuid, response.name);
+        return getOrCreateDevice(response.uuid, response.name);
     }
 
     requestLEScan = async (options?: BluetoothLEScanOptions): Promise<BluetoothLEScan> => {

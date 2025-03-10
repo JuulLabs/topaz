@@ -5,7 +5,7 @@ import JsMessage
 
 extension AdvertisementEvent {
     // https://webbluetoothcg.github.io/web-bluetooth/#advertising-events
-    func toJs() -> JsEvent {
+    func toJs(targetId: String) -> JsEvent {
         let jsAdvertisement: [String: JsConvertable] = [
             "uuids": peripheral.services.map { $0.uuid },
             "name": advertisement.localName ?? jsNull,
@@ -22,7 +22,7 @@ extension AdvertisementEvent {
             "advertisement": jsAdvertisement,
             "device": jsDevice,
         ]
-        return JsEvent(targetId: "bluetooth", eventName: "advertisementreceived", body: body)
+        return JsEvent(targetId: targetId, eventName: "advertisementreceived", body: body)
     }
 }
 

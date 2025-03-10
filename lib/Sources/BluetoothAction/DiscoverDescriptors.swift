@@ -60,7 +60,7 @@ struct DiscoverDescriptorsResponse: JsMessageEncodable {
     let descriptors: [Descriptor]
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
-        .body(descriptors.map { $0.uuid.uuidString.lowercased() })
+        .body(descriptors.map { $0.uuid })
     }
 }
 

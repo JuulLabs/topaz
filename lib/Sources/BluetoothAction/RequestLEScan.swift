@@ -105,10 +105,10 @@ struct RequestLEScan: BluetoothAction {
                 guard !Task.isCancelled else { return }
                 // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
                 await state.putPeripheral(event.peripheral)
-                await jsEventForwarder.forwardEvent(event.toJs())
+                await jsEventForwarder.forwardEvent(event.toJs(targetId: "bluetooth"))
             }
         }
-        let scanTask = ScanTask(id: scanId, scan: activeScan, task: task)
+        let scanTask = ScanTask(id: scanId, task: task)
         await state.addScanTask(scanTask)
         return .start(id: scanId, scan: activeScan)
     }

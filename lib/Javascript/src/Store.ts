@@ -43,11 +43,17 @@ class Store {
     }
 
     addDevice = (device: BluetoothDevice) => {
-        const deviceRecord = this.#devices.get(device.id);
+        this.removeDevice(device.id);
+        this.#devices.set(device.id, { uuid: device.id, device, services: new Map() });
+    }
+
+    removeDevice = (uuid: string): BluetoothDevice | undefined => {
+        const deviceRecord = this.#devices.get(uuid);
         if (deviceRecord) {
             // Perform any cleanup necessary here
         }
-        this.#devices.set(device.id, { uuid: device.id, device, services: new Map() });
+        this.#devices.delete(uuid);
+        return deviceRecord?.device;
     }
 
     getService = (deviceUuid: string, serviceUuid: string): BluetoothRemoteGATTService | undefined => {

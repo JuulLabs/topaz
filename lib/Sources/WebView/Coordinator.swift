@@ -96,9 +96,6 @@ public class Coordinator: NSObject {
 extension WKWebView {
     func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
         return JsContext(id: contextId) { [weak self] event in
-#if DEBUG
-            print("EVENT: \(event.jsValue)")
-#endif
             return await withCheckedContinuation { continuation in
                 self?.callAsyncJavaScript(
                     "topaz.sendEvent(event)",
