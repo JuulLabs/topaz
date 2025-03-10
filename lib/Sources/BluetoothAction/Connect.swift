@@ -32,7 +32,7 @@ struct Connector: BluetoothAction {
         if case .connected = peripheral.connectionState {
             return ConnectResponse()
         }
-        await state.rememberPeripheral(peripheral.id)
+        await state.rememberPeripheral(identifier: peripheral.id)
         _ = try await client.connect(peripheral)
         return ConnectResponse()
     }

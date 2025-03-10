@@ -1,5 +1,9 @@
 import Bluetooth
 import Foundation
+import Helpers
+import OSLog
+
+private let log = Logger(subsystem: "BluetoothMessage", category: "BluetoothState")
 
 /**
  Represents the current state of the bluetooth system.
@@ -9,15 +13,19 @@ public actor BluetoothState {
     public private(set) var peripherals: [UUID: Peripheral]
     public private(set) var scanTasks: [String: ScanTask]
 
+    private let store: CodableStorage?
+
     public init(
         systemState: SystemState = .unknown,
-        peripherals: [Peripheral] = []
+        peripherals: [Peripheral] = [],
+        store: CodableStorage? = nil
     ) {
         self.systemState = systemState
         self.peripherals = peripherals.reduce(into: [UUID: Peripheral]()) { dictionary, peripheral in
             dictionary[peripheral.id] = peripheral
         }
         self.scanTasks = [:]
+        self.store = store
     }
 
     public func setSystemState(_ systemState: SystemState) {
@@ -56,18 +64,30 @@ public actor BluetoothState {
         return peripheral
     }
 
-    public func rememberPeripheral(_ uuid: UUID) {
-        // TODO: persist known peripheral identifier
+    public func rememberPeripheral(identifier uuid: UUID) async {
+        guard let store else { return }
+        var peripheralIds = await getKnownPeripheralIdentifiers()
+        peripheralIds.insert(uuid)
+        do {
+            try await store.save(peripheralIds, for: .uuidsKey)
+        } catch {
+            log.error("Unable to persist peripheral id. \(error)")
+        }
     }
 
-    public func forgetPeripheral(_ uuid: UUID) {
-        self.peripherals.removeValue(forKey: uuid)
-        // TODO: un-persist known peripheral identifier
+    public func forgetPeripheral(identifier uuid: UUID) async {
+        guard let store else { return }
+        var peripheralIds = await getKnownPeripheralIdentifiers()
+        peripheralIds.remove(uuid)
+        do {
+            try await store.save(peripheralIds, for: .uuidsKey)
+        } catch {
+            log.error("Unable to forget peripheral id. \(error)")
+        }
     }
 
-    public func getKnownPeripheralIdentifiers() -> [UUID] {
-        // TODO: load peripheral identifiers from persistence
-        return Array(self.peripherals.keys)
+    public func getKnownPeripheralIdentifiers() async -> Set<UUID> {
+        (try? await store?.load(for: .uuidsKey)) ?? Set<UUID>()
     }
 
     public func getService(peripheralId uuid: UUID, serviceId: UUID) throws -> Service {
@@ -135,4 +155,17 @@ public actor BluetoothState {
         scanTasks.removeAll()
         return allTasks
     }
+}
+
+extension BluetoothState {
+
+//    fileprivate func performInitialLoad() async {
+//        if let uuids: [UUID] = try? await store?.load(for: .uuidsKey) {
+//            self.tabs = Self.urlsToTabs(urls)
+//        }
+//    }
+}
+
+fileprivate extension String {
+    static let uuidsKey = "savedPeripheralUUIDs"
 }
