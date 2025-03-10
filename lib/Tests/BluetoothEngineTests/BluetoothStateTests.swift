@@ -80,7 +80,6 @@ struct BluetoothStateTests {
 
             await sut.forgetPeripheral(identifier: UUID(n: 1))
 
-
             let result: [UUID] = try await storage.load(for: .uuidsKey)
 
             #expect(result.count == 2)
