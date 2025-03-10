@@ -45,13 +45,15 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: (any Error)?) {
-        let event: BluetoothEvent = if let error {
-            ErrorEvent(
+        let event: BluetoothEvent
+        if let error {
+            event = ErrorEvent(
                 error: BluetoothError.causedBy(error),
                 lookup: .exact(name: .discoverCharacteristics, peripheralId: peripheral.identifier, serviceId: service.uuid.regularUuid)
             )
         } else {
-            CharacteristicDiscoveryEvent(
+            uniquifyCharacteristics(on: service)
+            event = CharacteristicDiscoveryEvent(
                 peripheralId: peripheral.identifier,
                 serviceId: service.uuid.regularUuid,
                 characteristics: service.erasedCharacteristics(locker: locker)
@@ -203,6 +205,22 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             )
         }
         handleEvent(event)
+    }
+
+    // For differentiation of duplicate characteristics, we pretty much have to assume that:
+    // 1. The characteristics are returned in the same order every time
+    // 2. We are always provided a complete list of characteristics on the service
+    private func uniquifyCharacteristics(on service: CBService) {
+        guard let characteristics = service.characteristics else { return }
+        var uuids = [CBUUID: UInt32]()
+        for characteristic in characteristics {
+            if let instance = uuids[characteristic.uuid] {
+                characteristic.instanceId = instance + 1
+            } else {
+                characteristic.instanceId = 0
+            }
+            uuids[characteristic.uuid] = characteristic.instanceId
+        }
     }
 }
 

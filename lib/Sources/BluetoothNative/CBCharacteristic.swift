@@ -4,8 +4,13 @@ import Foundation
 import Helpers
 
 extension CBCharacteristic {
+    final class InstanceStorage: AssociatedObject {
+        var instance: UInt32 = 0
+    }
+
     var instanceId: UInt32 {
-        UInt32(truncatingIfNeeded: ObjectIdentifier(self).hashValue)
+        get { get(InstanceStorage.self).instance }
+        set { get(InstanceStorage.self).instance = newValue }
     }
 }
 
