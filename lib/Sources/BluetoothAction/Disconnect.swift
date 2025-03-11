@@ -38,8 +38,19 @@ struct Disconnector: BluetoothAction {
     }
 }
 
-extension PeripheralEvent {
+extension DisconnectionEvent {
     public func gattServerDisconnectedEvent() -> JsEvent {
-        JsEvent(targetId: peripheral.id.uuidString.lowercased(), eventName: "gattserverdisconnected")
+        let (peripheralId, reason) =
+        switch self {
+        case let .requested(peripheral):
+            (peripheral.id, "disconnected")
+        case let .unexpected(peripheral, cause):
+            (peripheral.id, cause.localizedDescription)
+        }
+        return JsEvent(
+            targetId: peripheralId.uuidString.lowercased(),
+            eventName: "gattserverdisconnected",
+            body: ["reason": reason]
+        )
     }
 }
