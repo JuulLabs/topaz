@@ -90,4 +90,40 @@ struct EndToEndBluetoothEngineTests {
         #expect(outcome == .completed)
     }
 
+    @Test
+    func handleDelegateEvent_withUnexpectedDisconnectionEvent_sendsJsEventBeforeResolvingAndRejecting() async throws {
+        let fake = FakePeripheral(id: UUID(n: 0))
+        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake])
+
+        let eventExpectation = XCTestExpectation(description: "Receive event")
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
+            #expect(event.eventName == "gattserverdisconnected")
+            eventExpectation.fulfill()
+            return .success(())
+        }
+
+        var client = MockBluetoothClient()
+        let resolveExpectation = XCTestExpectation(description: "Resolve due to disconnection")
+        let rejectExpectation = XCTestExpectation(description: "Reject due to disconnection error")
+        client.onResolvePendingRequests = { event in
+            #expect(event is ErrorEvent || event is DisconnectionEvent)
+            // Check that regular targeted disconnect event propagates first
+            if event is DisconnectionEvent {
+                resolveExpectation.fulfill()
+            }
+            // Check that all remaining requests are subsequently rejected with a wildcard error event
+            if event is ErrorEvent {
+                rejectExpectation.fulfill()
+            }
+        }
+
+        let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
+        await sut.didAttach(to: context)
+        client.eventsContinuation.yield(
+            DisconnectionEvent.unexpected(fake, BluetoothError.unknown)
+        )
+
+        let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation, rejectExpectation], timeout: 1.0, enforceOrder: true)
+        #expect(outcome == .completed)
+    }
 }
