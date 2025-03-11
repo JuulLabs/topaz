@@ -8,8 +8,7 @@ extension BluetoothEvent {
         switch self {
         case let event as SystemStateEvent:
             event.availabilityChangedEvent()
-        case let event as PeripheralEvent where event.name == .disconnect:
-            // TODO: can we forward the error case here somehow?
+        case let event as DisconnectionEvent:
             event.gattServerDisconnectedEvent()
         case let event as CharacteristicChangedEvent:
             event.characteristicValueChangedEvent()

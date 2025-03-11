@@ -44,6 +44,19 @@ public actor BluetoothEngine: JsMessageProcessor {
         await updateState(for: event)
         await sendJsEvent(for: event)
         await client.resolvePendingRequests(for: event)
+        await handleUnexpectedDisconnect(for: event)
+    }
+
+    // On unexpected disconnect reject all pending operations for the peripheral
+    private func handleUnexpectedDisconnect(for event: BluetoothEvent) async {
+        guard case let DisconnectionEvent.unexpected(peripheral, cause) = event else {
+            return
+        }
+        let disconnectionErrorEvent = ErrorEvent(
+            error: cause,
+            lookup: .wildcard(peripheralId: peripheral.id)
+        )
+        await client.resolvePendingRequests(for: disconnectionErrorEvent)
     }
 
     private func updateState(for event: BluetoothEvent) async {
