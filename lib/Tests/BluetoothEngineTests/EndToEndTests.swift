@@ -5,6 +5,7 @@ import BluetoothClient
 import BluetoothMessage
 import DevicePicker
 import Foundation
+import Helpers
 import JsMessage
 import Testing
 import XCTest
@@ -63,7 +64,9 @@ struct EndToEndBluetoothEngineTests {
     func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving() async throws {
         let fake = FakePeripheral(id: UUID(n: 0))
         let characteristic = FakeCharacteristic(uuid: UUID(n: 1))
-        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake])
+        let store = InMemoryStorage()
+        try await store.save([UUID(n: 0)], for: .uuidsKey)
+        let state = BluetoothState(systemState: .poweredOn, store: store)
 
         let eventExpectation = XCTestExpectation(description: "Receive event")
         let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
@@ -93,7 +96,9 @@ struct EndToEndBluetoothEngineTests {
     @Test
     func handleDelegateEvent_withUnexpectedDisconnectionEvent_sendsJsEventBeforeResolvingAndRejecting() async throws {
         let fake = FakePeripheral(id: UUID(n: 0))
-        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake])
+        let store = InMemoryStorage()
+        try await store.save([UUID(n: 0)], for: .uuidsKey)
+        let state = BluetoothState(systemState: .poweredOn, store: store)
 
         let eventExpectation = XCTestExpectation(description: "Receive event")
         let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
@@ -126,4 +131,8 @@ struct EndToEndBluetoothEngineTests {
         let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation, rejectExpectation], timeout: 1.0, enforceOrder: true)
         #expect(outcome == .completed)
     }
+}
+
+fileprivate extension String {
+    static let uuidsKey = "savedPeripheralUUIDs"
 }

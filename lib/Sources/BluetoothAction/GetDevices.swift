@@ -39,10 +39,7 @@ struct GetDevices: BluetoothAction {
 
         // As a side effect, execute should remove any known peripheral identifiers that could not
         // be returned by client from persistence
-        let uuidsToForget = knownUuids.subtracting(peripherals.map { $0.id })
-        for uuidToForget in uuidsToForget {
-            await state.forgetPeripheral(identifier: uuidToForget)
-        }
+        await state.forgetPeripherals(identifiers: Array(knownUuids.subtracting(peripherals.map { $0.id })))
 
         return GetDevicesResponse(peripherals: peripherals.map { peripheral in
             (id: peripheral.id, name: peripheral.name)

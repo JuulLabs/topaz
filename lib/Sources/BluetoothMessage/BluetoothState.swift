@@ -65,24 +65,20 @@ public actor BluetoothState {
     }
 
     public func rememberPeripheral(identifier uuid: UUID) async {
-        guard let store else { return }
         var peripheralIds = await getKnownPeripheralIdentifiers()
         peripheralIds.insert(uuid)
-        do {
-            try await store.save(peripheralIds, for: .uuidsKey)
-        } catch {
-            log.error("Unable to persist peripheral id. \(error)")
-        }
+        await save(peripheralIds: peripheralIds)
     }
 
     public func forgetPeripheral(identifier uuid: UUID) async {
-        guard let store else { return }
         var peripheralIds = await getKnownPeripheralIdentifiers()
         peripheralIds.remove(uuid)
-        do {
-            try await store.save(peripheralIds, for: .uuidsKey)
-        } catch {
-            log.error("Unable to forget peripheral id. \(error)")
+        await save(peripheralIds: peripheralIds)
+    }
+
+    public func forgetPeripherals(identifiers: [UUID]) async {
+        for uuidToForget in identifiers {
+            await forgetPeripheral(identifier: uuidToForget)
         }
     }
 
@@ -154,6 +150,15 @@ public actor BluetoothState {
         let allTasks = Array(scanTasks.values)
         scanTasks.removeAll()
         return allTasks
+    }
+
+    private func save(peripheralIds: Set<UUID>) async {
+        guard let store else { return }
+        do {
+            try await store.save(peripheralIds, for: .uuidsKey)
+        } catch {
+            log.error("Unable to persist peripheralIds: \(error.localizedDescription)")
+        }
     }
 }
 

@@ -89,6 +89,48 @@ struct BluetoothStateTests {
     }
 
     @Test
+    func forgetPeripherals_storeDoesNotHavePeripheralsToForget_storeDoesNotChange() async {
+        await #expect(throws: Never.self) {
+            try await storage.save([UUID(n: 2), UUID(n: 7)], for: .uuidsKey)
+
+            await sut.forgetPeripherals(identifiers: [UUID(n: 1), UUID(n: 3)])
+
+            let result: [UUID] = try await storage.load(for: .uuidsKey)
+
+            #expect(result.count == 2)
+            #expect(result.contains { $0 == UUID(n: 2) })
+            #expect(result.contains { $0 == UUID(n: 7) })
+        }
+    }
+
+    @Test
+    func forgetPeripherals_1IdToForgetInStore_removesPeripheralId() async {
+        await #expect(throws: Never.self) {
+            try await storage.save([UUID(n: 2), UUID(n: 7)], for: .uuidsKey)
+
+            await sut.forgetPeripherals(identifiers: [UUID(n: 2)])
+
+            let result: [UUID] = try await storage.load(for: .uuidsKey)
+
+            #expect(result.count == 1)
+            #expect(result.contains { $0 == UUID(n: 7) })
+        }
+    }
+
+    @Test
+    func forgetPeripherals_MultipleIdsToForgetInStore_removesPeripheralIds() async {
+        await #expect(throws: Never.self) {
+            try await storage.save([UUID(n: 2), UUID(n: 7)], for: .uuidsKey)
+
+            await sut.forgetPeripherals(identifiers: [UUID(n: 7), UUID(n: 2)])
+
+            let result: [UUID] = try await storage.load(for: .uuidsKey)
+
+            #expect(result.count == 0)
+        }
+    }
+
+    @Test
     func getKnownPeripheralIdentifiers_storeHasPeripherals_returnsCorrectIds() async {
         await #expect(throws: Never.self) {
             try await storage.save([UUID(n: 7), UUID(n: 3), UUID(n: 5), UUID(n: 1)], for: .uuidsKey)
