@@ -77,9 +77,9 @@ public actor BluetoothState {
     }
 
     public func forgetPeripherals(identifiers: [UUID]) async {
-        for uuidToForget in identifiers {
-            await forgetPeripheral(identifier: uuidToForget)
-        }
+        var peripheralIds = await getKnownPeripheralIdentifiers()
+        identifiers.forEach { peripheralIds.remove($0) }
+        await save(peripheralIds: peripheralIds)
     }
 
     public func getKnownPeripheralIdentifiers() async -> Set<UUID> {
