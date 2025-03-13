@@ -37,7 +37,7 @@ private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProces
         builders: [
             BluetoothEngine.handlerName: { _ in
                 BluetoothEngine(
-                    state: BluetoothState(),
+                    state: BluetoothState(store: debouncedJsonFileStorage()),
                     client: liveBluetoothClient(),
                     deviceSelector: deviceSelector,
                     enableDebugLogging: appConfig.enableDebugLogging

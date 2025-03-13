@@ -30,7 +30,12 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: (any Error)?) {
         peripheral.delegate = nil
-        handlePeripheralEvent(.disconnect, peripheral: peripheral, error: error)
+        let event = if let error {
+            DisconnectionEvent.unexpected(peripheral.erase(locker: locker), error)
+        } else {
+            DisconnectionEvent.requested(peripheral.erase(locker: locker))
+        }
+        handleEvent(event)
     }
 
     // MARK: - CBPeripheralDelegate

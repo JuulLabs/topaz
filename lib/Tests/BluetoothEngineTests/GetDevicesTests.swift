@@ -3,6 +3,7 @@ import Bluetooth
 import BluetoothClient
 import BluetoothMessage
 import Foundation
+import Helpers
 import JsMessage
 import Testing
 import XCTest
@@ -79,9 +80,13 @@ struct GetDevicesTests {
             callbackExpectation.fulfill()
             return []
         }
-        let state = BluetoothState(peripherals: [FakePeripheral(id: UUID(n: 0))])
+        let storage = InMemoryStorage()
+        try await storage.save([UUID(n: 0)], for: .uuidsKey)
+        let state = BluetoothState(store: storage)
         let sut = GetDevices(request: GetDevicesRequest())
+
         _ = try await sut.execute(state: state, client: client)
+
         let outcome = await XCTWaiter().fulfillment(of: [callbackExpectation], timeout: 1.0)
         #expect(outcome == .completed)
     }
@@ -96,10 +101,39 @@ struct GetDevicesTests {
             return []
         }
         let state = BluetoothState()
-        await state.rememberPeripheral(UUID(n: 0))
+        await state.rememberPeripheral(identifier: UUID(n: 0))
         let sut = GetDevices(request: GetDevicesRequest())
         _ = try await sut.execute(state: state, client: client)
         let outcome = await XCTWaiter().fulfillment(of: [callbackExpectation], timeout: 1.0)
         #expect(outcome == .completed)
     }
+
+    @Test
+    func execute_withClientNotFinding3PeripheralsFromBluetoothState_thosePeripheralIdsAreForgotten_respondsWithOneResult() async throws {
+        var client = MockBluetoothClient()
+        client.onGetPeripherals = { _ in
+            [FakePeripheral(id: UUID(n: 1))]
+        }
+        let storage = InMemoryStorage()
+        try await storage.save([UUID(n: 7), UUID(n: 3), UUID(n: 5), UUID(n: 1)], for: .uuidsKey)
+        let state = BluetoothState(store: storage)
+        let sut = GetDevices(request: GetDevicesRequest())
+
+        let response = try await sut.execute(state: state, client: client)
+
+        // Execute response assertions
+        let jsMessage = response.toJsMessage()
+        let body = try #require(jsMessage.extractBody(as: NSArray.self))
+        #expect(body.count == 1)
+
+        // Store state assertions
+        let storageResult: [UUID] = try await storage.load(for: .uuidsKey)
+
+        #expect(storageResult.count == 1)
+        #expect(storageResult.contains { $0 == UUID(n: 1) })
+    }
+}
+
+fileprivate extension String {
+    static let uuidsKey = "savedPeripheralUUIDs"
 }

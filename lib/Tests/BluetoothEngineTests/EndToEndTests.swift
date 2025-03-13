@@ -5,6 +5,7 @@ import BluetoothClient
 import BluetoothMessage
 import DevicePicker
 import Foundation
+import Helpers
 import JsMessage
 import Testing
 import XCTest
@@ -63,7 +64,9 @@ struct EndToEndBluetoothEngineTests {
     func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving() async throws {
         let fake = FakePeripheral(id: UUID(n: 0))
         let characteristic = FakeCharacteristic(uuid: UUID(n: 1))
-        let state = BluetoothState(systemState: .poweredOn, peripherals: [fake])
+        let store = InMemoryStorage()
+        try await store.save([UUID(n: 0)], for: .uuidsKey)
+        let state = BluetoothState(systemState: .poweredOn, store: store)
 
         let eventExpectation = XCTestExpectation(description: "Receive event")
         let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
@@ -90,4 +93,46 @@ struct EndToEndBluetoothEngineTests {
         #expect(outcome == .completed)
     }
 
+    @Test
+    func handleDelegateEvent_withUnexpectedDisconnectionEvent_sendsJsEventBeforeResolvingAndRejecting() async throws {
+        let fake = FakePeripheral(id: UUID(n: 0))
+        let store = InMemoryStorage()
+        try await store.save([UUID(n: 0)], for: .uuidsKey)
+        let state = BluetoothState(systemState: .poweredOn, store: store)
+
+        let eventExpectation = XCTestExpectation(description: "Receive event")
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!)) { event in
+            #expect(event.eventName == "gattserverdisconnected")
+            eventExpectation.fulfill()
+            return .success(())
+        }
+
+        var client = MockBluetoothClient()
+        let resolveExpectation = XCTestExpectation(description: "Resolve due to disconnection")
+        let rejectExpectation = XCTestExpectation(description: "Reject due to disconnection error")
+        client.onResolvePendingRequests = { event in
+            #expect(event is ErrorEvent || event is DisconnectionEvent)
+            // Check that regular targeted disconnect event propagates first
+            if event is DisconnectionEvent {
+                resolveExpectation.fulfill()
+            }
+            // Check that all remaining requests are subsequently rejected with a wildcard error event
+            if event is ErrorEvent {
+                rejectExpectation.fulfill()
+            }
+        }
+
+        let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
+        await sut.didAttach(to: context)
+        client.eventsContinuation.yield(
+            DisconnectionEvent.unexpected(fake, BluetoothError.unknown)
+        )
+
+        let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation, rejectExpectation], timeout: 1.0, enforceOrder: true)
+        #expect(outcome == .completed)
+    }
+}
+
+fileprivate extension String {
+    static let uuidsKey = "savedPeripheralUUIDs"
 }
