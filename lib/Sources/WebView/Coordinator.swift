@@ -1,15 +1,17 @@
 import BluetoothClient
 import Foundation
 import JsMessage
+import Navigation
 import WebKit
 
 @MainActor
-public class Coordinator: NSObject {
+public class Coordinator: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
+    private var navigationEngine: NavigationEngine?
 
     var navigatingToUrl: URL?
 
@@ -20,22 +22,25 @@ public class Coordinator: NSObject {
 
     override init() {}
 
+
     func initialize(webView: WKWebView, model: WebPageModel) {
         self.viewModel = model
         self.messageProcessorFactory = model.messageProcessorFactory
         self.contextId = model.contextId
 
+        self.navigationEngine = NavigationEngine(delegate: self)
         webView.customUserAgent = model.customUserAgent
-        webView.navigationDelegate = self
-        webView.uiDelegate = self
+        webView.navigationDelegate = navigationEngine
+        webView.uiDelegate = navigationEngine
 
-        model.didInitializeWebView(webView)
+//        model.didInitializeWebView(webView)
     }
 
     func deinitialize(webView: WKWebView) {
+        navigationEngine = nil
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
-        viewModel?.deinitialize(webView: webView)
+//        viewModel?.deinitialize(webView: webView)
         viewModel = nil
         detachOldHandler(from: webView)
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
@@ -61,26 +66,54 @@ public class Coordinator: NSObject {
         self.scriptHandler = nil
     }
 
-    func didBeginNavigation(to url: URL, in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
+    public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
+        viewModel?.navigator.didInitiateNavigation(navigation, in: webView)
+        //viewModel?.navigator.update(webView: webView, loadingState: navigation.observer.status)
+        switch navigation.request.kind {
+        case .newWindow:
+            print("XXX didInitiateNavigation for new window")
+            break
+//            openLinkInNewTab(url: navigation.request.url)
+        case .sameOrigin:
+            print("XXX didInitiateNavigation for same origin")
+            break
+        case .crossOrigin:
+            print("XXX didInitiateNavigation for cross origin - reboot context")
+            detachOldHandler(from: webView)
+            self.contextId = contextId.withUrl(navigation.request.url)
+            attachNewHandler(to: webView)
+        }
+    }
+
+    public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        viewModel?.navigator.didBeginLoading(navigation, in: webView)
+        viewModel?.didBeginLoading()
+    }
+
+    public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        viewModel?.navigator.didEndLoading(navigation, in: webView)
+    }
+
+    public func openNewWindow(for url: URL) {
+        viewModel?.navigator.openNewWindow(for: url)
+    }
+
+    public func didBeginNavigation(to url: URL, in webView: WKWebView) {
         detachOldHandler(from: webView)
         self.contextId = contextId.withUrl(url)
         attachNewHandler(to: webView)
-        // TODO: tell model url changed without reloading it
     }
 
-    func didCommitNavigation(in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
-        viewModel?.didCommitNavigation()
+    public func didCommitNavigation(in webView: WKWebView) {
+//        viewModel?.didCommitNavigation()
     }
 
-    func didFinishNavigation(to url: URL, in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
+    public func didFinishNavigation(to url: URL, in webView: WKWebView) {
     }
 
-    func redirectDueToError(to document: SimpleHtmlDocument) {
+    public func redirectDueToError(to document: SimpleHtmlDocument) {
         navigatingToUrl = nil
-        viewModel?.navigator.redirect(to: document)
+//        viewModel?.navigator.redirect(to: document)
     }
 
     func openLinkInNewTab(url: URL?) {

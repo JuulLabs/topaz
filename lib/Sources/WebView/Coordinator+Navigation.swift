@@ -1,5 +1,6 @@
 import Foundation
 import OSLog
+import Navigation
 import WebKit
 
 private let log = Logger(subsystem: "WebView", category: "WKNavigationDelegate")

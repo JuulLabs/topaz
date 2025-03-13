@@ -1,5 +1,6 @@
 import Foundation
 import JsMessage
+import Navigation
 import Observation
 import SwiftUI
 import WebKit
@@ -7,8 +8,8 @@ import WebKit
 @MainActor
 @Observable
 public class WebPageModel: Identifiable {
-    @ObservationIgnored
-    private var kvoStore: [NSKeyValueObservation] = []
+//    @ObservationIgnored
+//    private var kvoStore: [NSKeyValueObservation] = []
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -57,37 +58,47 @@ public class WebPageModel: Identifiable {
          return webView
     }
 
-    func didInitializeWebView(_ webView: WKWebView) {
-        monitorLoadingProgress(of: webView)
-    }
+//    func didInitializeWebView(_ webView: WKWebView) {
+//        monitorLoadingProgress(of: webView)
+//    }
+//
+//    func deinitialize(webView: WKWebView) {
+//        kvoStore.forEach { $0.invalidate() }
+//        kvoStore.removeAll()
+//    }
 
-    func deinitialize(webView: WKWebView) {
-        kvoStore.forEach { $0.invalidate() }
-        kvoStore.removeAll()
-    }
-
-    func didCommitNavigation() {
+    func didBeginLoading() {
         // Invoked when we start to receive a response from the web server
         withAnimation(.easeInOut(duration: 0.25)) {
             isPerformingInitialContentLoad = false
         }
     }
 
-    private func monitorLoadingProgress(of webView: WKWebView) {
-        let loading = webView.observe(\.isLoading, options: .new) { [weak navigator] _, change in
-            guard let isLoading = change.newValue else { return }
-            Task { @MainActor in
-                await navigator?.updateLoadingState(isLoading: isLoading)
-            }
-        }
-        kvoStore.append(loading)
-
-        let progress = webView.observe(\.estimatedProgress, options: .new) { [weak navigator] _, change in
-            guard let progress = change.newValue, progress < 1.0 else { return }
-            Task { @MainActor in
-                await navigator?.updateLoadingProgress(progress: Float(progress))
-            }
-        }
-        kvoStore.append(progress)
-    }
+//    private func monitorLoadingProgress(of webView: WKWebView) {
+//        let loading = webView.observe(\.isLoading, options: .new) { [weak navigator] _, change in
+//            guard let isLoading = change.newValue else { return }
+//            Task { @MainActor in
+//                await navigator?.updateLoadingState(isLoading: isLoading)
+//            }
+//        }
+//        kvoStore.append(loading)
+//
+//        let progress = webView.observe(\.estimatedProgress, options: .new) { [weak navigator] _, change in
+//            guard let progress = change.newValue, progress < 1.0 else { return }
+//            Task { @MainActor in
+//                await navigator?.updateLoadingProgress(progress: Float(progress))
+//            }
+//        }
+//        kvoStore.append(progress)
+//
+//        let urlChange = webView.observe(\.url, options: .new) { _, change in
+//            guard let url = change.newValue else { return }
+//            if let url {
+//                print("XXX URL changed: \(url.absoluteString)")
+//            } else {
+//                print("XXX URL changed to nil")
+//            }
+//        }
+//        kvoStore.append(urlChange)
+//    }
 }

@@ -1,5 +1,6 @@
 import Bluetooth
 import BluetoothEngine
+import Navigation
 import Observation
 import Settings
 import SwiftUI
