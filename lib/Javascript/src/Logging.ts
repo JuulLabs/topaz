@@ -9,10 +9,35 @@ const safeStringify = (obj: any): string => {
     }
 }
 
+const percentInterpolation = (format: string, args: any[]): string => {
+    if (typeof(format) !== 'string') {
+        return;
+    }
+    if (args.length === 0) {
+        return format;
+    }
+    if (!/%s|%v|%d|%f/.test(format)) {
+        return;
+    }
+    return args.reduce((str, val) => str.replace(/%s|%v|%d|%f/, val), format);
+}
+
 const logOverride = (level: string, args: IArguments) => {
     if (args.length === 0) {
         return;
     }
+
+    let formatted = percentInterpolation(args[0], Array.prototype.slice.call(args, 1));
+    if (formatted) {
+        appLog({
+            level: level,
+            msg: formatted.substring(0, 2048),
+            console: true,
+            sensitive: false,
+        });
+        return;
+    }
+
     let strings = [];
     for (let i = 0; i < args.length; i++) {
         const arg = args[i];
@@ -20,6 +45,8 @@ const logOverride = (level: string, args: IArguments) => {
             strings.push('undefined');
         } else if (typeof(arg) === 'object') {
             strings.push(safeStringify(arg).substring(0, 2048));
+        } else if (typeof(arg) === 'string') {
+            strings.push(arg.substring(0, 2048));
         } else {
             strings.push(arg.toString().substring(0, 2048));
         }
