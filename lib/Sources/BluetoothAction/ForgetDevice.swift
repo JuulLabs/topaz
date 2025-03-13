@@ -30,7 +30,7 @@ struct ForgetDevice: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> ForgetDeviceResponse {
-        await state.forgetPeripheral(request.peripheralId)
+        await state.forgetPeripheral(identifier: request.peripheralId)
         return ForgetDeviceResponse()
     }
 }

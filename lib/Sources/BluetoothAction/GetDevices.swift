@@ -34,8 +34,13 @@ struct GetDevices: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> GetDevicesResponse {
-        let uuids = await state.getKnownPeripheralIdentifiers()
-        let peripherals = await client.getPeripherals(withIdentifiers: uuids)
+        let knownUuids = await state.getKnownPeripheralIdentifiers()
+        let peripherals = await client.getPeripherals(withIdentifiers: Array(knownUuids))
+
+        // As a side effect, execute should remove any known peripheral identifiers that could not
+        // be returned by client from persistence
+        await state.forgetPeripherals(identifiers: Array(knownUuids.subtracting(peripherals.map { $0.id })))
+
         return GetDevicesResponse(peripherals: peripherals.map { peripheral in
             (id: peripheral.id, name: peripheral.name)
         })
