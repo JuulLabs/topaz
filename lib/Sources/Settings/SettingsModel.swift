@@ -11,7 +11,6 @@ public final class SettingsModel {
     let searchEngineSelectorModel: SearchEngineSelectorModel
 
     public var dismiss: () -> Void  = {}
-    public var tabAction: () -> Void = {}
     public var shareItem: SharingUrl = .init()
 
     public var presentClearCacheDialogue: Bool = false
@@ -22,10 +21,6 @@ public final class SettingsModel {
 
     func doneButtonTapped() {
         dismiss()
-    }
-
-    func newTabButtonTapped() {
-        tabAction()
     }
 
     func setDefaultHomeButtonTapped() {
