@@ -45,7 +45,7 @@ public struct NavigationRequest: Sendable {
     }
 }
 
-private let acceptedSchemes: Set<String> = ["https", "http", "data"]
+private let acceptedSchemes: Set<String> = ["about", "https", "http", "data"]
 
 extension URL {
     var isSchemeSupported: Bool {

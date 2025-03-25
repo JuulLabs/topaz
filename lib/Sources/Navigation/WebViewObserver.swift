@@ -23,6 +23,8 @@ public class WebViewObserver {
     }
 
     private func monitorLoadingProgress(of webView: WKWebView) {
+        self.isLoading = true
+        self.url = webView.url
         let loadingObservation = webView.observe(\.isLoading, options: .new) { [weak self] _, change in
             guard let isLoading = change.newValue else { return }
             Task { @MainActor in
@@ -40,6 +42,9 @@ public class WebViewObserver {
             guard let progress = change.newValue, progress >= 0.0, progress <= 1.0 else { return }
             Task { @MainActor in
                 guard let self else { return }
+                if !self.isLoading && progress < 1.0 {
+                    self.isLoading = true
+                }
                 self.progress = Float(progress)
                 self.onLoadingStateChange(webView, self.loadingState)
             }
@@ -51,6 +56,7 @@ public class WebViewObserver {
             Task { @MainActor in
                 guard let self else { return }
                 self.url = url
+                self.isLoading = true
                 self.onLoadingStateChange(webView, self.loadingState)
             }
         }

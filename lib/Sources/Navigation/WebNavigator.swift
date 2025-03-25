@@ -70,14 +70,11 @@ public final class WebNavigator {
             guard let self else { return }
             self.loadingState = newState
             self.update(webView: webView)
+            if case let .complete(url) = newState {
+                self.onPageLoaded(url, webView.title)
+                self.observer = nil
+            }
         }
-    }
-
-    func stopObservingLoadingProgress(of webView: WKWebView) {
-        if let url = webView.url {
-            self.onPageLoaded(url, webView.title)
-        }
-        self.observer = nil
     }
 
     func stopLoadingAndOpenNewWindow(url: URL) {

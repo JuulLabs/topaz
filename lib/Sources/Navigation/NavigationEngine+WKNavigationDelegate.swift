@@ -89,7 +89,6 @@ extension NavigationEngine: WKNavigationDelegate {
         }
         log.debug("Finished loading navigation=\(navigation)")
         delegate?.didEndLoading(navigationItem, in: webView)
-        navigator.stopObservingLoadingProgress(of: webView)
     }
 
     // MARK: - Error handling
