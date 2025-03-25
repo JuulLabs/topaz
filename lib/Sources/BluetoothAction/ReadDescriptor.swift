@@ -45,7 +45,7 @@ struct ReadDescriptor: BluetoothAction {
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadDescriptorResponse {
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let characteristic = try await state.getCharacteristic(
+        let (_, characteristic) = try await state.getCharacteristic(
             peripheralId: request.peripheralId,
             serviceId: request.serviceUuid,
             characteristicId: request.characteristicUuid,

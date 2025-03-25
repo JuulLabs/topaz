@@ -59,7 +59,7 @@ struct RequestDevice: BluetoothAction {
         }
         let peripheral = try await selector.awaitSelection().get()
         task.cancel()
-        await state.putPeripheral(peripheral)
+        await state.putPeripheral(peripheral, replace: true)
         return RequestDeviceResponse(peripheralId: peripheral.id, name: peripheral.name)
     }
 }

@@ -68,32 +68,9 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: (any Error)?) {
-        guard let service = characteristic.service else {
-            let cause = error.map(BluetoothError.causedBy) ?? .nullService(characteristic: characteristic.uuid.regularUuid)
-            let errorEvent = ErrorEvent(
-                error: cause,
-                lookup: .wildcard(
-                    name: .discoverDescriptors,
-                    peripheralId: peripheral.identifier,
-                    characteristicId: characteristic.uuid.regularUuid,
-                    characteristicInstance: characteristic.instanceId
-                )
-            )
-            handleEvent(errorEvent)
-            return
-        }
-        let event: BluetoothEvent = if let error {
-            ErrorEvent(
-                error: BluetoothError.causedBy(error),
-                lookup: .exact(
-                    name: .discoverDescriptors,
-                    peripheralId: peripheral.identifier,
-                    serviceId: service.uuid.regularUuid,
-                    characteristicId: characteristic.uuid.regularUuid,
-                    characteristicInstance: characteristic.instanceId
-                )
-            )
-        } else {
+        let serviceOrError = serviceOrErrorForCharacteristicEvent(.discoverDescriptors, peripheral: peripheral, characteristic: characteristic, error: error)
+        let event: BluetoothEvent = switch serviceOrError {
+        case let .service(service):
             DescriptorDiscoveryEvent(
                 peripheralId: peripheral.identifier,
                 serviceId: service.uuid.regularUuid,
@@ -101,28 +78,25 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                 instance: characteristic.instanceId,
                 descriptors: characteristic.erasedDescriptors(locker: locker)
             )
+        case let .error(errorEvent):
+            errorEvent
         }
         handleEvent(event)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: (any Error)?) {
-        let event: BluetoothEvent = if let error {
-            ErrorEvent(
-                error: BluetoothError.causedBy(error),
-                lookup: .exact(
-                    name: .characteristicValue,
-                    peripheralId: peripheral.identifier,
-                    characteristicId: characteristic.uuid.regularUuid,
-                    characteristicInstance: characteristic.instanceId
-                )
-            )
-        } else {
+        let serviceOrError = serviceOrErrorForCharacteristicEvent(.characteristicValue, peripheral: peripheral, characteristic: characteristic, error: error)
+        let event: BluetoothEvent = switch serviceOrError {
+        case let .service(service):
             CharacteristicChangedEvent(
                 peripheralId: peripheral.identifier,
+                serviceId: service.uuid.regularUuid,
                 characteristicId: characteristic.uuid.regularUuid,
                 instance: characteristic.instanceId,
                 data: characteristic.value
             )
+        case let .error(errorEvent):
+            errorEvent
         }
         handleEvent(event)
     }
@@ -189,27 +163,61 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     }
 
     private func handleCharacteristicEvent(_ event: EventName, peripheral: CBPeripheral, characteristic: CBCharacteristic, error: (any Error)?) {
-        let event: BluetoothEvent = if let error {
-            ErrorEvent(
-                error: BluetoothError.causedBy(error),
-                lookup: .exact(
-                    key: .characteristic(
-                        event,
-                        peripheralId: peripheral.identifier,
-                        characteristicId: characteristic.uuid.regularUuid,
-                        instance: characteristic.instanceId
-                    )
-                )
-            )
-        } else {
+        let serviceOrError = serviceOrErrorForCharacteristicEvent(event, peripheral: peripheral, characteristic: characteristic, error: error)
+        let event: BluetoothEvent = switch serviceOrError {
+        case let .service(service):
             CharacteristicEvent(
                 event,
                 peripheralId: peripheral.identifier,
+                serviceId: service.uuid.regularUuid,
                 characteristicId: characteristic.uuid.regularUuid,
                 instance: characteristic.instanceId
             )
+        case let .error(errorEvent):
+            errorEvent
         }
         handleEvent(event)
+    }
+
+    private func serviceOrErrorForCharacteristicEvent(
+        _ event: EventName,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: (any Error)?
+    ) -> ServiceOrError {
+        guard let service = characteristic.service else {
+            // If there is no service we cannot target the requestor precisely so fail using a wildcard key
+            let cause = error.map(BluetoothError.causedBy) ?? .nullService(characteristic: characteristic.uuid.regularUuid)
+            return .error(
+                ErrorEvent(
+                    error: cause,
+                    lookup: .wildcard(
+                        name: event,
+                        peripheralId: peripheral.identifier,
+                        characteristicId: characteristic.uuid.regularUuid,
+                        characteristicInstance: characteristic.instanceId
+                    )
+                )
+            )
+        }
+        if let error {
+            // An error occured and we know the service so target the requestor with the exact key
+            return .error(
+                ErrorEvent(
+                    error: BluetoothError.causedBy(error),
+                    lookup: .exact(
+                        key: .characteristic(
+                            event,
+                            peripheralId: peripheral.identifier,
+                            serviceId: service.uuid.regularUuid,
+                            characteristicId: characteristic.uuid.regularUuid,
+                            instance: characteristic.instanceId
+                        )
+                    )
+                )
+            )
+        }
+        return .service(service)
     }
 
     // For differentiation of duplicate characteristics, we pretty much have to assume that:
@@ -245,4 +253,9 @@ extension CBCharacteristic {
     func erasedDescriptors(locker: any LockingStrategy) -> [Descriptor] {
         self.descriptors?.compactMap { $0.erase(locker: locker) } ?? []
     }
+}
+
+private enum ServiceOrError {
+    case service(CBService)
+    case error(ErrorEvent)
 }

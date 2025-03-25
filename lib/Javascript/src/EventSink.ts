@@ -1,4 +1,5 @@
 import { convertToAdvertisingEvent } from "./BluetoothAdvertisingEvent";
+import { convertToCharacteristicEvent } from "./CharacteristicValueChangedEvent";
 import { base64ToDataView } from "./Data";
 import { store } from "./Store";
 import { ValueEvent } from "./ValueEvent";
@@ -31,10 +32,9 @@ export const processEvent = (event: TargetedEvent) => {
         pushDeviceTarget();
     } else if (event.name === 'characteristicvaluechanged') {
         // Decode the data payload, update the store, and forward event to the specific characteristic
-        const data = base64ToDataView(event.data);
-        const characteristic = store.updateCharacteristicValue(event.id, data);
-        targets.push(characteristic);
-        eventToSend = new ValueEvent(event.name, { value: data });
+        const characteristicEvent = convertToCharacteristicEvent(event);
+        targets.push(characteristicEvent.characteristic);
+        eventToSend = characteristicEvent.event;
     } else if (event.name === 'advertisementreceived') {
         eventToSend = convertToAdvertisingEvent(event);
         pushDeviceTarget();

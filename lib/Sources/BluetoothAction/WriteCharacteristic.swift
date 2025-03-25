@@ -48,7 +48,7 @@ struct WriteCharacteristic: BluetoothAction {
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> CharacteristicResponse {
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let characteristic = try await state.getCharacteristic(
+        let (service, characteristic) = try await state.getCharacteristic(
             peripheralId: request.peripheralId,
             serviceId: request.serviceUuid,
             characteristicId: request.characteristicUuid,
@@ -61,7 +61,7 @@ struct WriteCharacteristic: BluetoothAction {
                 // The peripheral state is false, waiting until the delegate callback updates it to true...
             }
         }
-        _ = try await client.characteristicWrite(peripheral, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
+        _ = try await client.characteristicWrite(peripheral, service: service, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
         return CharacteristicResponse()
     }
 }
