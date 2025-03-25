@@ -35,6 +35,6 @@ struct NavBarView: View {
 
 #Preview {
     NavBarView(
-        model: NavBarModel { _ in }
+        model: NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
     )
 }

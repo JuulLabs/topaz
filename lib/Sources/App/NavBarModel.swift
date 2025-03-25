@@ -24,6 +24,7 @@ public final class NavBarModel {
     }
 
     private(set) var isFullscreen: Bool = false
+    private let tabManagementAction: () -> Void
     private let onFullscreenChanged: (Bool) -> Void
 
     init(
@@ -32,6 +33,7 @@ public final class NavBarModel {
         searchBarModel: SearchBarModel? = nil,
         bluetoothSystem: BluetoothSystemState = .shared,
         isFullscreen: Bool = false,
+        tabManagementAction: @escaping () -> Void,
         onFullscreenChanged: @escaping (Bool) -> Void
     ) {
         self.navigator = navigator
@@ -40,6 +42,7 @@ public final class NavBarModel {
         self.settingsModel = settingsModel
         self.bluetoothSystem = bluetoothSystem
         self.isFullscreen = isFullscreen
+        self.tabManagementAction = tabManagementAction
         self.onFullscreenChanged = onFullscreenChanged
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
@@ -81,7 +84,7 @@ public final class NavBarModel {
     }
 
     func tabManagementButtonTapped() {
-        settingsModel.tabAction()
+        tabManagementAction()
     }
 
     func settingsButtonTapped() {

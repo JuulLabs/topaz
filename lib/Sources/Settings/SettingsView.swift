@@ -23,13 +23,6 @@ public struct SettingsView: View {
                 .listRowBackground(Color.topaz800)
                 .disabled(model.shareItem.isDisabled)
 
-                LabeledContent("New tab") {
-                    Image(systemName: "plus")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.newTabButtonTapped()
-                }
-
                 /* TODO: Implement
                 LabeledContent("Set as default homepage") {
                     Image(systemName: "star")
@@ -40,12 +33,6 @@ public struct SettingsView: View {
                  */
 
                 SearchEngineSelectorView(model: model.searchEngineSelectorModel)
-
-                LabeledContent("Bluetooth® permissions") {
-                    CustomToggle(isOn: $model.bluetoothEnabled)
-                        .padding(.vertical, 2)
-                }
-                .listRowBackground(Color.topaz800)
 
                 /* TODO: Implement
                 VStack(alignment: .leading, spacing: 8) {

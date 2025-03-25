@@ -123,12 +123,11 @@ public class AppModel {
             let webLoadingModel = self.buildPageModel(tabModel: newTab)
             self.activePageModel = webLoadingModel
         }
-        settingsModel.tabAction = { [weak self] in
-            self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
-            self?.lastOpenedTabIndex = nil
-            self?.activePageModel = nil
-        }
-        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { [weak self] in
+                self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
+                self?.lastOpenedTabIndex = nil
+                self?.activePageModel = nil
+        } onFullscreenChanged: { newValue in
             self.lastOpenedTabWasInFullscreenMode = newValue
         }
     }
