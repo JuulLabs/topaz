@@ -9,7 +9,7 @@ export type CharacteristicEvent = {
     event: ValueEvent<DataView>;
 }
 
-// The payload as defined in the Swift code CharacteristicResponse:
+// The payload as defined in the Swift code CharacteristicChangedEvent:
 type CharacteristicEventPayload = {
     device: string;
     service: string;
