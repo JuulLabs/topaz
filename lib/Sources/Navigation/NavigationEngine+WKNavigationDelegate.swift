@@ -59,11 +59,10 @@ extension NavigationEngine: WKNavigationDelegate {
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         if let request = latestRequest {
             log.debug("Provisional navigation started navigation=\(navigation)")
-            let webViewObserver = WebViewObserver(webView: webView)
-            let navigationItem = NavigationItem(navigation: navigation, request: request, observer: webViewObserver)
+            let navigationItem = NavigationItem(navigation: navigation, request: request)
             navigations[navigation] = navigationItem
+            navigator.startObservingLoadingProgress(of: webView)
             delegate?.didInitiateNavigation(navigationItem, in: webView)
-            // TODO: show/uncover the webview if it was hidden behind a loading screen
         } else {
             log.warning("Unexpected provisional navigation ignored navigation=\(navigation)")
         }
@@ -77,9 +76,8 @@ extension NavigationEngine: WKNavigationDelegate {
             return
         }
         log.debug("Committed to load navigation=\(navigation)")
-        delegate?.didBeginLoading(navigationItem, in: webView)
-        // TODO: start progress bar animation
         latestRequest = nil
+        delegate?.didBeginLoading(navigationItem, in: webView)
     }
 
     // All data received and if DOM is not already complete it will be very soon
@@ -91,7 +89,7 @@ extension NavigationEngine: WKNavigationDelegate {
         }
         log.debug("Finished loading navigation=\(navigation)")
         delegate?.didEndLoading(navigationItem, in: webView)
-        // TODO: stop progress bar animation
+        navigator.stopObservingLoadingProgress(of: webView)
     }
 
     // MARK: - Error handling

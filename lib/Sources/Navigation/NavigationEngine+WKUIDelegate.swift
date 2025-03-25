@@ -9,7 +9,7 @@ extension NavigationEngine: WKUIDelegate {
         if let request = NavigationRequest(action: navigationAction), request.kind == .newWindow {
             log.debug("Request opens in new window action=\(navigationAction)")
             latestRequest = nil
-            delegate?.openNewWindow(for: request.url)
+            navigator.stopLoadingAndOpenNewWindow(url: request.url)
         } else {
             log.warning("Request for new window ignored action=\(navigationAction)")
         }

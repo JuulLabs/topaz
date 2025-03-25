@@ -1,26 +1,21 @@
 import Foundation
-import Observation
 import WebKit
 
 @MainActor
-@Observable
 public class WebViewObserver {
-    @ObservationIgnored
     private var kvoStore: [NSKeyValueObservation] = []
+
+    var onLoadingStateChange: (WKWebView, WebPageLoadingState) -> Void = { _, _ in }
 
     private var isLoading: Bool = false
     private var progress: Float = 0.0
     private var url: URL?
 
-    public var status: WebPageLoadingState {
-        getLoadingState()
-    }
-
     init(webView: WKWebView) {
         monitorLoadingProgress(of: webView)
     }
 
-    private func getLoadingState() -> WebPageLoadingState {
+    private var loadingState: WebPageLoadingState {
         guard let url else {
             return isLoading ? .inProgress(progress) : .initializing
         }
@@ -36,6 +31,7 @@ public class WebViewObserver {
                     self.progress = 1.0
                 }
                 self.isLoading = isLoading
+                self.onLoadingStateChange(webView, self.loadingState)
             }
         }
         kvoStore.append(loadingObservation)
@@ -43,7 +39,9 @@ public class WebViewObserver {
         let progressObservation = webView.observe(\.estimatedProgress, options: .new) { [weak self] _, change in
             guard let progress = change.newValue, progress >= 0.0, progress <= 1.0 else { return }
             Task { @MainActor in
-                self?.progress = Float(progress)
+                guard let self else { return }
+                self.progress = Float(progress)
+                self.onLoadingStateChange(webView, self.loadingState)
             }
         }
         kvoStore.append(progressObservation)
@@ -51,7 +49,9 @@ public class WebViewObserver {
         let urlObservation = webView.observe(\.url, options: .new) { [weak self] _, change in
             guard let url = change.newValue else { return }
             Task { @MainActor in
-                self?.url = url
+                guard let self else { return }
+                self.url = url
+                self.onLoadingStateChange(webView, self.loadingState)
             }
         }
         kvoStore.append(urlObservation)

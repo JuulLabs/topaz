@@ -11,23 +11,28 @@ public final class WebNavigator {
     private weak var webView: WKWebView?
 
     @ObservationIgnored
-    private weak var observer: WebViewObserver?
+    var observer: WebViewObserver?
 
     public private(set) var backForwardList: WKBackForwardList = WebNavigator.placeholderBackForwardList
     public private(set) var canGoForward: Bool = false
     public private(set) var canGoBack: Bool = false
 
-    private let initialLoadingState: WebPageLoadingState
-    public var loadingState: WebPageLoadingState {
-        observer.map { $0.status } ?? initialLoadingState
+    public private(set) var loadingState: WebPageLoadingState {
+        willSet {
+            if case let .complete(url) = newValue {
+                onPageLoaded(url, webView?.title)
+            }
+        }
     }
 
+    @ObservationIgnored
     public var onPageLoaded: (URL, String?) -> Void = { _, _ in }
 
+    @ObservationIgnored
     public var launchNewPage: (URL) -> Void = { _ in }
 
     public init(loadingState: WebPageLoadingState = .initializing) {
-        self.initialLoadingState = loadingState
+        self.loadingState = loadingState
     }
 
     public func goForward() {
@@ -52,33 +57,32 @@ public final class WebNavigator {
         self.webView?.go(to: item)
     }
 
-    func captureWebView(webView: WKWebView) {
+    private func update(webView: WKWebView) {
         self.webView = webView
         self.backForwardList = webView.backForwardList
         self.canGoForward = webView.canGoForward
         self.canGoBack = webView.canGoBack
     }
-}
 
-extension WebNavigator: NavigationEngineDelegate {
-    public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
-        observer = navigation.observer
-        captureWebView(webView: webView)
-    }
-    
-    public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        observer = navigation.observer
-        captureWebView(webView: webView)
-    }
-    
-    public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        observer = navigation.observer
-        captureWebView(webView: webView)
-        onPageLoaded(navigation.request.url, webView.title)
+    func startObservingLoadingProgress(of webView: WKWebView) {
+        self.observer = WebViewObserver(webView: webView)
+        self.observer?.onLoadingStateChange = { [weak self] webView, newState in
+            guard let self else { return }
+            self.loadingState = newState
+            self.update(webView: webView)
+        }
     }
 
-    public func openNewWindow(for url: URL) {
-        stopLoading()
-        launchNewPage(url)
+    func stopObservingLoadingProgress(of webView: WKWebView) {
+        if let url = webView.url {
+            self.onPageLoaded(url, webView.title)
+        }
+        self.observer = nil
+    }
+
+    func stopLoadingAndOpenNewWindow(url: URL) {
+        self.observer = nil
+        self.stopLoading()
+        self.launchNewPage(url)
     }
 }

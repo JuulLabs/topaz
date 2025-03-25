@@ -13,13 +13,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var viewModel: WebPageModel?
     private var navigationEngine: NavigationEngine?
 
-    var navigatingToUrl: URL?
-
-    // Used for debug logging:
-    var tab: Int {
-        viewModel?.tab ?? -1
-    }
-
     override init() {}
 
 
@@ -28,19 +21,17 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         self.messageProcessorFactory = model.messageProcessorFactory
         self.contextId = model.contextId
 
-        self.navigationEngine = NavigationEngine(delegate: self)
-        webView.customUserAgent = model.customUserAgent
+        self.navigationEngine = NavigationEngine(navigator: model.navigator)
+        self.navigationEngine?.delegate = self
         webView.navigationDelegate = navigationEngine
         webView.uiDelegate = navigationEngine
-
-//        model.didInitializeWebView(webView)
+        webView.customUserAgent = model.customUserAgent
     }
 
     func deinitialize(webView: WKWebView) {
         navigationEngine = nil
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
-//        viewModel?.deinitialize(webView: webView)
         viewModel = nil
         detachOldHandler(from: webView)
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
@@ -66,19 +57,18 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         self.scriptHandler = nil
     }
 
+    // MARK: - NavigationEngineDelegate
+
     public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
-        viewModel?.navigator.didInitiateNavigation(navigation, in: webView)
-        //viewModel?.navigator.update(webView: webView, loadingState: navigation.observer.status)
         switch navigation.request.kind {
         case .newWindow:
-            print("XXX didInitiateNavigation for new window")
+            // Will trigger load of an entire new tab container so no need for any action
             break
-//            openLinkInNewTab(url: navigation.request.url)
         case .sameOrigin:
-            print("XXX didInitiateNavigation for same origin")
+            // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            print("XXX didInitiateNavigation for cross origin - reboot context")
+            // Tear down and spin up a new Js context for this new web page
             detachOldHandler(from: webView)
             self.contextId = contextId.withUrl(navigation.request.url)
             attachNewHandler(to: webView)
@@ -86,43 +76,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        viewModel?.navigator.didBeginLoading(navigation, in: webView)
         viewModel?.didBeginLoading()
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        viewModel?.navigator.didEndLoading(navigation, in: webView)
-    }
-
-    public func openNewWindow(for url: URL) {
-        viewModel?.navigator.openNewWindow(for: url)
-    }
-
-    public func didBeginNavigation(to url: URL, in webView: WKWebView) {
-        detachOldHandler(from: webView)
-        self.contextId = contextId.withUrl(url)
-        attachNewHandler(to: webView)
-    }
-
-    public func didCommitNavigation(in webView: WKWebView) {
-//        viewModel?.didCommitNavigation()
-    }
-
-    public func didFinishNavigation(to url: URL, in webView: WKWebView) {
-    }
-
-    public func redirectDueToError(to document: SimpleHtmlDocument) {
-        navigatingToUrl = nil
-//        viewModel?.navigator.redirect(to: document)
-    }
-
-    func openLinkInNewTab(url: URL?) {
-        guard let launchNewPage = viewModel?.launchNewPage, let url else {
-            return
-        }
-        navigatingToUrl = nil
-        viewModel?.navigator.stopLoading()
-        launchNewPage(url)
     }
 }
 

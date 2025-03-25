@@ -1,9 +1,5 @@
 import Foundation
-import OSLog
 import WebKit
-
-private let log = Logger(subsystem: "WebView", category: "NavigationDelegate")
-
 
 @MainActor
 public final class NavigationEngine: NSObject {
@@ -13,23 +9,13 @@ public final class NavigationEngine: NSObject {
     var rejectionReason: String?
     var rejectionStatusCode: Int?
 
+    var navigator: WebNavigator
+
     public weak var delegate: NavigationEngineDelegate?
 
-    public init(delegate: NavigationEngineDelegate? = nil) {
-        self.delegate = delegate
+    public init(navigator: WebNavigator) {
+        self.navigator = navigator
     }
-
-//    let navigator: WebNavigator
-//    public init(delo: NavDel, navigator: WebNavigator) {
-//        self.delo = delo
-//        self.navigator = navigator
-//    }
-
-    // TODO: set this to be the thing we want the web view to load?
-    // But only if it isn't a back/forward type thing can we ignore those?
-    var urlToLoad: URL?
-
-    // Also, use KVO to monitor the webview url property as it changes as we navigate
 
     func handleError(_ error: any Error, for navigation: WKNavigation, in webView: WKWebView) {
         guard shouldPresentErrorDocument(for: error) else { return }
