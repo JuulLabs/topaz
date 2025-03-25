@@ -6,7 +6,7 @@ import WebKit
  Applies the logic to figure out the nature of a navigation action.
  */
 @MainActor
-public struct NavigationRequest: Sendable {
+public struct NavigationRequest {
     public let url: URL
     public let kind: NavigationKind
     public let actionType: WKNavigationType

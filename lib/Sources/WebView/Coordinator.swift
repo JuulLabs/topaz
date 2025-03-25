@@ -15,7 +15,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     override init() {}
 
-
     func initialize(webView: WKWebView, model: WebPageModel) {
         self.viewModel = model
         self.messageProcessorFactory = model.messageProcessorFactory
