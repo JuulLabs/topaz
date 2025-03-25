@@ -1,8 +1,8 @@
 import Foundation
 
 /// Extremely basic HTML document with a non-nesting body
-struct SimpleHtmlDocument {
-    enum Tag: String {
+public struct SimpleHtmlDocument {
+    public enum Tag: String {
         case p
         case h1
     }
@@ -10,16 +10,16 @@ struct SimpleHtmlDocument {
     private let title: String
     private var elements: [(tag: Tag, inner: String)]
 
-    init(title: String = "") {
+    public init(title: String = "") {
         self.title = title
         self.elements = []
     }
 
-    mutating func addElement(_ tag: Tag, _ text: String) {
+    public mutating func addElement(_ tag: Tag, _ text: String) {
         elements.append((tag: tag, inner: text))
     }
 
-    func render() -> String {
+    public func render() -> String {
         "<!doctype html>" + renderElements().joined()
     }
 
@@ -43,5 +43,12 @@ struct SimpleHtmlDocument {
 
     private func element(tag: String, inner: () -> [String]) -> [String] {
         ["<\(tag)>"] + inner() + ["</\(tag)>"]
+    }
+}
+
+extension SimpleHtmlDocument {
+    public func asDataUriRequest() -> URLRequest? {
+        let data = Data(render().utf8).base64EncodedString()
+        return URL(string: "data:text/html;base64," + data).map { URLRequest(url: $0) }
     }
 }

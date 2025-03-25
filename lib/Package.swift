@@ -21,6 +21,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 "Design",
+                "Navigation",
                 "Settings",
                 "Tabs",
                 "UIHelpers",
@@ -140,6 +141,25 @@ let package = Package(
         ),
 
         .target(
+            name: "Navigation",
+            dependencies: [
+                "Helpers",
+            ]
+        ),
+        .testTarget(
+            name: "NavigationTests",
+            dependencies: ["Navigation", "TestHelpers"]
+        ),
+
+        .target(
+            name: "Settings",
+            dependencies: [
+                "Design",
+                "UIHelpers",
+            ]
+        ),
+
+        .target(
             name: "Tabs",
             dependencies: [
                 "Design",
@@ -150,14 +170,6 @@ let package = Package(
         .target(
             name: "TestHelpers",
             dependencies: []
-        ),
-
-        .target(
-            name: "Settings",
-            dependencies: [
-                "Design",
-                "UIHelpers",
-            ]
         ),
 
         .target(
@@ -175,6 +187,7 @@ let package = Package(
                 "BluetoothEngine",
                 "DevicePicker",
                 "JsMessage",
+                "Navigation",
             ],
             resources: [
                 .copy("Resources/Generated/BluetoothPolyfill.js")

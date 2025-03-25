@@ -1,22 +1,17 @@
 import BluetoothClient
 import Foundation
 import JsMessage
+import Navigation
 import WebKit
 
 @MainActor
-public class Coordinator: NSObject {
+public class Coordinator: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
-
-    var navigatingToUrl: URL?
-
-    // Used for debug logging:
-    var tab: Int {
-        viewModel?.tab ?? -1
-    }
+    private var navigationEngine: NavigationEngine?
 
     override init() {}
 
@@ -25,17 +20,17 @@ public class Coordinator: NSObject {
         self.messageProcessorFactory = model.messageProcessorFactory
         self.contextId = model.contextId
 
+        self.navigationEngine = NavigationEngine(navigator: model.navigator)
+        self.navigationEngine?.delegate = self
+        webView.navigationDelegate = navigationEngine
+        webView.uiDelegate = navigationEngine
         webView.customUserAgent = model.customUserAgent
-        webView.navigationDelegate = self
-        webView.uiDelegate = self
-
-        model.didInitializeWebView(webView)
     }
 
     func deinitialize(webView: WKWebView) {
+        navigationEngine = nil
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
-        viewModel?.deinitialize(webView: webView)
         viewModel = nil
         detachOldHandler(from: webView)
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
@@ -61,35 +56,29 @@ public class Coordinator: NSObject {
         self.scriptHandler = nil
     }
 
-    func didBeginNavigation(to url: URL, in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
-        detachOldHandler(from: webView)
-        self.contextId = contextId.withUrl(url)
-        attachNewHandler(to: webView)
-        // TODO: tell model url changed without reloading it
-    }
+    // MARK: - NavigationEngineDelegate
 
-    func didCommitNavigation(in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
-        viewModel?.didCommitNavigation()
-    }
-
-    func didFinishNavigation(to url: URL, in webView: WKWebView) {
-        viewModel?.navigator.update(webView: webView)
-    }
-
-    func redirectDueToError(to document: SimpleHtmlDocument) {
-        navigatingToUrl = nil
-        viewModel?.navigator.redirect(to: document)
-    }
-
-    func openLinkInNewTab(url: URL?) {
-        guard let launchNewPage = viewModel?.launchNewPage, let url else {
-            return
+    public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
+        switch navigation.request.kind {
+        case .newWindow:
+            // Will trigger load of an entire new tab container so no need for any action
+            break
+        case .sameOrigin:
+            // Carry over the same Js context to keep BLE connections alive
+            break
+        case .crossOrigin:
+            // Tear down and spin up a new Js context for this new web page
+            detachOldHandler(from: webView)
+            self.contextId = contextId.withUrl(navigation.request.url)
+            attachNewHandler(to: webView)
         }
-        navigatingToUrl = nil
-        viewModel?.navigator.stopLoading()
-        launchNewPage(url)
+    }
+
+    public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        viewModel?.didBeginLoading()
+    }
+
+    public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
     }
 }
 

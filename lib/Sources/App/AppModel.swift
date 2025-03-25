@@ -5,6 +5,7 @@ import BluetoothMessage
 import DevicePicker
 import Helpers
 import JsMessage
+import Navigation
 import Observation
 import OSLog
 import Settings
@@ -111,10 +112,16 @@ public class AppModel {
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)
         navigator.onPageLoaded = { [weak self, weak searchBarModel] url, title in
-            guard !url.isAboutBlank() else { return }
+            guard shouldShowUrl(url) else { return }
             settingsModel.shareItem = SharingUrl(url: url, subject: title)
             self?.tabsModel.update(url: url, at: tabIndex)
             searchBarModel?.searchString = url.absoluteString
+        }
+        navigator.launchNewPage = { [weak self] newUrl in
+            guard let self else { return }
+            let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
+            let webLoadingModel = self.buildPageModel(tabModel: newTab)
+            self.activePageModel = webLoadingModel
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { [weak self] in
                 self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
@@ -170,12 +177,13 @@ public class AppModel {
             messageProcessorFactory: messageProcessorFactory,
             navigator: navBarModel.navigator
         )
-        webPageModel.launchNewPage = { [weak self] newUrl in
-            guard let self else { return }
-            let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
-            let webLoadingModel = self.buildPageModel(tabModel: newTab)
-            self.activePageModel = webLoadingModel
-        }
         return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector)
     }
+}
+
+private func shouldShowUrl(_ url: URL) -> Bool {
+    guard let scheme = url.scheme?.lowercased() else {
+        return false
+    }
+    return !["about", "data"].contains(scheme)
 }

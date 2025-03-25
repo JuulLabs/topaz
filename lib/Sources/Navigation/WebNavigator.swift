@@ -10,11 +10,14 @@ public final class WebNavigator {
     @ObservationIgnored
     private weak var webView: WKWebView?
 
+    @ObservationIgnored
+    var observer: WebViewObserver?
+
     public private(set) var backForwardList: WKBackForwardList = WebNavigator.placeholderBackForwardList
     public private(set) var canGoForward: Bool = false
     public private(set) var canGoBack: Bool = false
 
-    public private(set) var loadingState: WebPageLoadingState = .initializing {
+    public private(set) var loadingState: WebPageLoadingState {
         willSet {
             if case let .complete(url) = newValue {
                 onPageLoaded(url, webView?.title)
@@ -22,7 +25,11 @@ public final class WebNavigator {
         }
     }
 
+    @ObservationIgnored
     public var onPageLoaded: (URL, String?) -> Void = { _, _ in }
+
+    @ObservationIgnored
+    public var launchNewPage: (URL) -> Void = { _ in }
 
     public init(loadingState: WebPageLoadingState = .initializing) {
         self.loadingState = loadingState
@@ -50,41 +57,29 @@ public final class WebNavigator {
         self.webView?.go(to: item)
     }
 
-    func update(webView: WKWebView) {
+    private func update(webView: WKWebView) {
         self.webView = webView
         self.backForwardList = webView.backForwardList
         self.canGoForward = webView.canGoForward
         self.canGoBack = webView.canGoBack
     }
 
-    func updateLoadingState(isLoading: Bool) async {
-        if isLoading {
-            // We are usually already in progress by the time isLoading flips to true
-            guard case .inProgress = loadingState else {
-                loadingState = .inProgress(0.0)
-                return
-            }
-        } else {
-            guard let url = webView?.url else { return }
-            if loadingState.isProgressIncomplete {
-                // Smooth out the transition to 100% with a small delay
-                loadingState = .inProgress(1.0)
-                try? await Task.sleep(nanoseconds: NSEC_PER_MSEC * 15)
-                // Double check state didn't change while we slept
-                if loadingState.isProgressComplete {
-                    loadingState = .complete(url)
-                }
-            } else {
-                loadingState = .complete(url)
+    func startObservingLoadingProgress(of webView: WKWebView) {
+        self.observer = WebViewObserver(webView: webView)
+        self.observer?.onLoadingStateChange = { [weak self] webView, newState in
+            guard let self else { return }
+            self.loadingState = newState
+            self.update(webView: webView)
+            if case let .complete(url) = newState {
+                self.onPageLoaded(url, webView.title)
+                self.observer = nil
             }
         }
     }
 
-    func updateLoadingProgress(progress: Float) async {
-        loadingState = .inProgress(progress)
-    }
-
-    func redirect(to document: SimpleHtmlDocument) {
-        webView?.loadHTMLString(document.render(), baseURL: nil)
+    func stopLoadingAndOpenNewWindow(url: URL) {
+        self.observer = nil
+        self.stopLoading()
+        self.launchNewPage(url)
     }
 }

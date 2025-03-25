@@ -1,11 +1,11 @@
 import Foundation
 
-public enum WebPageLoadingState {
+public enum WebPageLoadingState: Sendable {
     case initializing
     case inProgress(Float)
     case complete(URL)
 
-    var isProgressIncomplete: Bool {
+    public var isProgressIncomplete: Bool {
         switch self {
         case let .inProgress(progress) where progress < 1.0:
             true
@@ -14,7 +14,7 @@ public enum WebPageLoadingState {
         }
     }
 
-    var isProgressComplete: Bool {
+    public var isProgressComplete: Bool {
         switch self {
         case let .inProgress(progress) where progress == 1.0:
             true

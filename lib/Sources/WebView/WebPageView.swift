@@ -3,6 +3,7 @@ import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
 import JsMessage
+import Navigation
 import SwiftUI
 import WebKit
 
