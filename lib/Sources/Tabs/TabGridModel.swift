@@ -97,10 +97,10 @@ public final class TabGridModel {
     }
 
     private func saveAll() {
-//        guard let store else { return }
-//        Task { [urls] in
-//            try await store.save(urls, for: .tabURLsKey)
-//        }
+        guard let store else { return }
+        Task { [urls] in
+            try await store.save(urls, for: .tabURLsKey)
+        }
     }
 }
 
