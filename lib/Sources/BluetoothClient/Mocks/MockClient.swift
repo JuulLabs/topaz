@@ -99,15 +99,15 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onDiscoverDescriptors(peripheral, characteristic)
     }
 
-    public func characteristicSetNotifications(_ peripheral: Peripheral, characteristic: Bluetooth.Characteristic, enable: Bool) async throws -> CharacteristicEvent {
+    public func characteristicSetNotifications(_ peripheral: Peripheral, service: Service, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent {
         try await onCharacteristicSetNotifications(peripheral, characteristic, enable)
     }
 
-    public func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
+    public func characteristicRead(_ peripheral: Peripheral, service: Service, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
         try await onCharacteristicRead(peripheral, characteristic)
     }
 
-    public func characteristicWrite(_ peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
+    public func characteristicWrite(_ peripheral: Peripheral, service: Service, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
         try await onCharacteristicWrite(peripheral, characteristic, value, withResponse)
     }
 

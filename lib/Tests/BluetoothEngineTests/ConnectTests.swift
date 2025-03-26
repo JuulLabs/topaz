@@ -79,7 +79,7 @@ struct ConnectorTests {
         var client = MockBluetoothClient()
         client.onConnect = { peripheral in
             let connectedPeripheral = FakePeripheral(id: peripheral.id, connectionState: .connected)
-            state.putPeripheral(connectedPeripheral)
+            state.putPeripheral(connectedPeripheral, replace: true)
             return PeripheralEvent(.connect, connectedPeripheral)
         }
         return client

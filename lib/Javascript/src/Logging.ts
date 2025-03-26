@@ -9,6 +9,8 @@ const safeStringify = (obj: any): string => {
     }
 }
 
+// TODO: Some more work to do here to implement the full-spec properly:
+// https://console.spec.whatwg.org/#formatting-specifiers
 const percentInterpolation = (format: string, args: any[]): string => {
     if (typeof(format) !== 'string') {
         return;
@@ -16,10 +18,10 @@ const percentInterpolation = (format: string, args: any[]): string => {
     if (args.length === 0) {
         return format;
     }
-    if (!/%s|%v|%d|%f/.test(format)) {
+    if (!/%s|%v|%o|%d|%i|%f/.test(format)) {
         return;
     }
-    return args.reduce((str, val) => str.replace(/%s|%v|%d|%f/, val), format);
+    return args.reduce((str, val) => str.replace(/%s|%v|%o|%d|%i|%f/, val), format);
 }
 
 const logOverride = (level: string, args: IArguments) => {

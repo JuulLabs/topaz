@@ -14,6 +14,7 @@ import XCTest
 struct EndToEndBluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
+    private let fakeServiceId = UUID(n: 9)
 
     private let requestDeviceRequest = JsMessageRequest(
         handlerName: "bluetooth",
@@ -85,7 +86,7 @@ struct EndToEndBluetoothEngineTests {
         let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
         client.eventsContinuation.yield(
-            CharacteristicChangedEvent(peripheralId: fake.id, characteristicId: characteristic.uuid, instance: characteristic.instance, data: nil)
+            CharacteristicChangedEvent(peripheralId: fake.id, serviceId: fakeServiceId, characteristicId: characteristic.uuid, instance: characteristic.instance, data: nil)
         )
 
         // It is critical that Js sees the `characteristicvaluechanged` event before the promise is resolved

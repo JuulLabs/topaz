@@ -37,7 +37,7 @@ struct DiscoverCharacteristicsTests {
                 CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
             }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -73,7 +73,7 @@ struct DiscoverCharacteristicsTests {
                 CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
             }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)
@@ -110,7 +110,7 @@ struct DiscoverCharacteristicsTests {
                 return CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: expectedCharacteristics)
             }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverCharacteristics, requestBody: requestBody)

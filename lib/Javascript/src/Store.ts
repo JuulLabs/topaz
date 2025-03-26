@@ -80,22 +80,10 @@ class Store {
         serviceRecord.characteristics.set(keyForCharacteristic(characteristic), { uuid: characteristic.uuid, characteristic, descriptors: new Map() });
     }
 
-    private findCharacteristic = (key: CharacteristicKey): BluetoothRemoteGATTCharacteristic | undefined => {
-        for (const deviceRecord of this.#devices.values()) {
-            for (const serviceRecord of deviceRecord.services.values()) {
-                const characteristic = serviceRecord.characteristics.get(key)?.characteristic;
-                if (characteristic) {
-                    return characteristic;
-                }
-            }
-        }
-        return undefined;
-    }
-
-    updateCharacteristicValue = (key: CharacteristicKey, value: DataView): BluetoothRemoteGATTCharacteristic => {
-        const characteristic = this.findCharacteristic(key);
+    updateCharacteristicValue = (deviceUuid: string, serviceUuid: string, uuid: string, instance: number, value: DataView): BluetoothRemoteGATTCharacteristic => {
+        const characteristic = this.#devices.get(deviceUuid)?.services.get(serviceUuid)?.characteristics.get(characteristicKey(uuid, instance))?.characteristic;
         if (!characteristic) {
-            throw new ReferenceError(`Characteristic ${key} not found`);
+            throw new ReferenceError(`Characteristic ${uuid} not found`);
         }
         characteristic.value = value;
         return characteristic;
