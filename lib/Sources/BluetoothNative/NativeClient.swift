@@ -90,29 +90,54 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func characteristicSetNotifications(_ peripheral: Peripheral, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent {
-        try await server.awaitEvent(key: .characteristic(.characteristicNotify, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+    func characteristicSetNotifications(_ peripheral: Peripheral, service: Service, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent {
+        try await server.awaitEvent(
+            key: .characteristic(
+                .characteristicNotify,
+                peripheralId: peripheral.id,
+                serviceId: service.uuid,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        ) {
             coordinator.setNotify(peripheral: peripheral, characteristic: characteristic, value: enable)
         }
     }
 
-    func characteristicWrite(_ peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
+    func characteristicWrite(_ peripheral: Peripheral, service: Service, characteristic: Characteristic, value: Data, withResponse: Bool) async throws -> CharacteristicEvent {
         guard withResponse else {
             coordinator.writeCharacteristic(peripheral: peripheral, characteristic: characteristic, value: value, withResponse: withResponse)
             return CharacteristicEvent(
                 .characteristicWrite,
                 peripheralId: peripheral.id,
+                serviceId: service.uuid,
                 characteristicId: characteristic.uuid,
                 instance: characteristic.instance
             )
         }
-        return try await server.awaitEvent(key: .characteristic(.characteristicWrite, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+        return try await server.awaitEvent(
+            key: .characteristic(
+                .characteristicWrite,
+                peripheralId: peripheral.id,
+                serviceId: service.uuid,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        ) {
             coordinator.writeCharacteristic(peripheral: peripheral, characteristic: characteristic, value: value, withResponse: withResponse)
         }
     }
 
-    func characteristicRead(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
-        return try await server.awaitEvent(key: .characteristic(.characteristicValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+    func characteristicRead(_ peripheral: Peripheral, service: Service, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
+        return try await server.awaitEvent(
+            key: .characteristic(
+                .characteristicValue,
+                peripheralId: peripheral.id,
+                serviceId: service.uuid,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        ) {
             coordinator.readCharacteristic(peripheral: peripheral, characteristic: characteristic)
         }
     }

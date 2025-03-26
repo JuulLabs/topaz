@@ -14,8 +14,8 @@ struct StopNotifications: BluetoothAction {
 
     func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let characteristic = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
-        _ = try await client.characteristicSetNotifications(peripheral, characteristic: characteristic, enable: false)
+        let (service, characteristic) = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
+        _ = try await client.characteristicSetNotifications(peripheral, service: service, characteristic: characteristic, enable: false)
         return CharacteristicResponse()
     }
 }

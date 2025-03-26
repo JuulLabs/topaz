@@ -71,7 +71,7 @@ struct BluetoothEngineTests {
             client.onEnable = { }
             client.onConnect = { PeripheralEvent(.connect, $0) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .connect, requestBody: connectRequestBody)
@@ -95,7 +95,7 @@ struct BluetoothEngineTests {
             client.onEnable = { }
             client.onDisconnect = { PeripheralEvent(.disconnect, $0) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .disconnect, requestBody: disconnectRequestBody)
@@ -124,7 +124,7 @@ struct BluetoothEngineTests {
             client.onEnable = { }
             client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -153,7 +153,7 @@ struct BluetoothEngineTests {
             client.onEnable = { }
             client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)
@@ -182,7 +182,7 @@ struct BluetoothEngineTests {
             client.onEnable = { }
             client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
             await state.setSystemState(.poweredOn)
-            await state.putPeripheral(fake)
+            await state.putPeripheral(fake, replace: true)
         }
         await sut.didAttach(to: context)
         let message = Message(action: .discoverServices, requestBody: requestBody)

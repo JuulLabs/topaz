@@ -1,3 +1,4 @@
+import Bluetooth
 @testable import BluetoothMessage
 import Foundation
 import Helpers
@@ -153,8 +154,57 @@ struct BluetoothStateTests {
             #expect(result.count == 0)
         }
     }
+
+    @Test
+    func putPeripheral_withoutReplaceWhenEmpty_storesPeripheral() async throws {
+        let uuid0 = UUID(n: 0)
+        let original = FakePeripheral(id: uuid0)
+        #expect(await sut.peripherals.isEmpty)
+        await sut.putPeripheral(original, replace: false)
+        let fetched = try await sut.getPeripheral(uuid0)
+        #expect(fetched.objId == original.objId)
+    }
+
+    @Test
+    func putPeripheral_withReplaceWhenEmpty_storesPeripheral() async throws {
+        let uuid0 = UUID(n: 0)
+        let original = FakePeripheral(id: uuid0)
+        #expect(await sut.peripherals.isEmpty)
+        await sut.putPeripheral(original, replace: true)
+        let fetched = try await sut.getPeripheral(uuid0)
+        #expect(fetched.objId == original.objId)
+    }
+
+    @Test
+    func putPeripheral_withoutReplaceWhenExists_doesNotOverwrite() async throws {
+        let uuid0 = UUID(n: 0)
+        let original = FakePeripheral(id: uuid0)
+        let replacement = FakePeripheral(id: uuid0)
+        await sut.putPeripheral(original, replace: false)
+        await sut.putPeripheral(replacement, replace: false)
+        let fetched = try await sut.getPeripheral(uuid0)
+        #expect(fetched.objId == original.objId)
+    }
+
+    @Test
+    func putPeripheral_withReplaceWhenExists_overwrites() async throws {
+        let uuid0 = UUID(n: 0)
+        let original = FakePeripheral(id: uuid0)
+        let replacement = FakePeripheral(id: uuid0)
+        await sut.putPeripheral(original, replace: true)
+        await sut.putPeripheral(replacement, replace: true)
+        let fetched = try await sut.getPeripheral(uuid0)
+        #expect(fetched.objId == replacement.objId)
+    }
 }
 
 fileprivate extension String {
     static let uuidsKey = "savedPeripheralUUIDs"
+}
+
+fileprivate extension Peripheral {
+    /// The unique instance id of the wrapped peripheral object
+    var objId: ObjectIdentifier {
+        ObjectIdentifier(peripheral.wrapped.unsafeObject)
+    }
 }

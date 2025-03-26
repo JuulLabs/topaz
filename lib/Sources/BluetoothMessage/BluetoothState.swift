@@ -53,7 +53,10 @@ public actor BluetoothState {
         return deadPeripherals
     }
 
-    public func putPeripheral(_ peripheral: Peripheral) {
+    public func putPeripheral(_ peripheral: Peripheral, replace: Bool) {
+        guard replace || peripherals.index(forKey: peripheral.id) == nil else {
+            return
+        }
         self.peripherals[peripheral.id] = peripheral
     }
 
@@ -101,12 +104,12 @@ public actor BluetoothState {
         self.peripherals[peripheralId]?.services = services
     }
 
-    public func getCharacteristic(peripheralId uuid: UUID, serviceId: UUID, characteristicId: UUID, instance: UInt32) throws -> Characteristic {
+    public func getCharacteristic(peripheralId uuid: UUID, serviceId: UUID, characteristicId: UUID, instance: UInt32) throws -> (Service, Characteristic) {
         let service = try getService(peripheralId: uuid, serviceId: serviceId)
         guard let characteristic = service.characteristics.first(where: { $0.uuid == characteristicId && $0.instance == instance }) else {
             throw BluetoothError.noSuchCharacteristic(service: serviceId, characteristic: characteristicId)
         }
-        return characteristic
+        return (service, characteristic)
     }
 
     public func getCharacteristics(peripheralId uuid: UUID, serviceId: UUID) throws -> [Characteristic] {

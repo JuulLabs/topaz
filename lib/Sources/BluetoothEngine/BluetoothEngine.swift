@@ -132,14 +132,18 @@ public actor BluetoothEngine: JsMessageProcessor {
             await client.enable()
             self.isEnabled = true
         }
+        var actionForFailureLogging: Message.Action?
         do {
             let message = try request.extractMessage().get()
+            actionForFailureLogging = message.action
             logRequest(message: message)
             let response = try await processAction(message: message).toJsMessage()
             logResponse(action: message.action, response: response)
             return response
         } catch {
-            return .error(error.toDomError())
+            let errorResponse = JsMessageResponse.error(error.toDomError())
+            logResponse(action: actionForFailureLogging, response: errorResponse)
+            return errorResponse
         }
     }
 
@@ -184,13 +188,14 @@ public actor BluetoothEngine: JsMessageProcessor {
         messageLog.debug("Request \(message.action.rawValue, privacy: .public): \(JsType.dictionaryAsString(message.rawRequestData), privacy: .public)")
     }
 
-    private func logResponse(action: Message.Action, response: JsMessageResponse) {
+    private func logResponse(action: Message.Action?, response: JsMessageResponse) {
         guard enableDebugLogging else { return }
+        let actionString = action?.rawValue ?? "?"
         switch response {
         case let .body(body):
-            messageLog.debug("Response \(action.rawValue, privacy: .public): \(body.asDebugString(), privacy: .public)")
+            messageLog.debug("Response \(actionString, privacy: .public): \(body.asDebugString(), privacy: .public)")
         case let .error(error):
-            messageLog.error("Response \(action.rawValue, privacy: .public): \(error.jsRepresentation, privacy: .public)")
+            messageLog.error("Response \(actionString, privacy: .public): \(error.jsRepresentation, privacy: .public)")
         }
     }
 }
