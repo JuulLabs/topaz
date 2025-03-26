@@ -41,7 +41,7 @@ extension NavigationEngine: WKNavigationDelegate {
             return .cancel
         }
         if let httpResponse = navigationResponse.response as? HTTPURLResponse {
-            guard httpResponse.statusCode == 200 else {
+            guard httpResponse.statusCode < 400 else {
                 rejectionStatusCode = httpResponse.statusCode
                 log.warning("Response rejected statusCode=\(httpResponse.statusCode) url=\(latestRequest.url.absoluteString)")
                 return .cancel
