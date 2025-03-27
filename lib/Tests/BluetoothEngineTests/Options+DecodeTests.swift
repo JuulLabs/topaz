@@ -307,7 +307,7 @@ struct Options_DecodeTests {
     @Test
     func decode_example4_5_returnsCorrectOptionsObject() {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3]) }]}] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": ["1": 2, "2": 3, "0": 1]]]]])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
@@ -326,7 +326,7 @@ struct Options_DecodeTests {
     @Test
     func decode_example4_6_returnsCorrectOptionsObject() {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1, 2, 3, 4]) }]}] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1, 2, 3, 4]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": ["0": 1, "1": 2, "3": 4, "2": 3]]]]])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
@@ -345,7 +345,7 @@ struct Options_DecodeTests {
     @Test
     func decode_example4_7_returnsCorrectOptionsObject() {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([1]) }]}] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [1]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": ["0": 1]]]]])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
@@ -364,7 +364,7 @@ struct Options_DecodeTests {
     @Test
     func decode_example4_8_returnsCorrectOptionsObject() {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57])}]}] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "dataPrefix": ["0": 0x91, "1": 0xAA], "mask": ["0": 0x0f, "1": 0x57]]]]])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
@@ -511,7 +511,7 @@ struct Options_DecodeTests {
     @Test
     func decode_providesMaskInManufacturerDataButNoDataPrefix_throwsInvalidInputError() {
         // { filters: [{ manufacturerData: [{ companyIdentifier: 17, mask: Uint8Array([0x0f, 0x57])}]}] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "mask": [0x0f, 0x57]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["manufacturerData": [["companyIdentifier": 7351, "mask": ["1": 0x57, "0": 0x0f]]]]])]
 
         #expect(throws: OptionsError.invalidInput("manufacturerData.mask, if provided, must also have a dataPrefix")) {
             try sut.decode(from: web_bluetooth_options)
@@ -521,7 +521,7 @@ struct Options_DecodeTests {
     @Test
     func decode_providesMaskInServiceDataButNoDataPrefix_throwsInvalidInputError() {
         // { filters: [{ serviceData: [{ service: "A", mask: Uint8Array([0x0f, 0x57]) }] }] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "mask": [0x0f, 0x57]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "mask": ["0": 0x0f, "1": 0x57]]]]])]
 
         #expect(throws: OptionsError.invalidInput("serviceData.mask, if provided, must also have a dataPrefix")) {
             try sut.decode(from: web_bluetooth_options)
@@ -531,7 +531,7 @@ struct Options_DecodeTests {
     @Test
     func decode_fullServiceDataFilter_returnsCorrectOptionsObject() {
         // { filters: [{ serviceData: [{ service: "A", dataPrefix: Uint8Array([0x91, 0xAA]), mask: Uint8Array([0x0f, 0x57]) }] }] }
-        let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "dataPrefix": [0x91, 0xAA], "mask": [0x0f, 0x57]]]]])]
+        let web_bluetooth_options = ["filters": JsType.bridge([["serviceData": [["service": uuid_1.uuidString, "dataPrefix": ["0": 0x91, "1": 0xAA], "mask": ["1": 0x57, "0": 0x0f]]]]])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
@@ -551,7 +551,7 @@ struct Options_DecodeTests {
     @Test
     func decode_optionalManufacturerData_returnsCorrectOptionsObject() {
         // { optionalManufacturerData: [1, 2, 3, 4] }
-        let web_bluetooth_options = ["optionalManufacturerData": JsType.bridge([1, 2, 3, 4])]
+        let web_bluetooth_options = ["optionalManufacturerData": JsType.bridge(["0": 1, "1": 2, "2": 3, "3": 4])]
 
         #expect(throws: Never.self) {
             let result = try sut.decode(from: web_bluetooth_options)
