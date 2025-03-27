@@ -51,6 +51,8 @@ struct Options_IncludeAdvertisementEventTests {
             "D3": AdvertisementEvent(fakePeripheral_D3, fakePeripheral_D3.fakeAdvertisement(localName: "Device Third", serviceUUIDs: [service_C.uuid, service_D.uuid])),
             "D4": AdvertisementEvent(fakePeripheral_D4, fakePeripheral_D4.fakeAdvertisement(localName: "Device Fourth", serviceUUIDs: [service_E.uuid])),
             "D5": AdvertisementEvent(fakePeripheral_D5, fakePeripheral_D5.fakeAdvertisement(localName: "Unique Name")),
+            "D6": AdvertisementEvent(fakePeripheral_D1, fakePeripheral_D1.fakeAdvertisement(localName: "JUUL", manufacturerData: ManufacturerData(code: 17, data: Data([0xB4, 0x03])), serviceUUIDs: [service_A.uuid, service_B.uuid, service_C.uuid, service_D.uuid])),
+            //"D6": AdvertisementEvent(fakePeripheral_D1, fakePeripheral_D1.fakeAdvertisement(localName: "JUUL", manufacturerData: ManufacturerData(code: 17, data: Data([0xB4, 03])), serviceUUIDs: [service_A.uuid, service_B.uuid, service_C.uuid, service_D.uuid])),
         ]
     }
 
@@ -280,6 +282,15 @@ struct Options_IncludeAdvertisementEventTests {
         #expect(sut.includeAdvertisementEventInDeviceList(advertisementEvents["D3"]!) == false)
         #expect(sut.includeAdvertisementEventInDeviceList(advertisementEvents["D4"]!) == false)
         #expect(sut.includeAdvertisementEventInDeviceList(advertisementEvents["D5"]!) == false)
+    }
+
+    @Test
+    func includeAdvertisementEventInDeviceList_JUUL_returnsCorrectAssessmentsOfAdvertisementEvents() {
+        let sut = Options(filters: [Options.Filter(manufacturerData: [Options.Filter.ManufacturerData(companyIdentifier: 1475, dataPrefix: [0x0, 0x4], mask: [0x0, 0x4])])])
+        let p = FakePeripheral(id: UUID(), name: "JUUL")
+        let adv = AdvertisementEvent(p, p.fakeAdvertisement(localName: "JUUL2 Q2TAVTP0", manufacturerData: ManufacturerData(code: 0x05C3, data: Data([0xB4, 0x03])), serviceUUIDs: [UUID(uuidString: "0000FDE4-0000-1000-8000-00805F9B34FB")!]))
+
+        #expect(sut.includeAdvertisementEventInDeviceList(adv) == false)
     }
 
     @Test

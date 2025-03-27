@@ -1,5 +1,8 @@
 import Bluetooth
 import BluetoothClient
+import OSLog
+
+private let log = Logger(subsystem: "BluetoothScanner", category: "NativeScanner")
 
 struct NativeScanner: BluetoothScanner {
     private let options: Options?
@@ -21,13 +24,17 @@ struct NativeScanner: BluetoothScanner {
     func handleEvent(_ event: AdvertisementEvent) {
         // If no options are provided, yield all
         guard let options = options else {
+            print("all: \(event.advertisement)")
             continuation.yield(event)
             return
         }
 
         // If options are provided, only yield events that pass the filters
         if options.includeAdvertisementEventInDeviceList(event) {
+            print("MATCH =>", event.advertisement)
             continuation.yield(event)
+        } else {
+            //print("NO MATCH => ", event.advertisement)
         }
     }
 

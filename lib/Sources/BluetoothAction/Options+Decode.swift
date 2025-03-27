@@ -60,6 +60,7 @@ extension Options.Filter {
         }
 
         let manufacturerDataFilters = try data?[manufacturerDataKey]?.array?.compactMap { try Options.Filter.ManufacturerData.decode(from: $0.dictionary) }
+        print("manufacturerDataFilters=\(manufacturerDataFilters)")
 
         if let manufacturerDataFilters = manufacturerDataFilters {
             guard manufacturerDataFilters.isEmpty == false else {
@@ -110,8 +111,10 @@ extension Options.Filter.ServiceData {
         }
 
         let dataPrefix = data?[dataPrefixKey]?.dictionary?.compactMapToUint8Array()
+        print("dataPrefix=\(dataPrefix)")
 
         let mask = data?[maskKey]?.dictionary?.compactMapToUint8Array()
+        print("mask=\(mask)")
 
         if mask != nil {
             guard dataPrefix != nil else {
