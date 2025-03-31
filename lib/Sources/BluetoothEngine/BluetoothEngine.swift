@@ -23,6 +23,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private let deviceSelector: InteractiveDeviceSelector
     private var jsEventForwarder: JsEventForwarder
     private var task: Task<Void, Never>?
+    private var zombieDetector: ZombieDetector
 
     public init(
         state: BluetoothState,
@@ -35,16 +36,27 @@ public actor BluetoothEngine: JsMessageProcessor {
         self.deviceSelector = deviceSelector
         self.enableDebugLogging = enableDebugLogging
         self.jsEventForwarder = JsEventForwarder { _ in }
+        self.zombieDetector = ZombieDetector(state: state)
     }
 
     // MARK: - Bluetooth Events
 
     private func handleDelegateEvent(_ event: BluetoothEvent) async {
         // Note: order of processing is super important here
+        await monitorZombies(for: event)
         await updateState(for: event)
         await sendJsEvent(for: event)
         await client.resolvePendingRequests(for: event)
         await handleUnexpectedDisconnect(for: event)
+    }
+
+    private func monitorZombies(for event: BluetoothEvent) async {
+        zombieDetector.trackZombies(for: event)
+        for zombie in await zombieDetector.checkForZombies(for: event) {
+            // Propagate a synthetic disconnection event back through the entire system
+            messageLog.warning("Cleaning out zombie peripheral \(zombie.id.uuidString, privacy: .public)")
+            await handleDelegateEvent(DisconnectionEvent.unexpected(zombie, BluetoothError.turnedOff))
+        }
     }
 
     // On unexpected disconnect reject all pending operations for the peripheral
