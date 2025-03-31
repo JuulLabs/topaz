@@ -52,7 +52,7 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private func monitorZombies(for event: BluetoothEvent) async {
         zombieDetector.trackZombies(for: event)
-        for zombie in await zombieDetector.zombies(for: event) {
+        for zombie in await zombieDetector.checkForZombies(for: event) {
             // Propagate a synthetic disconnection event back through the entire system
             messageLog.warning("Cleaning out zombie peripheral \(zombie.id.uuidString, privacy: .public)")
             await handleDelegateEvent(DisconnectionEvent.unexpected(zombie, BluetoothError.turnedOff))

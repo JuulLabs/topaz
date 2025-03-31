@@ -11,7 +11,7 @@ import Foundation
  Zombies are those with an underlying peripheral state of disconnected where
  we have not seen a disconnect event.
 
- We see this happen when BLE is diabled via Control Center - the peripherals
+ We see this happen when BLE is disabled via Control Center - the peripherals
  silently change to a disconnected state but the delegate never sends a disconnect.
  This is not the case when BLE is disabled via Settings which does the expected
  thing and immediately triggers the delegate to send a disconnect event.
@@ -42,7 +42,7 @@ struct ZombieDetector {
     /// Consult each peripheral to see if we have any zombies that need to be disconnected.
     /// Zombies are those that we think are connected but have been silently disconnected
     /// due to the system being powered off via Control Center.
-    func zombies(for event: BluetoothEvent) async -> [Peripheral] {
+    func checkForZombies(for event: BluetoothEvent) async -> [Peripheral] {
         guard let event = event as? SystemStateEvent, event.systemState == .poweredOff else {
             return []
         }
