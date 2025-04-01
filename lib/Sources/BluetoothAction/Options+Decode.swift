@@ -131,11 +131,11 @@ extension [JsType] {
 
 extension Dictionary where Key == String, Value == JsType {
     func compactMapToUint8Array() -> [UInt8]? {
-        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number }.compactMap { UInt8(truncating: $0) }
+        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number.map(UInt8.init(truncating:)) }
     }
 
     func compactMapToUint16Array() -> [UInt16]? {
-        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number }.compactMap { UInt16(truncating: $0) }
+        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number.map(UInt16.init(truncating:)) }
     }
 }
 
