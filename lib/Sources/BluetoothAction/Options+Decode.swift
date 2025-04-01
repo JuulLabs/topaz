@@ -22,7 +22,7 @@ extension Options {
         let filters = try data?[filtersKey]?.array?.compactMap { try Options.Filter.decode(from: $0.dictionary) }.nilIfEmpty()
         let exclusionFilters = try data?[exclusionFiltersKey]?.array?.compactMap { try Options.Filter.decode(from: $0.dictionary) }
         let optionalServices = data?[optionalServicesKey]?.array?.compactMapToUUIDs()
-        let optionalManufacturerData = data?[optionalManufacturerDataKey]?.array?.compactMapToUint16Array()
+        let optionalManufacturerData = data?[optionalManufacturerDataKey]?.dictionary?.compactMapToUint16Array()
         let acceptAllDevices = data?[acceptAllDevicesKey]?.number?.boolValue ?? false
 
         guard filters != nil || exclusionFilters != nil || optionalServices != nil || optionalManufacturerData != nil || acceptAllDevices else {
@@ -89,9 +89,9 @@ extension Options.Filter.ManufacturerData {
             return nil
         }
 
-        let dataPrefix = data?[dataPrefixKey]?.array?.compactMapToUint8Array()
+        let dataPrefix = data?[dataPrefixKey]?.dictionary?.compactMapToUint8Array()
 
-        let mask = data?[maskKey]?.array?.compactMapToUint8Array()
+        let mask = data?[maskKey]?.dictionary?.compactMapToUint8Array()
 
         if mask != nil {
             guard dataPrefix != nil else {
@@ -109,9 +109,9 @@ extension Options.Filter.ServiceData {
             return nil
         }
 
-        let dataPrefix = data?[dataPrefixKey]?.array?.compactMapToUint8Array()
+        let dataPrefix = data?[dataPrefixKey]?.dictionary?.compactMapToUint8Array()
 
-        let mask = data?[maskKey]?.array?.compactMapToUint8Array()
+        let mask = data?[maskKey]?.dictionary?.compactMapToUint8Array()
 
         if mask != nil {
             guard dataPrefix != nil else {
@@ -127,13 +127,15 @@ extension [JsType] {
     func compactMapToUUIDs() -> [UUID]? {
         self.compactMap { $0.string.toUuid() }
     }
+}
 
+extension Dictionary where Key == String, Value == JsType {
     func compactMapToUint8Array() -> [UInt8]? {
-        self.compactMap { $0.number }.compactMap { UInt8(truncating: $0) }
+        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number.map(UInt8.init(truncating:)) }
     }
 
     func compactMapToUint16Array() -> [UInt16]? {
-        self.compactMap { $0.number }.compactMap { UInt16(truncating: $0) }
+        self.sorted(by: { $0.key < $1.key }).compactMap { $0.value.number.map(UInt16.init(truncating:)) }
     }
 }
 
