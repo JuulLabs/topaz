@@ -17,7 +17,7 @@ public struct TestDeviceSelector: InteractiveDeviceSelector {
         fatalError("Not implemented")
     }
 
-    public func cancel(with error: DeviceSelectionError) async {
+    public func cancel() async {
         fatalError("Not implemented")
     }
 }

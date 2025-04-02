@@ -43,7 +43,7 @@ struct DevicePickerTests {
         case let .success(success):
             Issue.record("Unexpected result: \(success)")
         case let .failure(error):
-            #expect(error == .cancelled)
+            #expect(error == .cancelled(presentedItems: []))
         }
     }
 
@@ -94,6 +94,24 @@ struct DevicePickerTests {
         await _ = pendingResult
         let ads = await collected
         #expect(ads.count == 1)
+    }
+
+    @Test
+    func cancel_whileShowingAdvertisement_returnsDeviceNamesInErrorDetail() async throws {
+        let sut = DeviceSelector()
+        async let pendingResult = await sut.awaitSelection()
+        await Task.bigYield()
+        let fake = FakePeripheral(id: zeroUuid, name: "bob")
+        sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAdvertisement(rssi: 0))
+        await Task.bigYield()
+        sut.cancel()
+        let result = await pendingResult
+        switch result {
+        case let .success(success):
+            Issue.record("Unexpected result: \(success)")
+        case let .failure(error):
+            #expect(error == .cancelled(presentedItems: ["bob"]))
+        }
     }
 
 }

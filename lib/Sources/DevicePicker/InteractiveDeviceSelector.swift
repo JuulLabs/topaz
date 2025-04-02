@@ -10,5 +10,5 @@ public protocol InteractiveDeviceSelector: Sendable {
     /// Injects advertisements to be shown to the user from which they may make a selection
     func showAdvertisement(peripheral: Peripheral, advertisement: Advertisement) async
     /// Cancels the selection process
-    func cancel(with error: DeviceSelectionError) async
+    func cancel() async
 }
