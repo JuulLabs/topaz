@@ -19,7 +19,7 @@ public final class DeviceSelector: InteractiveDeviceSelector {
             if isSelecting == false && selectionContinuaton != nil {
                 // Modal was dismissed via gesture
                 // TODO: unit test that continuation is not leaked or double-resumed
-                fulfill(returning: .failure(.cancelled))
+                fulfill(returning: .failure(.cancelled(presentedItems: presentedDeviceNames())))
             }
         }
     }
@@ -56,13 +56,20 @@ public final class DeviceSelector: InteractiveDeviceSelector {
         advertisementsContinuation.yield(advertisingPeripherals.values.map { $0.1 })
     }
 
-    public func cancel(with error: DeviceSelectionError = .cancelled) {
-        fulfill(returning: .failure(error))
+    public func cancel() {
+        fulfill(returning: .failure(.cancelled(presentedItems: presentedDeviceNames())))
     }
 
     private func fulfill(returning result: Result<Bluetooth.Peripheral, DeviceSelectionError>) {
         guard let continuation = selectionContinuaton else { return }
         selectionContinuaton = nil
         continuation.resume(returning: result)
+    }
+
+    // To aid debugging return the full list that was showing upon cancellation
+    private func presentedDeviceNames() -> [String] {
+        advertisingPeripherals.values.map { (_, advertisement) in
+            PickerLineModel(ad: advertisement).name
+        }
     }
 }
