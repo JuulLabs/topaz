@@ -15,7 +15,7 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onSystemState: @Sendable () async throws -> SystemStateEvent
     public var onGetPeripherals: @Sendable (_ uuids: [UUID]) async -> [Peripheral]
     public var onConnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
-    public var onDisconnect: @Sendable (_ peripheral: Peripheral) async throws -> PeripheralEvent
+    public var onDisconnect: @Sendable (_ peripheral: Peripheral) async throws -> DisconnectionEvent
     public var onDiscoverServices: @Sendable (_ peripheral: Peripheral, _ filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
     public var onDiscoverCharacteristics: @Sendable (_ peripheral: Peripheral, _ filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     public var onDiscoverDescriptors: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent
@@ -83,7 +83,7 @@ public struct MockBluetoothClient: BluetoothClient {
         try await onConnect(peripheral)
     }
 
-    public func disconnect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
+    public func disconnect(_ peripheral: Peripheral) async throws -> DisconnectionEvent {
         try await onDisconnect(peripheral)
     }
 

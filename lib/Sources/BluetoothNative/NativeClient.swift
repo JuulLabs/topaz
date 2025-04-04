@@ -63,7 +63,7 @@ struct NativeBluetoothClient: BluetoothClient {
         }
     }
 
-    func disconnect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
+    func disconnect(_ peripheral: Peripheral) async throws -> DisconnectionEvent {
         try await server.awaitEvent(key: .peripheral(.disconnect, peripheral)) {
             coordinator.disconnect(peripheral: peripheral)
         }
