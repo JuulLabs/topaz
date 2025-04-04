@@ -93,7 +93,7 @@ struct BluetoothEngineTests {
         ]
         let sut: BluetoothEngine = await withClient { state, client, _ in
             client.onEnable = { }
-            client.onDisconnect = { PeripheralEvent(.disconnect, $0) }
+            client.onDisconnect = { DisconnectionEvent.requested($0) }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }
