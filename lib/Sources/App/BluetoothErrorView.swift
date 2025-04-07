@@ -4,6 +4,7 @@ import SwiftUI
 struct BluetoothErrorView: View {
 
     let state: SystemState
+    let drawShadow: Bool
 
     @Environment(\.openURL) private var openURL
 
@@ -33,9 +34,11 @@ struct BluetoothErrorView: View {
             }
             .padding([.leading, .trailing], 16)
             .padding([.top, .bottom], 12)
-            Rectangle()
-                .frame(maxWidth: .infinity, maxHeight: 0.5)
-                .foregroundStyle(Color.black)
+            if drawShadow {
+                Rectangle()
+                    .frame(maxWidth: .infinity, maxHeight: 0.5)
+                    .foregroundStyle(Color.black)
+            }
         }
         .frame(maxWidth: .infinity)
         .background(Color.topaz800)
@@ -51,7 +54,7 @@ struct BluetoothErrorView: View {
 }
 
 #Preview {
-    BluetoothErrorView(state: .unauthorized)
+    BluetoothErrorView(state: .unauthorized, drawShadow: true)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif
