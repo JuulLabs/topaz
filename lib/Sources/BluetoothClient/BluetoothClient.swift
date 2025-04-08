@@ -16,7 +16,7 @@ public protocol BluetoothClient: Sendable {
     func systemState() async throws -> SystemStateEvent
     func getPeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral]
     func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent
-    func disconnect(_ peripheral: Peripheral) async throws -> PeripheralEvent
+    func disconnect(_ peripheral: Peripheral) async throws -> DisconnectionEvent
     func discoverServices(_ peripheral: Peripheral, filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent
     func discoverCharacteristics(_ peripheral: Peripheral, filter: CharacteristicDiscoveryFilter) async throws -> CharacteristicDiscoveryEvent
     func discoverDescriptors(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent
