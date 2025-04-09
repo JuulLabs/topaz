@@ -73,6 +73,13 @@ public struct SettingsView: View {
                     Text("Remove all website data including cache, cookies, etc.")
                 })
 
+                LabeledContent("Website Permissions") {
+                    Image(systemName: "chevron.right")
+                }
+                .listRowTintedButton(color: Color.topaz800) {
+                    model.permissionsButtonTapped()
+                }
+
                 /*
                 LabeledContent("Privacy Policy") {
                     Image(systemName: "chevron.right")
@@ -96,6 +103,11 @@ public struct SettingsView: View {
             .font(.dogpatch(.title2))
             .foregroundStyle(Color.textPrimary)
         }
+        .navigationDestination(isPresented: $model.presentPermissionsView) {
+            PermissionsView(model: PermissionsModel(storage: model.fileStorage))
+                .navigationTitle("Bluetooth Access")
+                .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
 
@@ -104,6 +116,7 @@ public struct SettingsView: View {
         SettingsView(model: SettingsModel())
             .navigationTitle("Settings")
     }
+    .accentColor(.white)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

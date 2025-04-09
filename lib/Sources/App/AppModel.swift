@@ -108,7 +108,7 @@ public class AppModel {
     }
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
-        let settingsModel = SettingsModel()
+        let settingsModel = SettingsModel(fileStorage: storage)
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)
         navigator.onPageLoaded = { [weak self, weak searchBarModel] url, title in
