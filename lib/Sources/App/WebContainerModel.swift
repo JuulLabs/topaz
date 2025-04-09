@@ -1,3 +1,5 @@
+import Bluetooth
+import BluetoothEngine
 import DevicePicker
 import Observation
 import SwiftUI
@@ -11,10 +13,16 @@ public final class WebContainerModel {
     public var navBarModel: NavBarModel
     public var selector: DeviceSelector
 
+    var bluetoothSystem: BluetoothSystemState
+    var shouldShowErrorState: Bool {
+        bluetoothSystem.systemState != .unknown && bluetoothSystem.systemState != .poweredOn
+    }
+
     init(
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
-        selector: DeviceSelector
+        selector: DeviceSelector,
+        bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.webPageModel = webPageModel
         self.navBarModel = navBarModel
@@ -26,5 +34,6 @@ public final class WebContainerModel {
                 selector.cancel()
             }
         )
+        self.bluetoothSystem = bluetoothSystem
     }
 }

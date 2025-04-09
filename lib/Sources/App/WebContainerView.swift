@@ -21,6 +21,12 @@ struct WebContainerView: View {
                         webContainerModel.navBarModel.fullscreenButtonTapped()
                     }
                 }
+            if webContainerModel.shouldShowErrorState {
+                BluetoothErrorView(
+                    state: webContainerModel.bluetoothSystem.systemState,
+                    drawShadow: !webContainerModel.navBarModel.isFullscreen
+                )
+            }
             if !webContainerModel.navBarModel.isFullscreen {
                 NavBarView(model: webContainerModel.navBarModel)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -43,12 +49,18 @@ struct WebContainerView: View {
 
 #Preview("DevicePicker") {
     WebContainerView(
-        webContainerModel: previewModel()
+        webContainerModel: previewModel(state: .poweredOn)
+    )
+}
+
+#Preview("PoweredOff") {
+    WebContainerView(
+        webContainerModel: previewModel(state: .poweredOff)
     )
 }
 
 @MainActor
-private func previewModel() -> WebContainerModel {
+private func previewModel(state: SystemState) -> WebContainerModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
     let selector = DeviceSelector()
 #if targetEnvironment(simulator)
@@ -75,7 +87,8 @@ private func previewModel() -> WebContainerModel {
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: navBarModel,
-        selector: selector
+        selector: selector,
+        bluetoothSystem: BluetoothSystemState(systemState: state)
     )
 }
 

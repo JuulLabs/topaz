@@ -7,9 +7,6 @@ struct NavBarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if model.shouldShowErrorState {
-                BluetoothErrorView(state: model.bluetoothSystem.systemState)
-            }
             if let progress = model.progress {
                 ProgressView(value: progress)
                     .tint(.white)

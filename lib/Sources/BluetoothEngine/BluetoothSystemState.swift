@@ -11,7 +11,7 @@ import Observation
 public final class BluetoothSystemState {
     public private(set) var systemState: SystemState
 
-    init(systemState: SystemState = .unknown) {
+    public init(systemState: SystemState = .unknown) {
         self.systemState = systemState
     }
 
