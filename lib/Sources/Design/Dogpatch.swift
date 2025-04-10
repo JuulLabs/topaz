@@ -81,6 +81,17 @@ extension Font {
 }
 
 extension UIFont {
+    public static func dogpatch(_ size: CGFloat, weight: Dogpatch.Weight? = nil, design: Dogpatch.Design? = nil) -> UIFont {
+        let design = design ?? .sans
+        let weight = weight ?? .regular
+        let dogpatch = Dogpatch.with(weight: weight, design: design)
+        guard let font = UIFont(name: dogpatch.rawValue, size: size) else {
+            fontLogger.error("Font not found: \(dogpatch.rawValue, privacy: .public)")
+            return UIFont.systemFont(ofSize: size, weight: weight.toUIFontWeight())
+        }
+        return font
+    }
+
     public static func dogpatch(_ style: Font.TextStyle, design: Dogpatch.Design? = nil, weight: Dogpatch.Weight? = nil) -> UIFont {
         let design = design ?? .sans
         let weight = weight ?? .regular
@@ -108,6 +119,17 @@ private extension Font.TextStyle {
         case .caption2:     .caption2
         case .footnote:     .footnote
         default:            .body
+        }
+    }
+}
+
+private extension Dogpatch.Weight {
+    func toUIFontWeight() -> UIFont.Weight {
+        switch self {
+        case .light:        .light
+        case .regular:      .regular
+        case .medium:       .medium
+        case .bold:         .bold
         }
     }
 }
