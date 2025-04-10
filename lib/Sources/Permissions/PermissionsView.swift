@@ -1,14 +1,14 @@
 import Design
 import SwiftUI
 
-struct PermissionsView: View {
+public struct PermissionsView: View {
     @Bindable var model: PermissionsModel
 
-    init(model: PermissionsModel) {
+    public init(model: PermissionsModel) {
         self.model = model
     }
 
-    var body: some View {
+    public var body: some View {
         List {
             Section {
                 if model.isLoading {

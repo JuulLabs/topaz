@@ -1,4 +1,5 @@
 import Design
+import Permissions
 import SwiftUI
 
 public struct SettingsView: View {

@@ -22,6 +22,7 @@ let package = Package(
             dependencies: [
                 "Design",
                 "Navigation",
+                "Permissions",
                 "Settings",
                 "Tabs",
                 "UIHelpers",
@@ -152,15 +153,24 @@ let package = Package(
         ),
 
         .target(
-            name: "Settings",
+            name: "Permissions",
             dependencies: [
                 "Design",
                 "UIHelpers",
             ]
         ),
         .testTarget(
-            name: "SettingsTests",
-            dependencies: ["Settings", "TestHelpers"]
+            name: "PermissionsTests",
+            dependencies: ["Permissions", "TestHelpers"]
+        ),
+
+        .target(
+            name: "Settings",
+            dependencies: [
+                "Design",
+                "Permissions",
+                "UIHelpers",
+            ]
         ),
 
         .target(

@@ -1,4 +1,4 @@
-@testable import Settings
+@testable import Permissions
 import Foundation
 import Testing
 
