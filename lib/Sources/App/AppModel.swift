@@ -8,6 +8,7 @@ import JsMessage
 import Navigation
 import Observation
 import OSLog
+import Permissions
 import Settings
 import SwiftUI
 import Tabs
@@ -77,6 +78,7 @@ public class AppModel {
         }
 
         Task {
+            await PermissionsModel.shared.attachToStorage(self.storage)
             await tabsModel.performInitialLoad()
             if tabsModel.isEmpty {
                 var urlFromClipboard: URL?
@@ -108,7 +110,7 @@ public class AppModel {
     }
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
-        let settingsModel = SettingsModel(fileStorage: storage)
+        let settingsModel = SettingsModel()
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)
         navigator.onPageLoaded = { [weak self, weak searchBarModel] url, title in

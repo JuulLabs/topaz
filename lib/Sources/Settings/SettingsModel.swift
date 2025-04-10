@@ -1,4 +1,3 @@
-import Helpers
 import Observation
 import SwiftUI
 
@@ -9,7 +8,6 @@ public final class SettingsModel {
         didSet { bluetoothPermissionsToggled() }
     }
 
-    let fileStorage: CodableStorage
     let searchEngineSelectorModel: SearchEngineSelectorModel
 
     public var dismiss: () -> Void  = {}
@@ -18,11 +16,7 @@ public final class SettingsModel {
     public var presentClearCacheDialogue: Bool = false
     public var presentPermissionsView: Bool = false
 
-    public init(
-        fileStorage: CodableStorage = InMemoryStorage(),
-        searchEngineSelectorModel: SearchEngineSelectorModel = .init(),
-    ) {
-        self.fileStorage = fileStorage
+    public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
     }
 

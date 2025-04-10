@@ -105,7 +105,7 @@ public struct SettingsView: View {
             .foregroundStyle(Color.textPrimary)
         }
         .navigationDestination(isPresented: $model.presentPermissionsView) {
-            PermissionsView(model: PermissionsModel(storage: model.fileStorage))
+            PermissionsView(model: .shared)
                 .navigationTitle("Bluetooth Access")
                 .navigationBarTitleDisplayMode(.inline)
         }

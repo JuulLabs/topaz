@@ -29,7 +29,7 @@ struct TopazMain: App {
 }
 
 private func debouncedJsonFileStorage() -> CodableStorage {
-    DebouncedCodableStorage(JsonDataStorage(FileDataStorage()), debounceInterval: .seconds(2))
+    DebouncedCodableStorage(JsonDataStorage(FileDataStorage()), debounceInterval: .seconds(1))
 }
 
 private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProcessorFactory {

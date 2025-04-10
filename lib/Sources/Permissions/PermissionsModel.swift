@@ -5,23 +5,15 @@ import SwiftUI
 @MainActor
 @Observable
 public final class PermissionsModel {
-    private let storage: CodableStorage?
+    private var storage: CodableStorage?
     private(set) var models: [WebOriginViewModel]
-    private(set) var isLoading: Bool
 
     public init(origins: [WebOrigin] = []) {
-        self.storage = nil
         self.models = Self.originsToViewModels(origins)
-        self.isLoading = false
     }
 
-    public init(storage: CodableStorage) {
-        self.storage = storage
-        self.models = []
-        self.isLoading = true
-        Task {
-            await self.loadFromStorage()
-        }
+    public func isAuthorized(origin: WebOrigin) -> Bool {
+        return models.contains { $0.origin == origin }
     }
 
     func removeRows(atOffsets offsets: IndexSet) {
@@ -29,10 +21,8 @@ public final class PermissionsModel {
         saveAll()
     }
 
-    private func loadFromStorage() async {
-        guard let storage else { return }
-        self.isLoading = true
-        defer { self.isLoading = false }
+    public func attachToStorage(_ storage: CodableStorage) async {
+        self.storage = storage
         if let origins: [WebOrigin] = try? await storage.load(for: .allowedOriginsKey) {
             self.models = Self.originsToViewModels(origins)
         }

@@ -11,10 +11,7 @@ public struct PermissionsView: View {
     public var body: some View {
         List {
             Section {
-                if model.isLoading {
-                    Text("Loading website data...")
-                        .listRowBackground(Color.topaz800)
-                } else if model.models.isEmpty {
+                if model.models.isEmpty {
                     Text("Websites that are granted permission to use Bluetooth will be listed here")
                         .listRowBackground(Color.topaz800)
                 } else {
@@ -28,7 +25,6 @@ public struct PermissionsView: View {
             }
             .listRowSeparatorTint(Color.borderActive)
         }
-        .animation(.spring, value: model.isLoading)
         .font(.dogpatch(.headline))
         .imageScale(.large)
         .foregroundStyle(Color.textPrimary)
