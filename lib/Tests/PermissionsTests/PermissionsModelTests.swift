@@ -33,20 +33,20 @@ struct PermissionsModelTests {
         .init(url: URL(string: "http://duplicate.com")!)!,
     ]
 
-    var allPermits: [WebOrigin] {
+    var allOrigins: [WebOrigin] {
         Self.unique + Self.sameSchemeOptionalPort + Self.sameSchemeExplicitPort + Self.samePort + Self.duplicate
     }
 
     @Test(arguments: Self.unique)
-    func displayString_uniqueDomain_showsDomainOnly(permit: WebOrigin) async {
-        let result = displayString(for: permit, in: allPermits)
+    func displayString_uniqueDomain_showsDomainOnly(origin: WebOrigin) async {
+        let result = displayString(for: origin, in: allOrigins)
         #expect(result == "unique.com")
     }
 
     @Test(arguments: Self.sameSchemeOptionalPort)
-    func displayString_withDuplicateSchemesAndOptionalPort_showsPortWhenPresent(permit: WebOrigin) async throws {
-        let result = displayString(for: permit, in: allPermits)
-        if let port = permit.port {
+    func displayString_withDuplicateSchemesAndOptionalPort_showsPortWhenPresent(origin: WebOrigin) async throws {
+        let result = displayString(for: origin, in: allOrigins)
+        if let port = origin.port {
             #expect(result == "same-scheme-optional-port.com:\(port)")
         } else {
             #expect(result == "same-scheme-optional-port.com")
@@ -54,25 +54,25 @@ struct PermissionsModelTests {
     }
 
     @Test(arguments: Self.sameSchemeExplicitPort)
-    func displayString_withDuplicateSchemesAndSpecifiedPorts_showsPortAlways(permit: WebOrigin) async throws {
-        let result = displayString(for: permit, in: allPermits)
-        let port = try #require(permit.port)
+    func displayString_withDuplicateSchemesAndSpecifiedPorts_showsPortAlways(origin: WebOrigin) async throws {
+        let result = displayString(for: origin, in: allOrigins)
+        let port = try #require(origin.port)
         #expect(result == "same-scheme-explicit-port.com:\(port)")
     }
 
     @Test(arguments: Self.samePort)
-    func displayString_withDuplicatePorts_showsSchemeAlways(permit: WebOrigin) async {
-        let result = displayString(for: permit, in: allPermits)
-        #expect(result == "\(permit.scheme)://same-port.com")
+    func displayString_withDuplicatePorts_showsSchemeAlways(origin: WebOrigin) async {
+        let result = displayString(for: origin, in: allOrigins)
+        #expect(result == "\(origin.scheme)://same-port.com")
     }
 
     @Test(arguments: Self.duplicate)
-    func displayString_withDuplicateSchemesAndPorts_showsSchemeAlwaysAndPortWhenPresent(permit: WebOrigin) async throws {
-        let result = displayString(for: permit, in: allPermits)
-        if let port = permit.port {
-            #expect(result == "\(permit.scheme)://duplicate.com:\(port)")
+    func displayString_withDuplicateSchemesAndPorts_showsSchemeAlwaysAndPortWhenPresent(origin: WebOrigin) async throws {
+        let result = displayString(for: origin, in: allOrigins)
+        if let port = origin.port {
+            #expect(result == "\(origin.scheme)://duplicate.com:\(port)")
         } else {
-            #expect(result == "\(permit.scheme)://duplicate.com")
+            #expect(result == "\(origin.scheme)://duplicate.com")
         }
     }
 }
