@@ -10,19 +10,18 @@ public struct PermissionsView: View {
 
     public var body: some View {
         List {
-            Section {
+            Section(header: Text("Allowed Websites")) {
                 if model.models.isEmpty {
-                    Text("Websites that are granted permission to use Bluetooth will be listed here")
-                        .listRowBackground(Color.topaz800)
+                    Text("Websites that have been granted permission to use Bluetooth will be listed here")
                 } else {
                     ForEach(model.models) { row in
                         Text("\(row.displayString)")
-                            .listRowBackground(Color.topaz800)
                     }
                     .onDelete(perform: model.removeRows)
                     .animation(.interactiveSpring, value: model.models)
                 }
             }
+            .listRowBackground(Color.topaz800)
             .listRowSeparatorTint(Color.borderActive)
         }
         .font(.dogpatch(.headline))
@@ -30,17 +29,35 @@ public struct PermissionsView: View {
         .foregroundStyle(Color.textPrimary)
         .scrollContentBackground(.hidden)
         .background(Color.topaz700)
+        .toolbar {
+            EditButton()
+                .font(.dogpatch(.title3))
+        }
     }
 }
 
 #Preview {
     let origins = [
-        WebOrigin(domain: "googlechrome.github.io", scheme: "https", port: 443),
-        WebOrigin(domain: "vueuse.org", scheme: "https", port: 443),
+        WebOrigin(url: URL(string: "https://googlechrome.github.io")!)!,
+        WebOrigin(url: URL(string: "https://vueuse.org")!)!,
+        WebOrigin(url: URL(string: "https://vueuse.org:8443")!)!,
+        WebOrigin(url: URL(string: "https://localhost")!)!,
+        WebOrigin(url: URL(string: "http://localhost")!)!,
     ]
     NavigationStack {
         PermissionsView(model: PermissionsModel(origins: origins))
-            .navigationTitle("Bluetooth Access")
+            .navigationTitle("Bluetooth Permissions")
+    }
+    .accentColor(.white)
+#if targetEnvironment(simulator)
+        .forceLoadFontsInPreview()
+#endif
+}
+
+#Preview("Empty") {
+    NavigationStack {
+        PermissionsView(model: PermissionsModel(origins: []))
+            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)

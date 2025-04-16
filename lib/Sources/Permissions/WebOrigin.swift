@@ -3,15 +3,21 @@ import Foundation
 public struct WebOrigin: Sendable, Equatable, Codable {
     public let domain: String
     public let scheme: String
-    public let port: Int
+    public let port: Int? // Optional because scheme implies a default
 
     public var urlStringRepresentation: String {
-        "\(scheme)://\(domain):\(port)"
+        if let port {
+            "\(scheme)://\(domain):\(port)"
+        } else {
+            "\(scheme)://\(domain)"
+        }
     }
 
-    public init(domain: String, scheme: String, port: Int) {
+    public init?(url: URL) {
+        guard let domain = url.host(percentEncoded: false) else { return nil }
+        guard let scheme = url.scheme else { return nil }
         self.domain = domain
         self.scheme = scheme
-        self.port = port
+        self.port = url.port
     }
 }

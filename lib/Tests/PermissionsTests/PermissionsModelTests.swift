@@ -5,30 +5,36 @@ import Testing
 struct PermissionsModelTests {
 
     static let unique: [WebOrigin] = [
-        .init(domain: "unique.com", scheme: "https", port: 443),
+        .init(url: URL(string: "https://unique.com")!)!,
     ]
 
-    static let sameScheme: [WebOrigin] = [
-        // These two differ only by port
-        .init(domain: "same-scheme.com", scheme: "https", port: 443),
-        .init(domain: "same-scheme.com", scheme: "https", port: 8443),
+    static let sameSchemeOptionalPort: [WebOrigin] = [
+        // These two differ only by port where one has the implicit default port
+        .init(url: URL(string: "https://same-scheme-optional-port.com")!)!,
+        .init(url: URL(string: "https://same-scheme-optional-port.com:8443")!)!,
+    ]
+
+    static let sameSchemeExplicitPort: [WebOrigin] = [
+        // These two differ only by port where both have explicit ports specified
+        .init(url: URL(string: "https://same-scheme-explicit-port.com:443")!)!,
+        .init(url: URL(string: "https://same-scheme-explicit-port.com:8443")!)!,
     ]
 
     static let samePort: [WebOrigin] = [
         // These two differ only by scheme
-        .init(domain: "same-port.com", scheme: "https", port: 80),
-        .init(domain: "same-port.com", scheme: "http", port: 80),
+        .init(url: URL(string: "https://same-port.com")!)!,
+        .init(url: URL(string: "http://same-port.com")!)!,
     ]
 
     static let duplicate: [WebOrigin] = [
         // These three overlap by both scheme and port
-        .init(domain: "duplicate.com", scheme: "https", port: 80),
-        .init(domain: "duplicate.com", scheme: "https", port: 443),
-        .init(domain: "duplicate.com", scheme: "http", port: 80),
+        .init(url: URL(string: "https://duplicate.com")!)!,
+        .init(url: URL(string: "https://duplicate.com:8443")!)!,
+        .init(url: URL(string: "http://duplicate.com")!)!,
     ]
 
     var allPermits: [WebOrigin] {
-        Self.unique + Self.sameScheme + Self.samePort + Self.duplicate
+        Self.unique + Self.sameSchemeOptionalPort + Self.sameSchemeExplicitPort + Self.samePort + Self.duplicate
     }
 
     @Test(arguments: Self.unique)
@@ -37,21 +43,36 @@ struct PermissionsModelTests {
         #expect(result == "unique.com")
     }
 
-    @Test(arguments: Self.sameScheme)
-    func displayString_withDuplicateSchemes_showsPort(permit: WebOrigin) async {
+    @Test(arguments: Self.sameSchemeOptionalPort)
+    func displayString_withDuplicateSchemesAndOptionalPort_showsPortWhenPresent(permit: WebOrigin) async throws {
         let result = displayString(for: permit, in: allPermits)
-        #expect(result == "same-scheme.com:\(permit.port)")
+        if let port = permit.port {
+            #expect(result == "same-scheme-optional-port.com:\(port)")
+        } else {
+            #expect(result == "same-scheme-optional-port.com")
+        }
+    }
+
+    @Test(arguments: Self.sameSchemeExplicitPort)
+    func displayString_withDuplicateSchemesAndSpecifiedPorts_showsPortAlways(permit: WebOrigin) async throws {
+        let result = displayString(for: permit, in: allPermits)
+        let port = try #require(permit.port)
+        #expect(result == "same-scheme-explicit-port.com:\(port)")
     }
 
     @Test(arguments: Self.samePort)
-    func displayString_withDuplicatePorts_showsScheme(permit: WebOrigin) async {
+    func displayString_withDuplicatePorts_showsSchemeAlways(permit: WebOrigin) async {
         let result = displayString(for: permit, in: allPermits)
         #expect(result == "\(permit.scheme)://same-port.com")
     }
 
     @Test(arguments: Self.duplicate)
-    func displayString_withDuplicateSchemesAndPorts_showsSchemeAndPort(permit: WebOrigin) async {
+    func displayString_withDuplicateSchemesAndPorts_showsSchemeAlwaysAndPortWhenPresent(permit: WebOrigin) async throws {
         let result = displayString(for: permit, in: allPermits)
-        #expect(result == "\(permit.scheme)://duplicate.com:\(permit.port)")
+        if let port = permit.port {
+            #expect(result == "\(permit.scheme)://duplicate.com:\(port)")
+        } else {
+            #expect(result == "\(permit.scheme)://duplicate.com")
+        }
     }
 }

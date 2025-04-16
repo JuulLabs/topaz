@@ -16,6 +16,14 @@ public final class PermissionsModel {
         return models.contains { $0.origin == origin }
     }
 
+    public func authorize(origin: WebOrigin) {
+        guard !isAuthorized(origin: origin) else { return }
+        let allOrigins = models.map { $0.origin }
+        let model = WebOriginViewModel(origin: origin, displayString: displayString(for: origin, in: allOrigins))
+        models.append(model)
+        saveAll()
+    }
+
     func removeRows(atOffsets offsets: IndexSet) {
         models.remove(atOffsets: offsets)
         saveAll()
@@ -63,9 +71,9 @@ func displayString(for origin: WebOrigin, in origins: [WebOrigin]) -> String {
         displayString += "\(origin.scheme)://"
     }
     displayString += origin.domain
-    if portCount > 1 {
+    if let port = origin.port, portCount > 1 {
         // Show the port to differentiate
-        displayString += ":\(origin.port)"
+        displayString += ":\(port)"
     }
     return displayString
 }

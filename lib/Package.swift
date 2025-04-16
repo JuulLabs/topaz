@@ -202,6 +202,7 @@ let package = Package(
                 "DevicePicker",
                 "JsMessage",
                 "Navigation",
+                "Permissions",
             ],
             resources: [
                 .copy("Resources/Generated/BluetoothPolyfill.js")

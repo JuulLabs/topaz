@@ -10,7 +10,7 @@ import WebKit
 public struct WebPageView: View {
     @State private var scrollView: UIScrollView?
 
-    private let model: WebPageModel
+    @Bindable var model: WebPageModel
 
     public init(model: WebPageModel) {
         self.model = model
@@ -20,6 +20,20 @@ public struct WebPageView: View {
         _WebPageView(model: model, scrollView: $scrollView)
             .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
+            .alert("Bluetooth Access", isPresented: $model.presentPermissionsDialog, actions: {
+                Button {
+                    model.allowPermissionsButtonTapped()
+                } label: {
+                    Text("Allow")
+                }
+                Button(role: .cancel) {
+                    model.denyPermissionsButtonTapped()
+                } label: {
+                    Text("Deny")
+                }
+            }, message: {
+                Text(model.permissionsDialogMessage)
+            })
     }
 
     private struct _WebPageView: UIViewRepresentable {

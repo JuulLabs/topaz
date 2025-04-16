@@ -74,7 +74,7 @@ public struct SettingsView: View {
                     Text("Remove all website data including cache, cookies, etc.")
                 })
 
-                LabeledContent("Website Permissions") {
+                LabeledContent("Bluetooth Permissions") {
                     Image(systemName: "chevron.right")
                 }
                 .listRowTintedButton(color: Color.topaz800) {
@@ -101,12 +101,12 @@ public struct SettingsView: View {
             Button("Done") {
                 model.doneButtonTapped()
             }
-            .font(.dogpatch(.title2))
+            .font(.dogpatch(.title3))
             .foregroundStyle(Color.textPrimary)
         }
         .navigationDestination(isPresented: $model.presentPermissionsView) {
             PermissionsView(model: .shared)
-                .navigationTitle("Bluetooth Access")
+                .navigationTitle("Bluetooth Permissions")
                 .navigationBarTitleDisplayMode(.inline)
         }
     }
