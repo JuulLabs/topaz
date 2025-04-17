@@ -22,6 +22,7 @@ let package = Package(
             dependencies: [
                 "Design",
                 "Navigation",
+                "Permissions",
                 "Settings",
                 "Tabs",
                 "UIHelpers",
@@ -152,9 +153,22 @@ let package = Package(
         ),
 
         .target(
+            name: "Permissions",
+            dependencies: [
+                "Design",
+                "UIHelpers",
+            ]
+        ),
+        .testTarget(
+            name: "PermissionsTests",
+            dependencies: ["Permissions", "TestHelpers"]
+        ),
+
+        .target(
             name: "Settings",
             dependencies: [
                 "Design",
+                "Permissions",
                 "UIHelpers",
             ]
         ),
@@ -188,6 +202,7 @@ let package = Package(
                 "DevicePicker",
                 "JsMessage",
                 "Navigation",
+                "Permissions",
             ],
             resources: [
                 .copy("Resources/Generated/BluetoothPolyfill.js")

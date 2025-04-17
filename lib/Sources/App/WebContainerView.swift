@@ -37,12 +37,14 @@ struct WebContainerView: View {
             NavigationStack {
                 DevicePickerView(model: webContainerModel.pickerModel)
             }
+            .accentColor(.white)
         }
         .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
             NavigationStack {
                 SettingsView(model: webContainerModel.navBarModel.settingsModel)
                     .navigationTitle("Settings")
             }
+            .accentColor(.white)
         }
     }
 }

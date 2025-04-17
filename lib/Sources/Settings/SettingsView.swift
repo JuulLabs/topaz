@@ -1,4 +1,5 @@
 import Design
+import Permissions
 import SwiftUI
 
 public struct SettingsView: View {
@@ -73,6 +74,13 @@ public struct SettingsView: View {
                     Text("Remove all website data including cache, cookies, etc.")
                 })
 
+                LabeledContent("Bluetooth Permissions") {
+                    Image(systemName: "chevron.right")
+                }
+                .listRowTintedButton(color: Color.topaz800) {
+                    model.permissionsButtonTapped()
+                }
+
                 /*
                 LabeledContent("Privacy Policy") {
                     Image(systemName: "chevron.right")
@@ -93,8 +101,13 @@ public struct SettingsView: View {
             Button("Done") {
                 model.doneButtonTapped()
             }
-            .font(.dogpatch(.title2))
+            .font(.dogpatch(.title3))
             .foregroundStyle(Color.textPrimary)
+        }
+        .navigationDestination(isPresented: $model.presentPermissionsView) {
+            PermissionsView(model: .shared)
+                .navigationTitle("Bluetooth Permissions")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
@@ -104,6 +117,7 @@ public struct SettingsView: View {
         SettingsView(model: SettingsModel())
             .navigationTitle("Settings")
     }
+    .accentColor(.white)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

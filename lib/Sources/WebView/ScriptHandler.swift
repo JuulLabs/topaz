@@ -1,3 +1,5 @@
+import Bluetooth
+import BluetoothEngine
 import Foundation
 import JsMessage
 import WebKit
@@ -9,11 +11,13 @@ import WebKit
 class ScriptHandler: NSObject {
     private let context: JsContext
     private let factory: JsMessageProcessorFactory
+    private let authorize: () async -> Bool
     private var cache: [String: JsMessageProcessor] = [:]
 
-    init(context: JsContext, factory: JsMessageProcessorFactory) {
+    init(context: JsContext, factory: JsMessageProcessorFactory, authorize: @escaping () async -> Bool) {
         self.context = context
         self.factory = factory
+        self.authorize = authorize
         super.init()
     }
 
@@ -41,6 +45,11 @@ class ScriptHandler: NSObject {
             }
         }
     }
+
+    func userDidAuthorize(handlerName: String) async -> Bool {
+        guard handlerName == BluetoothEngine.handlerName else { return true }
+        return await authorize()
+    }
 }
 
 extension ScriptHandler: WKScriptMessageHandlerWithReply {
@@ -50,6 +59,9 @@ extension ScriptHandler: WKScriptMessageHandlerWithReply {
         }
         guard let processor = await getProcessor(named: request.handlerName) else {
             return (nil, "Handler not found for \(request.handlerName)")
+        }
+        guard await userDidAuthorize(handlerName: request.handlerName) else {
+            return (nil, BluetoothError.unauthorized.toDomError().jsRepresentation)
         }
         let result = await processor.process(request: request, in: context)
         return switch result {

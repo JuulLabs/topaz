@@ -14,6 +14,7 @@ public final class SettingsModel {
     public var shareItem: SharingUrl = .init()
 
     public var presentClearCacheDialogue: Bool = false
+    public var presentPermissionsView: Bool = false
 
     public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
@@ -39,6 +40,10 @@ public final class SettingsModel {
     }
 
     func privacyPolicyButtonTapped() {
+    }
+
+    func permissionsButtonTapped() {
+        presentPermissionsView = true
     }
 
     private func bluetoothPermissionsToggled() {

@@ -1,4 +1,5 @@
 import BluetoothClient
+import BluetoothEngine
 import Foundation
 import JsMessage
 import Navigation
@@ -12,6 +13,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
     private var navigationEngine: NavigationEngine?
+    private var authorize: () async -> Bool = { false }
 
     override init() {}
 
@@ -25,6 +27,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.navigationDelegate = navigationEngine
         webView.uiDelegate = navigationEngine
         webView.customUserAgent = model.customUserAgent
+
+        authorize = {
+            await model.requestAuthorization()
+        }
     }
 
     func deinitialize(webView: WKWebView) {
@@ -33,6 +39,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.uiDelegate = nil
         viewModel = nil
         detachOldHandler(from: webView)
+        authorize = { false }
         webView.configuration.userContentController.removeAllScriptMessageHandlers()
         webView.configuration.userContentController.removeAllUserScripts()
     }
@@ -44,7 +51,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     private func attachNewHandler(to webView: WKWebView) {
         let context = webView.createContext(contextId: contextId, world: world)
-        let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory)
+        let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
@@ -75,7 +82,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        viewModel?.didBeginLoading()
+        viewModel?.didBeginLoading(url: navigation.request.url)
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
