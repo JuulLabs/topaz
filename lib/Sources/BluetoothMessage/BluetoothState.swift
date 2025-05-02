@@ -2,6 +2,7 @@ import Bluetooth
 import Foundation
 import Helpers
 import OSLog
+import SecurityList
 
 private let log = Logger(subsystem: "BluetoothMessage", category: "BluetoothState")
 
@@ -13,17 +14,21 @@ public actor BluetoothState {
     public private(set) var peripherals: [UUID: Peripheral]
     public private(set) var scanTasks: [String: ScanTask]
 
+    public let securityList: SecurityList
+
     private let store: CodableStorage?
 
     public init(
         systemState: SystemState = .unknown,
         peripherals: [Peripheral] = [],
+        securityList: SecurityList = .init(),
         store: CodableStorage? = nil
     ) {
         self.systemState = systemState
         self.peripherals = peripherals.reduce(into: [UUID: Peripheral]()) { dictionary, peripheral in
             dictionary[peripheral.id] = peripheral
         }
+        self.securityList = securityList
         self.scanTasks = [:]
         self.store = store
     }

@@ -1,6 +1,7 @@
 import Foundation
 
 public enum BluetoothError: Error, Sendable {
+    case blocklisted(UUID)
     case cancelled
     case causedBy(any Error)
     case deviceNotConnected
@@ -20,6 +21,8 @@ public enum BluetoothError: Error, Sendable {
 extension BluetoothError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case let .blocklisted(uuid):
+            "UUID \(uuid) is on the block list"
         case .cancelled:
             "The operation was cancelled"
         case let .causedBy(error):
