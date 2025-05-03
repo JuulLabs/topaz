@@ -53,7 +53,6 @@ struct DiscoverCharacteristicsRequest: JsMessageDecodable {
 }
 
 struct DiscoverCharacteristicsResponse: JsMessageEncodable {
-    let peripheralId: UUID
     let characteristics: [Characteristic]
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
@@ -76,9 +75,9 @@ struct DiscoverCharacteristics: BluetoothAction {
             guard let characteristic = result.characteristics.first else {
                 throw BluetoothError.noSuchCharacteristic(service: request.serviceUuid, characteristic: characteristicUuid)
             }
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.id, characteristics: [characteristic])
+            return DiscoverCharacteristicsResponse(characteristics: [characteristic])
         case .all:
-            return DiscoverCharacteristicsResponse(peripheralId: peripheral.id, characteristics: result.characteristics)
+            return DiscoverCharacteristicsResponse(characteristics: result.characteristics)
         }
     }
 }

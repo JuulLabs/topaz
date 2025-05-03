@@ -3,6 +3,7 @@ import BluetoothClient
 @testable import BluetoothEngine
 import BluetoothMessage
 import Foundation
+import TestHelpers
 import Testing
 
 @Suite
