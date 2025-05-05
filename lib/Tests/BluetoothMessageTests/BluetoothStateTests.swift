@@ -2,6 +2,7 @@ import Bluetooth
 @testable import BluetoothMessage
 import Foundation
 import Helpers
+import TestHelpers
 import Testing
 
 extension Tag {
