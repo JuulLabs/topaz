@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct ReadDescriptorRequest: JsMessageDecodable {
     let peripheralId: UUID
@@ -44,6 +45,7 @@ struct ReadDescriptor: BluetoothAction {
     let request: ReadDescriptorRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadDescriptorResponse {
+        try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (_, characteristic) = try await state.getCharacteristic(
             peripheralId: request.peripheralId,
@@ -54,5 +56,11 @@ struct ReadDescriptor: BluetoothAction {
         let descriptor = try characteristic.getDescriptor(request.descriptorUuid)
         let event = try await client.descriptorRead(peripheral, characteristic: characteristic, descriptor: descriptor)
         return ReadDescriptorResponse(data: event.data)
+    }
+
+    private func checkSecurityList(securityList: SecurityList) throws {
+        if securityList.isBlocked(request.descriptorUuid, in: .descriptors, for: .reading) {
+            throw BluetoothError.blocklisted(request.descriptorUuid)
+        }
     }
 }

@@ -6,6 +6,7 @@ import BluetoothNative
 import DevicePicker
 import Helpers
 import JsMessage
+import SecurityList
 import SwiftUI
 
 @main
@@ -37,7 +38,7 @@ private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProces
         builders: [
             BluetoothEngine.handlerName: { _ in
                 BluetoothEngine(
-                    state: BluetoothState(store: debouncedJsonFileStorage()),
+                    state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
                     client: liveBluetoothClient(),
                     deviceSelector: deviceSelector,
                     enableDebugLogging: appConfig.enableDebugLogging

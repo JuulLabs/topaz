@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct WatchAdvertisementsRequest: JsMessageDecodable {
     let enable: Bool
@@ -58,6 +59,10 @@ struct WatchAdvertisements: BluetoothAction {
             for await event in scanner.advertisements {
                 guard !Task.isCancelled else { return }
                 if event.peripheral.id == targetId {
+                    // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
+                    // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
+                    // allow what is in optionalServices/optionalManufacturerData after applying the blocklist.
+                    // This further means we need to keep track of the options provided to the original requestDevice or requestLEScan
                     await jsEventForwarder.forwardEvent(event.toJs(targetId: targetId.uuidString.lowercased()))
                 }
             }

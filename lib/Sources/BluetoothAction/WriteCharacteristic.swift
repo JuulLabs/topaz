@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct WriteCharacteristicRequest: JsMessageDecodable {
     let peripheralId: UUID
@@ -47,6 +48,7 @@ struct WriteCharacteristic: BluetoothAction {
     let request: WriteCharacteristicRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> CharacteristicResponse {
+        try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (service, characteristic) = try await state.getCharacteristic(
             peripheralId: request.peripheralId,
@@ -63,5 +65,11 @@ struct WriteCharacteristic: BluetoothAction {
         }
         _ = try await client.characteristicWrite(peripheral, service: service, characteristic: characteristic, value: request.value, withResponse: request.withResponse)
         return CharacteristicResponse()
+    }
+
+    private func checkSecurityList(securityList: SecurityList) throws {
+        if securityList.isBlocked(request.characteristicUuid, in: .characteristics, for: .writing) {
+            throw BluetoothError.blocklisted(request.characteristicUuid)
+        }
     }
 }

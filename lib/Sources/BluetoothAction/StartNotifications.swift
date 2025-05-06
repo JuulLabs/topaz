@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct StartNotifications: BluetoothAction {
     let requiresReadyState: Bool = true
@@ -13,6 +14,7 @@ struct StartNotifications: BluetoothAction {
     }
 
     func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
+        try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (service, characteristic) = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
 
@@ -26,5 +28,11 @@ struct StartNotifications: BluetoothAction {
         _ = try await client.characteristicSetNotifications(peripheral, service: service, characteristic: characteristic, enable: true)
 
         return CharacteristicResponse()
+    }
+
+    private func checkSecurityList(securityList: SecurityList) throws {
+        if securityList.isBlocked(request.characteristicUuid, in: .characteristics, for: .reading) {
+            throw BluetoothError.blocklisted(request.characteristicUuid)
+        }
     }
 }

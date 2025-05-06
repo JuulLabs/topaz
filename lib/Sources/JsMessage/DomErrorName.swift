@@ -9,6 +9,7 @@ public enum DomErrorName: String, Sendable, Encodable {
     case notFound = "NotFoundError"
     case notSupported = "NotSupportedError"
     case operation = "OperationError"
+    case security = "SecurityError"
     case type = "TypeError"
     case unknown = "UnknownError"
 }
