@@ -96,6 +96,7 @@ let package = Package(
                 "BluetoothClient",
                 "DevicePicker",
                 "JsMessage",
+                "SecurityList",
             ]
         ),
         .testTarget(
