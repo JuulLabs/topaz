@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct RequestLEScanOptions: JsMessageDecodable {
     private let rawFilters: [JsType]
@@ -90,6 +91,7 @@ struct RequestLEScan: BluetoothAction {
     private func executeStart(state: BluetoothState, client: BluetoothClient, options: RequestLEScanOptions) async throws -> RequestLEScanResponse {
         let scanId = UUID().uuidString
         let filters = try options.decodeAndValidateFilters()
+        try await checkFiltersAreAllowed(securityList: state.securityList, filters: filters)
         let activeScan = BluetoothLEScan(
             filters: filters,
             keepRepeatedDevices: options.keepRepeatedDevices,
@@ -105,6 +107,9 @@ struct RequestLEScan: BluetoothAction {
                 guard !Task.isCancelled else { return }
                 // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
                 await state.putPeripheral(event.peripheral, replace: false)
+                // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
+                // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
+                // allow what is in optionalServices/optionalManufacturerData after applying the blocklist
                 await jsEventForwarder.forwardEvent(event.toJs(targetId: "bluetooth"))
             }
         }

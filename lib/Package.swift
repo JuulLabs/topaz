@@ -23,6 +23,7 @@ let package = Package(
                 "Design",
                 "Navigation",
                 "Permissions",
+                "SecurityList",
                 "Settings",
                 "Tabs",
                 "UIHelpers",
@@ -53,7 +54,12 @@ let package = Package(
                 "BluetoothMessage",
                 "DevicePicker",
                 "JsMessage",
+                "SecurityList",
             ]
+        ),
+        .testTarget(
+            name: "BluetoothActionTests",
+            dependencies: ["BluetoothAction", "TestHelpers"]
         ),
 
         .target(
@@ -90,7 +96,12 @@ let package = Package(
                 "BluetoothClient",
                 "DevicePicker",
                 "JsMessage",
+                "SecurityList",
             ]
+        ),
+        .testTarget(
+            name: "BluetoothMessageTests",
+            dependencies: ["BluetoothMessage", "TestHelpers"]
         ),
 
         .target(
@@ -162,6 +173,15 @@ let package = Package(
         .testTarget(
             name: "PermissionsTests",
             dependencies: ["Permissions", "TestHelpers"]
+        ),
+
+        .target(
+            name: "SecurityList",
+            dependencies: []
+        ),
+        .testTarget(
+            name: "SecurityListTests",
+            dependencies: ["SecurityList", "TestHelpers"]
         ),
 
         .target(
