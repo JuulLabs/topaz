@@ -4,6 +4,7 @@ import BluetoothMessage
 import DevicePicker
 import Foundation
 import JsMessage
+import SecurityList
 
 struct RequestDeviceRequest: JsMessageDecodable {
     private let rawOptionsData: [String: JsType]?
@@ -46,6 +47,7 @@ struct RequestDevice: BluetoothAction {
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> RequestDeviceResponse {
         let options = try request.decodeAndValidateOptions()
+        try await checkSecurityList(securityList: state.securityList, options: options)
         guard let selector else {
             throw BluetoothError.unavailable
         }
@@ -61,5 +63,10 @@ struct RequestDevice: BluetoothAction {
         task.cancel()
         await state.putPeripheral(peripheral, replace: true)
         return RequestDeviceResponse(peripheralId: peripheral.id, name: peripheral.name)
+    }
+
+    private func checkSecurityList(securityList: SecurityList, options: Options) throws {
+        guard let filters = options.filters else { return }
+        try checkFiltersAreAllowed(securityList: securityList, filters: filters)
     }
 }

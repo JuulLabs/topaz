@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 
 struct DiscoverCharacteristicsRequest: JsMessageDecodable {
     let peripheralId: UUID
@@ -67,8 +68,10 @@ struct DiscoverCharacteristics: BluetoothAction {
     let request: DiscoverCharacteristicsRequest
 
     func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverCharacteristicsResponse {
+        try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let result = try await client.discoverCharacteristics(peripheral, filter: request.filter)
+        // TODO: Filter characteristics as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
         await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {
         case let .first(characteristicUuid):
@@ -79,6 +82,21 @@ struct DiscoverCharacteristics: BluetoothAction {
         case .all:
             return DiscoverCharacteristicsResponse(characteristics: result.characteristics)
         }
+    }
+
+    private func checkSecurityList(securityList: SecurityList) throws {
+        if let blocked = firstBlockedUuidInRequest(securityList: securityList) {
+            throw BluetoothError.blocklisted(blocked)
+        }
+    }
+
+    private func firstBlockedUuidInRequest(securityList: SecurityList) -> UUID? {
+        if securityList.isBlocked(request.filter.service, in: .services) {
+            return request.filter.service
+        }
+        return request.filter.characteristics?.first(where: {
+            securityList.isBlocked($0, in: .characteristics)
+        })
     }
 }
 

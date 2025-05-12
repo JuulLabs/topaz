@@ -31,7 +31,6 @@ struct Availability: BluetoothAction {
         }
         return AvailabilityResponse(isAvailable: currentState.isAvailable)
     }
-
 }
 
 extension SystemStateEvent {
