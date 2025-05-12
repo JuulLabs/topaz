@@ -4,6 +4,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import TestHelpers
 import Testing
 
 extension Tag {

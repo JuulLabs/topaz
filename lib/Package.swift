@@ -55,6 +55,10 @@ let package = Package(
                 "JsMessage",
             ]
         ),
+        .testTarget(
+            name: "BluetoothActionTests",
+            dependencies: ["BluetoothAction", "TestHelpers"]
+        ),
 
         .target(
             name: "BluetoothClient",
@@ -91,6 +95,10 @@ let package = Package(
                 "DevicePicker",
                 "JsMessage",
             ]
+        ),
+        .testTarget(
+            name: "BluetoothMessageTests",
+            dependencies: ["BluetoothMessage", "TestHelpers"]
         ),
 
         .target(

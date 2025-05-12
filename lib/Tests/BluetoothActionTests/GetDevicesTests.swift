@@ -91,7 +91,7 @@ struct GetDevicesTests {
         #expect(outcome == .completed)
     }
 
-    @Test(.disabled("rememberPeripheral is not yet implemented"))
+    @Test
     func execute_withOneRememberedPeripheral_requestsSamePeripheralFromClient() async throws {
         let callbackExpectation = XCTestExpectation(description: "Client get peripherals")
         var client = MockBluetoothClient()
@@ -100,7 +100,7 @@ struct GetDevicesTests {
             callbackExpectation.fulfill()
             return []
         }
-        let state = BluetoothState()
+        let state = BluetoothState(store: InMemoryStorage())
         await state.rememberPeripheral(identifier: UUID(n: 0))
         let sut = GetDevices(request: GetDevicesRequest())
         _ = try await sut.execute(state: state, client: client)
