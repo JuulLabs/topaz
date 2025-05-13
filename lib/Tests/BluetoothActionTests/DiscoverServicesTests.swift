@@ -75,7 +75,7 @@ struct DiscoverServicesResponseTests {
     func toJsMessage_withMultipleDescriptors_hasExpectedBody() throws {
         let fakeServices = [
             FakeService(uuid: UUID(n: 1)),
-            FakeService(uuid: UUID(uuidString: "00000000-0000-0000-0000-00000BA7F00D")!)
+            FakeService(uuid: UUID(uuidString: "00000000-0000-0000-0000-00000BA7F00D")!),
         ]
         let sut = DiscoverServicesResponse(services: fakeServices)
         let jsMessage = sut.toJsMessage()
@@ -117,7 +117,6 @@ struct DiscoverServicesTests {
             FakeService(uuid: UUID(n: 10)),
             FakeService(uuid: UUID(n: 11)),
         ]
-        let matchingService = fakeServices[1]
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         var client = MockBluetoothClient()
         client.onDiscoverServices = { peripheral, filter in
@@ -150,7 +149,7 @@ struct DiscoverServicesTests {
         let fakeServices = [allowedService, blockedService]
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         var client = MockBluetoothClient()
-        client.onDiscoverServices = { peripheral, filter in
+        client.onDiscoverServices = { peripheral, _ in
             return ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
         }
         let securityList = SecurityList(services: [blockedService.uuid: .any])

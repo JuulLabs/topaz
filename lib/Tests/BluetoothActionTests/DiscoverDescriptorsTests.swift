@@ -101,7 +101,7 @@ struct DiscoverDescriptorsResponseTests {
     func toJsMessage_withMultipleDescriptors_hasExpectedBody() throws {
         let fakeDescriptors = [
             FakeDescriptor(uuid: UUID(n: 1), value: .none),
-            FakeDescriptor(uuid: UUID(uuidString: "00000000-0000-0000-0000-00000BA7F00D")!, value: .none)
+            FakeDescriptor(uuid: UUID(uuidString: "00000000-0000-0000-0000-00000BA7F00D")!, value: .none),
         ]
         let sut = DiscoverDescriptorsResponse(descriptors: fakeDescriptors)
         let jsMessage = sut.toJsMessage()
@@ -247,8 +247,8 @@ struct DiscoverDescriptorsTests {
             DescriptorDiscoveryEvent(
                 peripheralId: peripheral.id,
                 serviceId: peripheral.services[0].uuid,
-                characteristicId: peripheral.services[0].characteristics[0].uuid,
-                instance: peripheral.services[0].characteristics[0].instance,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance,
                 descriptors: descriptors
             )
         }
