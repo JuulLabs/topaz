@@ -1,6 +1,6 @@
 
 /// https://webidl.spec.whatwg.org/#idl-DOMException-error-names
-public enum DomErrorName: String, Sendable, Encodable {
+public enum DomErrorName: String, Sendable, Equatable, Encodable {
     case abort = "AbortError"
     case encoding = "EncodingError"
     case invalidState = "InvalidStateError"

@@ -1,9 +1,8 @@
 import Foundation
 
-public enum BluetoothError: Error, Sendable {
+public enum BluetoothError: Error, Equatable, Sendable {
     case blocklisted(UUID)
     case cancelled
-    case causedBy(any Error)
     case deviceNotConnected
     case noSuchDevice(UUID)
     case noSuchService(UUID)
@@ -25,8 +24,6 @@ extension BluetoothError: LocalizedError {
             "UUID \(uuid) is on the block list"
         case .cancelled:
             "The operation was cancelled"
-        case let .causedBy(error):
-            error.localizedDescription
         case .deviceNotConnected:
             "Device is not connected"
         case let .noSuchDevice(uuid):

@@ -83,4 +83,15 @@ public func FakeCharacteristic(
     )
 }
 
+public func FakeDescriptor(
+    uuid: UUID,
+    value: Descriptor.Value = .none
+) -> Descriptor {
+    Descriptor(
+        descriptor: AnyProtectedObject(wrapping: NSObject(), in: NonLockingStrategy()),
+        uuid: uuid,
+        value: value
+    )
+}
+
 #endif

@@ -4,6 +4,7 @@ import BluetoothClient
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 import TestHelpers
 import Testing
 
@@ -156,5 +157,29 @@ struct DiscoverCharacteristicsTests {
         let sut = DiscoverCharacteristics(request: request)
         let response = try await sut.execute(state: state, client: client)
         #expect(response.characteristics == [fakeCharacteristic])
+    }
+
+    @Test
+    func execute_withBlockedCharacteristicUuid_throwsBlocklistedError() async throws {
+        let characteristicUuid = UUID(n: 31)
+        let securityList = SecurityList(characteristics: [characteristicUuid: .any])
+        let state = BluetoothState(securityList: securityList)
+        let request = DiscoverCharacteristicsRequest(peripheralId: UUID(n: 0), serviceUuid: UUID(n: 30), query: .first(characteristicUuid))
+        let sut = DiscoverCharacteristics(request: request)
+        await #expect(throws: BluetoothError.blocklisted(characteristicUuid)) {
+            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+        }
+    }
+
+    @Test
+    func execute_withBlockedServiceUuid_throwsBlocklistedError() async throws {
+        let serviceUuid = UUID(n: 30)
+        let securityList = SecurityList(services: [serviceUuid: .any])
+        let state = BluetoothState(securityList: securityList)
+        let request = DiscoverCharacteristicsRequest(peripheralId: UUID(n: 0), serviceUuid: serviceUuid, query: .all(nil))
+        let sut = DiscoverCharacteristics(request: request)
+        await #expect(throws: BluetoothError.blocklisted(serviceUuid)) {
+            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+        }
     }
 }

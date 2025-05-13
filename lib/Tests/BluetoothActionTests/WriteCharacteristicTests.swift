@@ -1,10 +1,10 @@
 import Bluetooth
 @testable import BluetoothAction
 import BluetoothClient
-@testable import BluetoothEngine
 import BluetoothMessage
 import Foundation
 import JsMessage
+import SecurityList
 import Testing
 
 extension Tag {
@@ -125,5 +125,27 @@ struct WriteCharacteristicRequestTests {
         let body: [String: JsType] = [:]
         let request = WriteCharacteristicRequest.decode(from: body)
         #expect(request == nil)
+    }
+}
+
+@Suite(.tags(.characteristics))
+struct WriteCharacteristicTests {
+    @Test
+    func execute_withCharacteristicBlockedForWriting_throwsBlocklistedError() async throws {
+        let characteristicUuid = UUID(n: 31)
+        let securityList = SecurityList(characteristics: [characteristicUuid: .writing])
+        let state = BluetoothState(securityList: securityList)
+        let request = WriteCharacteristicRequest(
+            peripheralId: UUID(n: 0),
+            serviceUuid: UUID(n: 30),
+            characteristicUuid: characteristicUuid,
+            characteristicInstance: 0,
+            value: Data(),
+            withResponse: false
+        )
+        let sut = WriteCharacteristic(request: request)
+        await #expect(throws: BluetoothError.blocklisted(characteristicUuid)) {
+            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+        }
     }
 }

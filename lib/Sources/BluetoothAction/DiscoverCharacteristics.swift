@@ -75,11 +75,13 @@ struct DiscoverCharacteristics: BluetoothAction {
         await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {
         case let .first(characteristicUuid):
+            // Already filtered, return the first one:
             guard let characteristic = result.characteristics.first else {
                 throw BluetoothError.noSuchCharacteristic(service: request.serviceUuid, characteristic: characteristicUuid)
             }
             return DiscoverCharacteristicsResponse(characteristics: [characteristic])
         case .all:
+            // Already filtered, return all of them:
             return DiscoverCharacteristicsResponse(characteristics: result.characteristics)
         }
     }

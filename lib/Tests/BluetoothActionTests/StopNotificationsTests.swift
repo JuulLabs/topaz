@@ -63,13 +63,8 @@ struct StopNotificationsTests {
         let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: nonExistentCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
         let sut = StopNotifications(request: request)
 
-        await #expect {
+        await #expect(throws: BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid)) {
             _ = try await sut.execute(state: state, client: mockBluetoothClient())
-        } throws: { (error: any Error) in
-            guard case .noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid) = (error as? BluetoothError) else {
-                return false
-            }
-            return true
         }
     }
 }

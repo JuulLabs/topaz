@@ -42,7 +42,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(name: .discoverServices, peripheralId: peripheral.identifier))
+            ErrorEvent(error: BluetoothClientError.causedBy(error), lookup: .exact(name: .discoverServices, peripheralId: peripheral.identifier))
         } else {
             ServiceDiscoveryEvent(peripheralId: peripheral.identifier, services: peripheral.erasedServices(locker: locker))
         }
@@ -53,7 +53,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
         let event: BluetoothEvent
         if let error {
             event = ErrorEvent(
-                error: BluetoothError.causedBy(error),
+                error: BluetoothClientError.causedBy(error),
                 lookup: .exact(name: .discoverCharacteristics, peripheralId: peripheral.identifier, serviceId: service.uuid.regularUuid)
             )
         } else {
@@ -103,7 +103,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: (any Error)?) {
         guard let characteristic = descriptor.characteristic else {
-            let cause = error.map(BluetoothError.causedBy) ?? .nullCharacteristic(descriptor: descriptor.uuid.regularUuid)
+            let cause: any Error = error.map(BluetoothClientError.causedBy) ?? BluetoothError.nullCharacteristic(descriptor: descriptor.uuid.regularUuid)
             let errorEvent = ErrorEvent(
                 error: cause,
                 lookup: .wildcard(
@@ -123,7 +123,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             descriptorId: descriptor.uuid.regularUuid
         )
         let event: BluetoothEvent = if let error {
-            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(key: eventKey))
+            ErrorEvent(error: BluetoothClientError.causedBy(error), lookup: .exact(key: eventKey))
         } else {
             switch descriptor.valueAsData() {
             case let .success(data):
@@ -135,7 +135,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
                     data: data
                 )
             case let .failure(error):
-                ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(key: eventKey))
+                ErrorEvent(error: BluetoothClientError.causedBy(error), lookup: .exact(key: eventKey))
             }
         }
         handleEvent(event)
@@ -155,7 +155,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
 
     private func handlePeripheralEvent(_ event: EventName, peripheral: CBPeripheral, error: (any Error)?) {
         let event: BluetoothEvent = if let error {
-            ErrorEvent(error: BluetoothError.causedBy(error), lookup: .exact(name: event, peripheralId: peripheral.identifier))
+            ErrorEvent(error: BluetoothClientError.causedBy(error), lookup: .exact(name: event, peripheralId: peripheral.identifier))
         } else {
             PeripheralEvent(event, peripheral.erase(locker: locker))
         }
@@ -187,7 +187,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     ) -> ServiceOrError {
         guard let service = characteristic.service else {
             // If there is no service we cannot target the requestor precisely so fail using a wildcard key
-            let cause = error.map(BluetoothError.causedBy) ?? .nullService(characteristic: characteristic.uuid.regularUuid)
+            let cause: any Error = error.map(BluetoothClientError.causedBy) ?? BluetoothError.nullService(characteristic: characteristic.uuid.regularUuid)
             return .error(
                 ErrorEvent(
                     error: cause,
@@ -204,7 +204,7 @@ class EventDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
             // An error occured and we know the service so target the requestor with the exact key
             return .error(
                 ErrorEvent(
-                    error: BluetoothError.causedBy(error),
+                    error: BluetoothClientError.causedBy(error),
                     lookup: .exact(
                         key: .characteristic(
                             event,

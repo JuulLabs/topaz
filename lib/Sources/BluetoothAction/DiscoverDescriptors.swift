@@ -57,7 +57,6 @@ struct DiscoverDescriptorsRequest: JsMessageDecodable {
 }
 
 struct DiscoverDescriptorsResponse: JsMessageEncodable {
-    let peripheralId: UUID
     let descriptors: [Descriptor]
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
@@ -88,12 +87,22 @@ struct DiscoverDescriptors: BluetoothAction {
         )
         switch request.query {
         case let .first(descriptorUuid):
-            guard let descriptor = result.descriptors.first else {
+            // Result is not filtered, so do so now by taking the first match:
+            guard let descriptor = result.descriptors.first(where: { $0.uuid == descriptorUuid }) else {
                 throw BluetoothError.noSuchDescriptor(characteristic: request.characteristicUuid, descriptor: descriptorUuid)
             }
-            return DiscoverDescriptorsResponse(peripheralId: peripheral.id, descriptors: [descriptor])
+            return DiscoverDescriptorsResponse(descriptors: [descriptor])
         case .all:
-            return DiscoverDescriptorsResponse(peripheralId: peripheral.id, descriptors: result.descriptors)
+            // Result is not filtered, so do so now by taking all that match:
+            if let descriptorUuid = request.query.descriptorUuid {
+                let descriptors = result.descriptors.filter { $0.uuid == descriptorUuid }
+                guard !descriptors.isEmpty else {
+                    throw BluetoothError.noSuchDescriptor(characteristic: request.characteristicUuid, descriptor: descriptorUuid)
+                }
+                return DiscoverDescriptorsResponse(descriptors: descriptors)
+            } else {
+                return DiscoverDescriptorsResponse(descriptors: result.descriptors)
+            }
         }
     }
 
