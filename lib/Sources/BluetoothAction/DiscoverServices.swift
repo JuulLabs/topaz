@@ -50,7 +50,6 @@ struct DiscoverServicesRequest: JsMessageDecodable {
 }
 
 struct DiscoverServicesResponse: JsMessageEncodable {
-    let peripheralId: UUID
     let services: [Service]
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
@@ -73,12 +72,14 @@ struct DiscoverServices: BluetoothAction {
         let primaryServices = result.services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):
+            // Already filtered, return the first one:
             guard let service = primaryServices.first else {
                 throw BluetoothError.noSuchService(serviceUuid)
             }
-            return DiscoverServicesResponse(peripheralId: peripheral.id, services: [service])
+            return DiscoverServicesResponse(services: [service])
         case .all:
-            return DiscoverServicesResponse(peripheralId: peripheral.id, services: primaryServices)
+            // Already filtered, return all of them:
+            return DiscoverServicesResponse(services: primaryServices)
         }
     }
 
