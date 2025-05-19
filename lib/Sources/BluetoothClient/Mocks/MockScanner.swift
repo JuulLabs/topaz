@@ -1,4 +1,5 @@
 import Bluetooth
+import EventBus
 
 public struct MockScanner: BluetoothScanner {
     public let continuation: AsyncStream<AdvertisementEvent>.Continuation

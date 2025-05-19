@@ -1,4 +1,5 @@
 import Bluetooth
+import EventBus
 import Foundation
 
 public struct MockBluetoothClient: BluetoothClient {
@@ -23,6 +24,11 @@ public struct MockBluetoothClient: BluetoothClient {
     public var onCharacteristicRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic) async throws -> CharacteristicChangedEvent
     public var onCharacteristicWrite: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ value: Data, _ withResponse: Bool) async throws -> CharacteristicEvent
     public var onDescriptorRead: @Sendable (_ peripheral: Peripheral, _ characteristic: Characteristic, _ descriptor: Descriptor) async throws -> DescriptorChangedEvent
+
+    public init(initialState: SystemState) {
+        self.init()
+        self.onSystemState = { SystemStateEvent(initialState) }
+    }
 
     public init() {
         let (stream, continuation) = AsyncStream<any BluetoothEvent>.makeStream()

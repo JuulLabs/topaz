@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import CoreBluetooth
+import EventBus
 import Foundation
 
 public func liveBluetoothClient() -> BluetoothClient {
@@ -10,7 +11,7 @@ public func liveBluetoothClient() -> BluetoothClient {
 struct NativeBluetoothClient: BluetoothClient {
 
     private let coordinator: Coordinator
-    private let server: EventService
+    private let eventBus: EventBus
 
     var events: AsyncStream<any BluetoothEvent> {
         coordinator.events
@@ -18,7 +19,7 @@ struct NativeBluetoothClient: BluetoothClient {
 
     init() {
         self.coordinator = Coordinator()
-        self.server = EventService()
+        self.eventBus = EventBus()
     }
 
     func scan(options: Options?) -> any BluetoothScanner {
@@ -41,16 +42,15 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func resolvePendingRequests(for event: any BluetoothEvent) async {
-        await server.handleEvent(event)
+        await eventBus.resolvePendingRequests(for: event)
     }
 
     func cancelPendingRequests() async {
-        await server.cancelAllEvents(with: BluetoothError.cancelled)
+        await eventBus.cancelEverything(with: BluetoothError.cancelled)
     }
 
     func systemState() async throws -> SystemStateEvent {
-        try await server.awaitEvent(key: .systemState) {
-        }
+        try await eventBus.awaitEvent(forKey: .systemState)
     }
 
     func getPeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral] {
@@ -58,19 +58,19 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func connect(_ peripheral: Peripheral) async throws -> PeripheralEvent {
-        try await server.awaitEvent(key: .peripheral(.connect, peripheral)) {
+        try await eventBus.awaitEvent(forKey: .peripheral(.connect, peripheral)) {
             coordinator.connect(peripheral: peripheral)
         }
     }
 
     func disconnect(_ peripheral: Peripheral) async throws -> DisconnectionEvent {
-        try await server.awaitEvent(key: .peripheral(.disconnect, peripheral)) {
+        try await eventBus.awaitEvent(forKey: .peripheral(.disconnect, peripheral)) {
             coordinator.disconnect(peripheral: peripheral)
         }
     }
 
     func discoverServices(_ peripheral: Peripheral, filter: ServiceDiscoveryFilter) async throws -> ServiceDiscoveryEvent {
-        try await server.awaitEvent(key: .serviceDiscovery(peripheralId: peripheral.id)) {
+        try await eventBus.awaitEvent(forKey: .serviceDiscovery(peripheralId: peripheral.id)) {
             coordinator.discoverServices(peripheral: peripheral, uuids: filter.services)
         }
     }
@@ -79,20 +79,20 @@ struct NativeBluetoothClient: BluetoothClient {
         guard let service = peripheral.services.first(where: { $0.uuid == filter.service }) else {
             throw BluetoothError.noSuchService(filter.service)
         }
-        return try await server.awaitEvent(key: .characteristicDiscovery(peripheralId: peripheral.id, serviceId: service.uuid)) {
+        return try await eventBus.awaitEvent(forKey: .characteristicDiscovery(peripheralId: peripheral.id, serviceId: service.uuid)) {
             coordinator.discoverCharacteristics(peripheral: peripheral, service: service, uuids: filter.characteristics)
         }
     }
 
     func discoverDescriptors(_ peripheral: Peripheral, characteristic: Characteristic) async throws -> DescriptorDiscoveryEvent {
-        try await server.awaitEvent(key: .descriptorDiscovery(peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
+        try await eventBus.awaitEvent(forKey: .descriptorDiscovery(peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)) {
             coordinator.discoverDescriptors(peripheral: peripheral, characteristic: characteristic)
         }
     }
 
     func characteristicSetNotifications(_ peripheral: Peripheral, service: Service, characteristic: Characteristic, enable: Bool) async throws -> CharacteristicEvent {
-        try await server.awaitEvent(
-            key: .characteristic(
+        try await eventBus.awaitEvent(
+            forKey: .characteristic(
                 .characteristicNotify,
                 peripheralId: peripheral.id,
                 serviceId: service.uuid,
@@ -115,8 +115,8 @@ struct NativeBluetoothClient: BluetoothClient {
                 instance: characteristic.instance
             )
         }
-        return try await server.awaitEvent(
-            key: .characteristic(
+        return try await eventBus.awaitEvent(
+            forKey: .characteristic(
                 .characteristicWrite,
                 peripheralId: peripheral.id,
                 serviceId: service.uuid,
@@ -129,8 +129,8 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func characteristicRead(_ peripheral: Peripheral, service: Service, characteristic: Characteristic) async throws -> CharacteristicChangedEvent {
-        return try await server.awaitEvent(
-            key: .characteristic(
+        return try await eventBus.awaitEvent(
+            forKey: .characteristic(
                 .characteristicValue,
                 peripheralId: peripheral.id,
                 serviceId: service.uuid,
@@ -143,7 +143,7 @@ struct NativeBluetoothClient: BluetoothClient {
     }
 
     func descriptorRead(_ peripheral: Peripheral, characteristic: Characteristic, descriptor: Descriptor) async throws -> DescriptorChangedEvent {
-        return try await server.awaitEvent(key: .descriptor(.descriptorValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)) {
+        return try await eventBus.awaitEvent(forKey: .descriptor(.descriptorValue, peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance, descriptorId: descriptor.uuid)) {
             coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
         }
     }

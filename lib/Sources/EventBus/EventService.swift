@@ -29,7 +29,7 @@ public actor EventService {
         }
         try Task.checkCancellation()
         guard let result = result as? T else {
-            throw EventServiceError.typeMismatch(key.name, expectedType: "\(type(of: T.self))")
+            throw EventBusError.typeMismatch(key.name, expectedType: "\(type(of: T.self))")
         }
         return result
     }
