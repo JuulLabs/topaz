@@ -7,7 +7,6 @@ extension BluetoothError: DomErrorConvertable {
         switch self {
         case .blocklisted: .security
         case .cancelled: .abort
-        case .causedBy: .operation
         case .deviceNotConnected: .network
         case .noSuchDevice: .notFound
         case .noSuchService: .notFound
@@ -20,6 +19,14 @@ extension BluetoothError: DomErrorConvertable {
         case .unauthorized: .notAllowed
         case .unavailable: .operation
         case .unknown: .unknown
+        }
+    }
+}
+
+extension BluetoothClientError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
+        switch self {
+        case .causedBy: .operation
         }
     }
 }

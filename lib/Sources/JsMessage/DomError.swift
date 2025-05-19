@@ -4,7 +4,7 @@ import OSLog
 private let log = Logger(subsystem: "JsMessage", category: "DomError")
 
 /// Structured data representing a DOMException
-public struct DomError: Sendable, Encodable, Error {
+public struct DomError: Sendable, Encodable, Equatable, Error {
     public let name: DomErrorName
     public let msg: String?
 
