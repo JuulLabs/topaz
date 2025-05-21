@@ -28,10 +28,6 @@ public class AppModel {
 
     var activePageModel: WebLoadingModel?
 
-    // Tracks the last tab index that was opened, so it is known which tab to return
-    // to if the user hits Done on the tab management view
-    private var previouslyActivePageIndex: Int?
-
     @ObservationIgnored
     @AppStorage("userHasBeenPromptedToPasteUrl")
     private var userHasBeenPromptedToPasteUrl: Bool = false
@@ -68,13 +64,6 @@ public class AppModel {
             guard let self else { return }
             lastOpenedTabIndex = tabModel.index
             self.activePageModel = buildPageModel(tabModel: tabModel)
-        }
-
-        tabsModel.restoreLastOpenedTab = { [weak self] in
-            guard let self else { return }
-            if let index = self.previouslyActivePageIndex, let tabModel = tabsModel.findTab(for: index) {
-                self.activePageModel = self.buildPageModel(tabModel: tabModel)
-            }
         }
 
         Task {
@@ -126,7 +115,6 @@ public class AppModel {
             self.activePageModel = webLoadingModel
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { [weak self] in
-                self?.previouslyActivePageIndex = self?.lastOpenedTabIndex
                 self?.lastOpenedTabIndex = nil
                 self?.activePageModel = nil
         } onFullscreenChanged: { newValue in

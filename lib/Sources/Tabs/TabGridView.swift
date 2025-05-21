@@ -17,17 +17,10 @@ public struct TabGridView: View {
             ScrollView(.vertical) {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(model.tabCells) { tabCell in
-                        switch tabCell {
-                        case let .tab(tab):
-                            TabCellView(tab: tab) {
-                                model.tabButtonTapped(tab: tab)
-                            } delete: {
-                                model.deleteButtonTapped(tab: tab)
-                            }
-                        case .new:
-                            NewTabCellView {
-                                model.createNewTabButtonTapped()
-                            }
+                        TabCellView(tab: tabCell) {
+                            model.tabButtonTapped(tab: tabCell)
+                        } delete: {
+                            model.deleteButtonTapped(tab: tabCell)
                         }
                     }
                 }
