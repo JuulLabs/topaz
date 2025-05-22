@@ -1,12 +1,94 @@
 import Bluetooth
 import BluetoothClient
 import CoreBluetooth
+import Dispatch
 import EventBus
 import Foundation
+import Helpers
 
-public func liveBluetoothClient() -> BluetoothClient {
-    NativeBluetoothClient()
+public func liveBluetoothClient(eventBus: EventBus) -> BluetoothClient {
+    let queue = DispatchQueue(label: "bluetooth.live")
+    let locker = QueueLockingStrategy(queue: queue)
+    let delegate = EventDelegate(locker: locker)
+    delegate.handleEvent = eventBus.enqueueEvent
+    let coordinator = Coordinator(queue: queue, locker: locker, delegate: delegate)
+    return NativeBluetoothClient(
+        coordinator: coordinator,
+        eventBus: eventBus
+    )
 }
+
+public func liveBluetoothClientV2(eventBus: EventBus) -> BluetoothClientV2 {
+    let queue = DispatchQueue(label: "bluetooth.live")
+    let locker = QueueLockingStrategy(queue: queue)
+    let delegate = EventDelegate(locker: locker)
+    delegate.handleEvent = eventBus.enqueueEvent
+    return Coordinator(queue: queue, locker: locker, delegate: delegate)
+}
+
+//struct NativeBluetoothClientV2: BluetoothClientV2 {
+//    private let coordinator: Coordinator
+//
+//    init(coordinator: Coordinator) {
+//        self.coordinator = coordinator
+//    }
+//
+//    func enable() {
+//        coordinator.enable()
+//    }
+//    
+//    func disable() {
+//        coordinator.disable()
+//    }
+//    
+//    func startScanning(serviceUuids: [UUID]) {
+//        coordinator.startScanning(serviceUuids: serviceUuids)
+//    }
+//    
+//    func stopScanning() {
+//        coordinator.stopScanning()
+//    }
+//    
+//    func retrievePeripherals(withIdentifiers uuids: [UUID]) async -> [Peripheral] {
+//        await coordinator.retrievePeripherals(withIdentifiers: uuids)
+//    }
+//    
+//    func connect(peripheral: Peripheral) {
+//        coordinator.connect(peripheral: peripheral)
+//    }
+//    
+//    func disconnect(peripheral: Peripheral) {
+//        coordinator.disconnect(peripheral: peripheral)
+//    }
+//    
+//    func discoverServices(peripheral: Peripheral, uuids serviceUuids: [UUID]?) {
+//        coordinator.discoverServices(peripheral: peripheral, uuids: serviceUuids)
+//    }
+//    
+//    func discoverCharacteristics(peripheral: Peripheral, service: Service, uuids characteristicUuids: [UUID]?) {
+//        coordinator.discoverCharacteristics(peripheral: peripheral, service: service, uuids: characteristicUuids)
+//    }
+//    
+//    func discoverDescriptors(peripheral: Peripheral, characteristic: Characteristic) {
+//        coordinator.discoverDescriptors(peripheral: peripheral, characteristic: characteristic)
+//    }
+//    
+//    func readCharacteristic(peripheral: Peripheral, characteristic: Characteristic) {
+//        coordinator.readCharacteristic(peripheral: peripheral, characteristic: characteristic)
+//    }
+//    
+//    func writeCharacteristic(peripheral: Peripheral, characteristic: Characteristic, value: Data, withResponse: Bool) {
+//        coordinator.writeCharacteristic(peripheral: peripheral, characteristic: characteristic, value: value, withResponse: withResponse)
+//    }
+//    
+//    func setNotify(peripheral: Peripheral, characteristic: Characteristic, value: Bool) {
+//        coordinator.setNotify(peripheral: peripheral, characteristic: characteristic, value: value)
+//    }
+//    
+//    func readDescriptor(peripheral: Peripheral, descriptor: Descriptor) {
+//        coordinator.readDescriptor(peripheral: peripheral, descriptor: descriptor)
+//    }
+//}
 
 struct NativeBluetoothClient: BluetoothClient {
 
@@ -14,12 +96,15 @@ struct NativeBluetoothClient: BluetoothClient {
     private let eventBus: EventBus
 
     var events: AsyncStream<any BluetoothEvent> {
-        coordinator.events
+        fatalError()
     }
 
-    init() {
-        self.coordinator = Coordinator()
-        self.eventBus = EventBus()
+    init(
+        coordinator: Coordinator,
+        eventBus: EventBus,
+    ) {
+        self.coordinator = coordinator
+        self.eventBus = eventBus
     }
 
     func scan(options: Options?) -> any BluetoothScanner {

@@ -3,6 +3,7 @@ import BluetoothEngine
 import BluetoothMessage
 import Design
 import DevicePicker
+import EventBus
 import Helpers
 import JsMessage
 import SwiftUI
@@ -54,6 +55,7 @@ private func previewModel() -> AppModel {
     let mockClient = MockBluetoothClient()
 #endif
     let bluetoothEngine = BluetoothEngine(
+        eventBus: EventBus(),
         state: state,
         client: mockClient,
         deviceSelector: selector
