@@ -15,8 +15,8 @@ struct NativeScanner: BluetoothScanner {
         let (stream, continuation) = AsyncStream<AdvertisementEvent>.makeStream()
         self.advertisements = stream
         self.continuation = continuation
-        let services = options?.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
-        coordinator.startScanning(serviceUuids: services, callback: handleEvent)
+//        let services = options?.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
+//        coordinator.startScanning(serviceUuids: services, callback: handleEvent)
     }
 
     func handleEvent(_ event: AdvertisementEvent) {

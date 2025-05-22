@@ -1,34 +1,28 @@
 import Bluetooth
 import BluetoothClient
 import CoreBluetooth
-import EventBus
+import Dispatch
 import Helpers
 
 /**
  Stateless system for relaying messages to/from CoreBluetooth.
  All operations run synchronously on the same queue as CoreBlutooth.
  */
-class Coordinator: @unchecked Sendable {
-    private let queue: DispatchQueue // TODO: from dependencies
+class Coordinator: @unchecked Sendable, BluetoothClientV2 {
+    private let queue: DispatchQueue
+    private let locker: LockingStrategy
     private var manager: CBCentralManager?
-    private let delegate: EventDelegate
-    private var scannerCallback: (@Sendable (AdvertisementEvent) -> Void)?
+    private let delegate: (CBCentralManagerDelegate & CBPeripheralDelegate)?
 
-    let events: AsyncStream<BluetoothEvent>
-
-    init() {
-        let queue = DispatchQueue(label: "bluetooth.live")
+    init(
+        queue: DispatchQueue,
+        locker: LockingStrategy,
+        delegate: (CBCentralManagerDelegate & CBPeripheralDelegate)? = nil
+    ) {
         self.queue = queue
+        self.locker = locker
+        self.delegate = delegate
         self.manager = nil
-        self.delegate = EventDelegate(locker: QueueLockingStrategy(queue: queue))
-        let (stream, contination) = AsyncStream<BluetoothEvent>.makeStream()
-        self.events = stream
-        delegate.handleEvent = { [weak self] event in
-            if let advertisement = event as? AdvertisementEvent {
-                self?.scannerCallback?(advertisement)
-            }
-            contination.yield(event)
-        }
     }
 
     deinit {
@@ -68,17 +62,15 @@ class Coordinator: @unchecked Sendable {
         }
     }
 
-    func startScanning(serviceUuids: [UUID], callback: @escaping @Sendable (AdvertisementEvent) -> Void) {
+    func startScanning(serviceUuids: [UUID]) {
         queue.async {
             let services = serviceUuids.map(CBUUID.init)
-            self.scannerCallback = callback
             self.manager?.scanForPeripherals(withServices: services, options: nil) // TODO: Configure CoreBluetooth scanner options
         }
     }
 
     func stopScanning() {
         queue.async {
-            self.scannerCallback = nil
             self.manager?.stopScan()
         }
     }
@@ -87,7 +79,7 @@ class Coordinator: @unchecked Sendable {
         queue.sync {
             self.manager?.retrievePeripherals(withIdentifiers: uuids) ?? []
         }.map { peripheral in
-            peripheral.erase(locker: delegate.locker)
+            peripheral.erase(locker: locker)
         }
     }
 

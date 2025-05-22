@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import JsMessage
 import Observation
 import Settings
@@ -71,6 +72,7 @@ private func previewModel(state: SystemState) -> WebContainerModel {
     let client: BluetoothClient = MockBluetoothClient()
 #endif
     let bluetoothEngine = BluetoothEngine(
+        eventBus: EventBus(),
         state: BluetoothState(),
         client: client,
         deviceSelector: selector
