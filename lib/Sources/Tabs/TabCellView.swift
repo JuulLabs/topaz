@@ -25,19 +25,3 @@ struct TabCellView: View {
         }
     }
 }
-
-struct NewTabCellView: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            action()
-        } label: {
-            Image(systemName: "plus")
-                .imageScale(.large)
-                .font(.largeTitle)
-                .foregroundStyle(Color.textPrimary)
-                .tabCellLayout()
-        }
-    }
-}
