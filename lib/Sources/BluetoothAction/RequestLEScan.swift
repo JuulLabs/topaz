@@ -94,8 +94,6 @@ struct RequestLEScan: BluetoothAction {
             active: true
         )
         let options = activeScan.toFilterOptions()
-        // TODO: add a method to get these services:
-        let services = options.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
         await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
             guard case let .success(event) = result else { return }
             guard options.includeAdvertisementEventInDeviceList(event) else { return }
@@ -106,7 +104,7 @@ struct RequestLEScan: BluetoothAction {
             // allow what is in optionalServices/optionalManufacturerData after applying the blocklist
             await eventBus.sendJsEvent(event.toJs(targetId: "bluetooth"))
         }
-        client.startScanning(serviceUuids: services)
+        client.startScanning(serviceUuids: options.allServiceUuids())
         return .start(id: scanId, scan: activeScan)
     }
 

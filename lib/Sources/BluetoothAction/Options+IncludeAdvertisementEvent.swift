@@ -16,6 +16,10 @@ extension Options {
 
         return matchesOnFilters && !matchesOnExclusionFilters
     }
+
+    func allServiceUuids() -> [UUID] {
+        filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
+    }
 }
 
 extension Options.Filter {

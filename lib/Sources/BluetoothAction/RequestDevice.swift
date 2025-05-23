@@ -48,7 +48,6 @@ struct RequestDevice: BluetoothAction {
 
     func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> RequestDeviceResponse {
         let options = try request.decodeAndValidateOptions()
-        let services = options.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
         try await checkSecurityList(securityList: state.securityList, options: options)
         guard let selector else {
             throw BluetoothError.unavailable
@@ -59,7 +58,7 @@ struct RequestDevice: BluetoothAction {
             guard options.includeAdvertisementEventInDeviceList(event) else { return }
             await selector.showAdvertisement(peripheral: event.peripheral, advertisement: event.advertisement)
         }
-        client.startScanning(serviceUuids: services)
+        client.startScanning(serviceUuids: options.allServiceUuids())
         let selection = await selector.awaitSelection()
         client.stopScanning()
         await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
