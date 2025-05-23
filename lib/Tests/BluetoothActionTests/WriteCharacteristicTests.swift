@@ -2,6 +2,7 @@ import Bluetooth
 @testable import BluetoothAction
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -145,7 +146,7 @@ struct WriteCharacteristicTests {
         )
         let sut = WriteCharacteristic(request: request)
         await #expect(throws: BluetoothError.blocklisted(characteristicUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 }

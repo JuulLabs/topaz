@@ -119,6 +119,7 @@ struct DiscoverDescriptorsResponseTests {
 struct DiscoverDescriptorsTests {
     @Test
     func execute_withRequestForSingleDescriptor_respondsWithSingleDescriptor() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeDescriptors = [
             FakeDescriptor(uuid: UUID(n: 40)),
             FakeDescriptor(uuid: UUID(n: 41)),
@@ -127,7 +128,7 @@ struct DiscoverDescriptorsTests {
         let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
         let fakeService = FakeService(uuid: UUID(n: 30), characteristics: [fakeCharacteristic])
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [fakeService])
-        let client = clientThatSucceeds(with: fakeDescriptors)
+        let client = clientThatSucceeds(with: fakeDescriptors, eventBus: eventBus)
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverDescriptorsRequest(
             peripheralId: fake.id,
@@ -137,12 +138,13 @@ struct DiscoverDescriptorsTests {
             query: .first(matchingDescriptor.uuid)
         )
         let sut = DiscoverDescriptors(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.descriptors == [matchingDescriptor])
     }
 
     @Test
     func execute_withRequestForUnspecifiedDescriptor_respondsWithAllDescriptors() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeDescriptors = [
             FakeDescriptor(uuid: UUID(n: 40)),
             FakeDescriptor(uuid: UUID(n: 41)),
@@ -150,7 +152,7 @@ struct DiscoverDescriptorsTests {
         let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
         let fakeService = FakeService(uuid: UUID(n: 30), characteristics: [fakeCharacteristic])
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [fakeService])
-        let client = clientThatSucceeds(with: fakeDescriptors)
+        let client = clientThatSucceeds(with: fakeDescriptors, eventBus: eventBus)
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverDescriptorsRequest(
             peripheralId: fake.id,
@@ -160,12 +162,13 @@ struct DiscoverDescriptorsTests {
             query: .all(nil)
         )
         let sut = DiscoverDescriptors(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.descriptors == fakeDescriptors)
     }
 
     @Test
     func execute_withRequestForNonSingleDescriptor_respondsWithMatchingDescriptor() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeDescriptors = [
             FakeDescriptor(uuid: UUID(n: 40)),
             FakeDescriptor(uuid: UUID(n: 41)),
@@ -174,7 +177,7 @@ struct DiscoverDescriptorsTests {
         let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
         let fakeService = FakeService(uuid: UUID(n: 30), characteristics: [fakeCharacteristic])
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [fakeService])
-        let client = clientThatSucceeds(with: fakeDescriptors)
+        let client = clientThatSucceeds(with: fakeDescriptors, eventBus: eventBus)
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverDescriptorsRequest(
             peripheralId: fake.id,
@@ -184,7 +187,7 @@ struct DiscoverDescriptorsTests {
             query: .all(matchingDescriptor.uuid)
         )
         let sut = DiscoverDescriptors(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.descriptors == [matchingDescriptor])
     }
 
@@ -202,7 +205,7 @@ struct DiscoverDescriptorsTests {
         )
         let sut = DiscoverDescriptors(request: request)
         await #expect(throws: BluetoothError.blocklisted(descriptorUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
@@ -220,7 +223,7 @@ struct DiscoverDescriptorsTests {
         )
         let sut = DiscoverDescriptors(request: request)
         await #expect(throws: BluetoothError.blocklisted(serviceUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
@@ -238,19 +241,21 @@ struct DiscoverDescriptorsTests {
         )
         let sut = DiscoverDescriptors(request: request)
         await #expect(throws: BluetoothError.blocklisted(characteristicUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
-    private func clientThatSucceeds(with descriptors: [Descriptor]) -> BluetoothClient {
+    private func clientThatSucceeds(with descriptors: [Descriptor], eventBus: EventBus) -> BluetoothClient {
         var client = MockBluetoothClient()
         client.onDiscoverDescriptors = { peripheral, characteristic in
-            DescriptorDiscoveryEvent(
-                peripheralId: peripheral.id,
-                serviceId: peripheral.services[0].uuid,
-                characteristicId: characteristic.uuid,
-                instance: characteristic.instance,
-                descriptors: descriptors
+            eventBus.enqueueEvent(
+                DescriptorDiscoveryEvent(
+                    peripheralId: peripheral.id,
+                    serviceId: peripheral.services[0].uuid,
+                    characteristicId: characteristic.uuid,
+                    instance: characteristic.instance,
+                    descriptors: descriptors
+                )
             )
         }
         return client

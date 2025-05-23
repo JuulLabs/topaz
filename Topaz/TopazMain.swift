@@ -4,6 +4,7 @@ import BluetoothEngine
 import BluetoothMessage
 import BluetoothNative
 import DevicePicker
+import EventBus
 import Helpers
 import JsMessage
 import SecurityList
@@ -37,9 +38,11 @@ private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProces
     JsMessageProcessorFactory(
         builders: [
             BluetoothEngine.handlerName: { _ in
-                BluetoothEngine(
+                let eventBus = EventBus()
+                return BluetoothEngine(
+                    eventBus: eventBus,
                     state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
-                    client: liveBluetoothClient(),
+                    client: liveBluetoothClient(eventBus: eventBus),
                     deviceSelector: deviceSelector,
                     enableDebugLogging: appConfig.enableDebugLogging
                 )

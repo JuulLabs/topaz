@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -67,10 +68,17 @@ struct DiscoverCharacteristics: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: DiscoverCharacteristicsRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverCharacteristicsResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DiscoverCharacteristicsResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let result = try await client.discoverCharacteristics(peripheral, filter: request.filter)
+        guard let service = peripheral.services.first(where: { $0.uuid == request.filter.service }) else {
+            throw BluetoothError.noSuchService(request.filter.service)
+        }
+        let result: CharacteristicDiscoveryEvent = try await eventBus.awaitEvent(
+            forKey: .characteristicDiscovery(peripheralId: peripheral.id, serviceId: service.uuid)
+        ) {
+            client.discoverCharacteristics(peripheral: peripheral, service: service, uuids: request.filter.characteristics)
+        }
         // TODO: Filter characteristics as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
         await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {

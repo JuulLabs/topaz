@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 
@@ -25,11 +26,7 @@ struct ForgetDevice: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: ForgetDeviceRequest
 
-    init(request: ForgetDeviceRequest) {
-        self.request = request
-    }
-
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> ForgetDeviceResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> ForgetDeviceResponse {
         await state.forgetPeripheral(identifier: request.peripheralId)
         return ForgetDeviceResponse()
     }

@@ -22,13 +22,13 @@ struct Availability: BluetoothAction {
     let requiresReadyState: Bool = false
     let request: AvailabilityRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> AvailabilityResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> AvailabilityResponse {
         let currentState = await state.systemState
         guard currentState != .unknown else {
-            let result = try await client.awaitSystemState { state in
-                state != .unknown
+            let result: SystemStateEvent = try await eventBus.awaitEvent(forKey: .systemState) { event in
+                event.systemState != .unknown
             }
-            return AvailabilityResponse(isAvailable: result.isAvailable)
+            return AvailabilityResponse(isAvailable: result.systemState.isAvailable)
         }
         return AvailabilityResponse(isAvailable: currentState.isAvailable)
     }

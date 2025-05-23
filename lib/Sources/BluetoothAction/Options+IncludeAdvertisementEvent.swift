@@ -1,5 +1,4 @@
 import Bluetooth
-import BluetoothClient
 import EventBus
 import Foundation
 
@@ -16,6 +15,10 @@ extension Options {
         let matchesOnExclusionFilters = self.exclusionFilters?.contains { $0.matches(with: advertisement) } ?? false
 
         return matchesOnFilters && !matchesOnExclusionFilters
+    }
+
+    func allServiceUuids() -> [UUID] {
+        filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
     }
 }
 

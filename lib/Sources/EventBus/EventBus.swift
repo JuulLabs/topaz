@@ -19,7 +19,6 @@ public actor EventBus {
         self.enableDebugLogging = enableDebugLogging
         self.promiseStore = .init()
         self.listenerStore = .init()
-        self.jsContext = nil
         let (stream, contination) = AsyncStream<BluetoothEvent>.makeStream()
         self.eventQueue = contination
         Task { [weak self] in

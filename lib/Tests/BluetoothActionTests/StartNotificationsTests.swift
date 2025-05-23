@@ -17,31 +17,31 @@ private let fakePeripheralId = UUID(n: 0)
 private let fakeServiceUuid = UUID(n: 1)
 private let fakeCharacteristicUuid = UUID(n: 2)
 private let fakeCharacteristicInstance: UInt32 = 3
+private let characteristicNotifyEvent = CharacteristicEvent(
+    .characteristicNotify,
+    peripheralId: fakePeripheralId,
+    serviceId: fakeServiceUuid,
+    characteristicId: fakeCharacteristicUuid,
+    instance: fakeCharacteristicInstance
+)
 
 @Suite(.tags(.startNotifications))
 struct StartNotificationsTests {
-
-    private let peripheral = { (connectionState: ConnectionState, characteristic: Characteristic) in
-        FakePeripheral(id: fakePeripheralId, connectionState: connectionState, services: [FakeService(uuid: fakeServiceUuid, characteristics: [characteristic])])
-    }
-
     @Test
     func execute_withBasicPeripheral_clientShouldStartNotifications() async throws {
-        let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, serviceId: fakeServiceUuid, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+        let eventBus = await selfResolvingEventBus()
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
-        let mockBluetoothClient = mockBluetoothClient {
-            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
-                if startNotifying {
-                    startInvokedExpectation.fulfill()
-                }
-                return basicCharacteristic
+        var client = MockBluetoothClient()
+        client.onCharacteristicSetNotifications = { _, _, startNotifying in
+            if startNotifying {
+                startInvokedExpectation.fulfill()
             }
+            eventBus.enqueueEvent(characteristicNotifyEvent)
         }
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify, .indicate])])
+        let sut = StartNotifications(request: request())
 
-        _ = try await sut.execute(state: state, client: mockBluetoothClient)
+        _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
 
         let outcome = await XCTWaiter().fulfillment(of: [startInvokedExpectation], timeout: 1.0)
         #expect(outcome == .completed)
@@ -49,93 +49,92 @@ struct StartNotificationsTests {
 
     @Test
     func execute_withNotifiableCharacteristic_noErrorIsThrown() async throws {
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify, .indicate])])
+        let sut = StartNotifications(request: request())
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_withDisconnectedPeripheral_throwsDeviceNotConnectedError() async throws {
-        let state = BluetoothState(peripherals: [peripheral(.disconnected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let state = BluetoothState(peripherals: [fakePeripheral(.disconnected, properties: [.notify, .indicate])])
+        let sut = StartNotifications(request: request())
 
         await #expect(throws: BluetoothError.deviceNotConnected) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_characteristicNotFound_throwsNoSuchCharacteristicError() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
         let nonExistentCharacteristicUuid = UUID(n: 7351)
-        let state = BluetoothState(peripherals: [peripheral(.connected, FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify]))])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: nonExistentCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify, .indicate])])
+        let sut = StartNotifications(request: request(characteristicUuid: nonExistentCharacteristicUuid))
 
         await #expect(throws: BluetoothError.noSuchCharacteristic(service: fakeServiceUuid, characteristic: nonExistentCharacteristicUuid)) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_characteristicHasNeitherNotifyNorIndicateSet_throwsCharacteristicNotificationsNotSupportedError() async throws {
-        let characteristicWithoutNotifyOrIndicateProperties = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [])
-        let state = BluetoothState(peripherals: [peripheral(.connected, characteristicWithoutNotifyOrIndicateProperties)])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [])])
+        let sut = StartNotifications(request: request())
 
         await #expect(throws: BluetoothError.characteristicNotificationsNotSupported(characteristic: fakeCharacteristicUuid)) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_characteristicHasNotifySet_noErrorIsThrown() async throws {
-        let characteristicWithNotifyProperty = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify])
-        let state = BluetoothState(peripherals: [peripheral(.connected, characteristicWithNotifyProperty)])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify])])
+        let sut = StartNotifications(request: request())
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_characteristicHasIndicateSet_noErrorIsThrown() async throws {
-        let characteristicWithNotifyProperty = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.indicate])
-        let state = BluetoothState(peripherals: [peripheral(.connected, characteristicWithNotifyProperty)])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: fakeCharacteristicInstance)
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.indicate])])
+        let sut = StartNotifications(request: request())
 
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
 
     @Test
     func execute_characteristicIsAlreadyNotifying_clientShouldNotStartNotifications() async throws {
-        let alreadyNotifyingCharacteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify, .indicate], isNotifying: true)
-        let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, serviceId: fakeServiceUuid, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
+        let eventBus = await selfResolvingEventBus()
         let startInvokedExpectation = XCTestExpectation(description: "onStartNotifications invoked")
         startInvokedExpectation.isInverted = true
-        let mockBluetoothClient = mockBluetoothClient {
-            $0.onCharacteristicSetNotifications = { _, _, startNotifying in
-                if startNotifying {
-                    startInvokedExpectation.fulfill()
-                }
-                return basicCharacteristic
+        var client = MockBluetoothClient()
+        client.onCharacteristicSetNotifications = { _, _, startNotifying in
+            if startNotifying {
+                startInvokedExpectation.fulfill()
             }
+            eventBus.enqueueEvent(characteristicNotifyEvent)
         }
-        let state = BluetoothState(peripherals: [peripheral(.connected, alreadyNotifyingCharacteristic)])
-        let request = CharacteristicRequest(peripheralId: fakePeripheralId, serviceUuid: fakeServiceUuid, characteristicUuid: fakeCharacteristicUuid, characteristicInstance: 3)
-        let sut = StartNotifications(request: request)
-
-        _ = try await sut.execute(state: state, client: mockBluetoothClient)
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify, .indicate], isNotifying: true)])
+        let sut = StartNotifications(request: request())
+        _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
 
         let outcome = await XCTWaiter().fulfillment(of: [startInvokedExpectation], timeout: 1.0)
         #expect(outcome == .completed)
@@ -143,45 +142,54 @@ struct StartNotificationsTests {
 
     @Test
     func execute_withCharacteristicBlockedForReading_throwsBlocklistedError() async throws {
-        let characteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify])
-        let securityList = SecurityList(characteristics: [characteristic.uuid: .reading])
-        let state = BluetoothState(peripherals: [peripheral(.connected, characteristic)], securityList: securityList)
-        let request = CharacteristicRequest(
-            peripheralId: fakePeripheralId,
-            serviceUuid: fakeServiceUuid,
-            characteristicUuid: characteristic.uuid,
-            characteristicInstance: characteristic.instance
-        )
-        let sut = StartNotifications(request: request)
+        let securityList = SecurityList(characteristics: [fakeCharacteristicUuid: .reading])
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify])], securityList: securityList)
+        let sut = StartNotifications(request: request())
         await #expect(throws: BluetoothError.blocklisted(fakeCharacteristicUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
     @Test
     func execute_withCharacteristicBlockedForWriting_doesNotThrow() async throws {
-        let characteristic = FakeCharacteristic(uuid: fakeCharacteristicUuid, instance: fakeCharacteristicInstance, properties: [.notify])
-        let securityList = SecurityList(characteristics: [characteristic.uuid: .writing])
-        let state = BluetoothState(peripherals: [peripheral(.connected, characteristic)], securityList: securityList)
-        let request = CharacteristicRequest(
-            peripheralId: fakePeripheralId,
-            serviceUuid: fakeServiceUuid,
-            characteristicUuid: characteristic.uuid,
-            characteristicInstance: characteristic.instance
-        )
-        let sut = StartNotifications(request: request)
+        let eventBus = await selfResolvingEventBus()
+        let client = clientThatSucceeds(eventBus: eventBus)
+        let securityList = SecurityList(characteristics: [fakeCharacteristicUuid: .writing])
+        let state = BluetoothState(peripherals: [fakePeripheral(.connected, properties: [.notify])], securityList: securityList)
+        let sut = StartNotifications(request: request())
         await #expect(throws: Never.self) {
-            _ = try await sut.execute(state: state, client: mockBluetoothClient())
+            _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         }
     }
-}
 
-private func mockBluetoothClient(modify: ((inout MockBluetoothClient) -> Void)? = nil) -> MockBluetoothClient {
-    var client = MockBluetoothClient()
-    let basicCharacteristic = CharacteristicEvent(.characteristicNotify, peripheralId: fakePeripheralId, serviceId: fakeServiceUuid, characteristicId: fakeCharacteristicUuid, instance: fakeCharacteristicInstance)
-    client.onCharacteristicSetNotifications = { _, _, _ in
-        basicCharacteristic
+    private func request(characteristicUuid: UUID = fakeCharacteristicUuid) -> CharacteristicRequest {
+        CharacteristicRequest(
+            peripheralId: fakePeripheralId,
+            serviceUuid: fakeServiceUuid,
+            characteristicUuid: characteristicUuid,
+            characteristicInstance: fakeCharacteristicInstance
+        )
     }
-    modify?(&client)
-    return client
+
+    private func fakePeripheral(_ connectionState: ConnectionState, properties: CharacteristicProperties, isNotifying: Bool = false) -> Peripheral {
+        let characteristic = FakeCharacteristic(
+            uuid: fakeCharacteristicUuid,
+            instance: fakeCharacteristicInstance,
+            properties: properties,
+            isNotifying: isNotifying
+        )
+        return FakePeripheral(
+            id: fakePeripheralId,
+            connectionState: connectionState,
+            services: [FakeService(uuid: fakeServiceUuid, characteristics: [characteristic])]
+        )
+    }
+
+    private func clientThatSucceeds(eventBus: EventBus) -> BluetoothClient {
+        var client = MockBluetoothClient()
+        client.onCharacteristicSetNotifications = { [eventBus] _, _, _ in
+            eventBus.enqueueEvent(characteristicNotifyEvent)
+        }
+        return client
+    }
 }
