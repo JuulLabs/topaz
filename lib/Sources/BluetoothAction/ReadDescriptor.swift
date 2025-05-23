@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -44,7 +45,7 @@ struct ReadDescriptor: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: ReadDescriptorRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> ReadDescriptorResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> ReadDescriptorResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (_, characteristic) = try await state.getCharacteristic(
@@ -54,7 +55,17 @@ struct ReadDescriptor: BluetoothAction {
             instance: request.instance
         )
         let descriptor = try characteristic.getDescriptor(request.descriptorUuid)
-        let event = try await client.descriptorRead(peripheral, characteristic: characteristic, descriptor: descriptor)
+        let event: DescriptorChangedEvent = try await eventBus.awaitEvent(
+            forKey: .descriptor(
+                .descriptorValue,
+                peripheralId: peripheral.id,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance,
+                descriptorId: descriptor.uuid
+            )
+        ) {
+            client.readDescriptor(peripheral: peripheral, descriptor: descriptor)
+        }
         return ReadDescriptorResponse(data: event.data)
     }
 

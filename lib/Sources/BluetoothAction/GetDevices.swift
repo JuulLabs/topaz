@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 
@@ -29,13 +30,9 @@ struct GetDevices: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: GetDevicesRequest
 
-    init(request: GetDevicesRequest) {
-        self.request = request
-    }
-
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> GetDevicesResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> GetDevicesResponse {
         let knownUuids = await state.getKnownPeripheralIdentifiers()
-        let peripherals = await client.getPeripherals(withIdentifiers: Array(knownUuids))
+        let peripherals = await client.retrievePeripherals(withIdentifiers: Array(knownUuids))
 
         // As a side effect, execute should remove any known peripheral identifiers that could not
         // be returned by client from persistence

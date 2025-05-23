@@ -22,10 +22,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private let eventBus: EventBus
     private let state: BluetoothState
     private let client: BluetoothClient
-    private let clientV2: BluetoothClientV2
     private let deviceSelector: InteractiveDeviceSelector
-    private var jsEventForwarder: JsEventForwarder
-    //private var task: Task<Void, Never>?
     private var zombieDetector: ZombieDetector
     private let listenerKey: EventBusListenerKey
 
@@ -39,10 +36,8 @@ public actor BluetoothEngine: JsMessageProcessor {
         self.eventBus = eventBus
         self.state = state
         self.client = client
-        self.clientV2 = MockBluetoothClientV2()
         self.deviceSelector = deviceSelector
         self.enableDebugLogging = enableDebugLogging
-        self.jsEventForwarder = JsEventForwarder { _ in }
         self.zombieDetector = ZombieDetector(state: state)
         self.listenerKey = .init(listenerId: "engine", filter: .unfiltered)
     }
@@ -84,8 +79,6 @@ public actor BluetoothEngine: JsMessageProcessor {
         case let event as SystemStateEvent:
             await BluetoothSystemState.shared.updateSystemState(event.systemState)
             await state.setSystemState(event.systemState)
-//        case let event as PeripheralEvent where event.name == .canSendWriteWithoutResponse:
-//            await state.setCanSendWriteWithoutResponse(event.peripheral.id, value: true)
         default:
             break
         }
@@ -118,12 +111,11 @@ public actor BluetoothEngine: JsMessageProcessor {
         await eventBus.setJsContext(nil)
 
         // Stop scanning, disconnect all known peripherals and then disable the client
-        clientV2.stopScanning()
+        client.stopScanning()
         for peripheral in await state.removeAllPeripherals() {
-            clientV2.disconnect(peripheral: peripheral)
+            client.disconnect(peripheral: peripheral)
         }
-        clientV2.disable()
-        //await client.disable()
+        client.disable()
 
         // Finally, shut down the event bus to kill any still-pending promises
         await eventBus.cancelEverything(with: BluetoothError.cancelled)
@@ -134,8 +126,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             return .error(BluetoothError.unavailable.toDomError())
         }
         if !self.isEnabled {
-            //await client.enable()
-            clientV2.enable()
+            client.enable()
             self.isEnabled = true
         }
         var actionForFailureLogging: Message.Action?
@@ -154,11 +145,11 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     func processAction(message: Message) async throws -> JsMessageEncodable {
-        let action = try message.buildAction(client: client, selector: deviceSelector, jsEventForwarder: jsEventForwarder).get()
+        let action = try message.buildAction(client: client, selector: deviceSelector).get()
         if action.requiresReadyState {
             try await bluetoothReadyState()
         }
-        return try await action.execute(state: state, client: client)
+        return try await action.execute(state: state, client: client, eventBus: eventBus)
     }
 
     // MARK: - Private Helpers
@@ -186,7 +177,6 @@ public actor BluetoothEngine: JsMessageProcessor {
     private func checkSystemState(predicate: @Sendable (SystemState) throws -> Bool) async throws {
         let currentState = await self.state.systemState
         guard try predicate(currentState) == false else { return }
-//        _ = try await client.awaitSystemState(predicate: predicate)
         try await eventBus.awaitEvent(forKey: .systemState) { (event: SystemStateEvent) in
             try predicate(event.systemState)
         }

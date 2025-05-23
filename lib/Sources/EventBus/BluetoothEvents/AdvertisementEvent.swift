@@ -11,3 +11,7 @@ public struct AdvertisementEvent: BluetoothEvent {
 
     public let lookup: EventLookup = .exact(name: .advertisement)
 }
+
+extension EventRegistrationKey {
+    public static let advertisement = EventRegistrationKey(name: .advertisement)
+}

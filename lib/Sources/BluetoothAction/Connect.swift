@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 
@@ -27,13 +28,15 @@ struct Connector: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: ConnectRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> ConnectResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> ConnectResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         if case .connected = peripheral.connectionState {
             return ConnectResponse()
         }
         await state.rememberPeripheral(identifier: peripheral.id)
-        _ = try await client.connect(peripheral)
+        let _: PeripheralEvent = try await eventBus.awaitEvent(forKey: .peripheral(.connect, peripheral)) {
+            client.connect(peripheral: peripheral)
+        }
         return ConnectResponse()
     }
 }

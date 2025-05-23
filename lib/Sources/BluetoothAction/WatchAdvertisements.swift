@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -29,51 +30,31 @@ struct WatchAdvertisementsResponse: JsMessageEncodable {
 struct WatchAdvertisements: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: WatchAdvertisementsRequest
-    let jsEventForwarder: JsEventForwarder
 
-    init(request: WatchAdvertisementsRequest) {
-        self.request = request
-        self.jsEventForwarder = JsEventForwarder { _ in }
-    }
-
-    init(request: WatchAdvertisementsRequest, jsEventForwarder: JsEventForwarder) {
-        self.request = request
-        self.jsEventForwarder = jsEventForwarder
-    }
-
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> WatchAdvertisementsResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> WatchAdvertisementsResponse {
         if request.enable {
-            await executeStart(state: state, client: client)
+            await executeStart(client: client, eventBus: eventBus)
         } else {
-            await executeStop(state: state)
+            await executeStop(client: client, eventBus: eventBus)
         }
         return WatchAdvertisementsResponse()
     }
 
-    private func executeStart(state: BluetoothState, client: BluetoothClient) async {
-        let task = Task { [jsEventForwarder, targetId = request.peripheralId] in
-            let scanner = await client.scan(options: nil)
-            defer {
-                scanner.cancel()
-            }
-            for await event in scanner.advertisements {
-                guard !Task.isCancelled else { return }
-                if event.peripheral.id == targetId {
-                    // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-                    // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
-                    // allow what is in optionalServices/optionalManufacturerData after applying the blocklist.
-                    // This further means we need to keep track of the options provided to the original requestDevice or requestLEScan
-                    await jsEventForwarder.forwardEvent(event.toJs(targetId: targetId.uuidString.lowercased()))
-                }
-            }
+    private func executeStart(client: BluetoothClient, eventBus: EventBus) async {
+        await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
+            guard case let .success(event) = result else { return }
+            guard event.peripheral.id == request.peripheralId else { return }
+            // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
+            // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
+            // allow what is in optionalServices/optionalManufacturerData after applying the blocklist.
+            // This further means we need to keep track of the options provided to the original requestDevice or requestLEScan
+            await eventBus.sendJsEvent(event.toJs(targetId: request.peripheralId.uuidString.lowercased()))
         }
-        let scanTask = ScanTask(id: request.peripheralId.uuidString, task: task)
-        await state.addScanTask(scanTask)
+        client.startScanning(serviceUuids: [])
     }
 
-    private func executeStop(state: BluetoothState) async {
-        if let scanTask = await state.removeScanTask(id: request.peripheralId.uuidString) {
-            scanTask.cancel()
-        }
+    private func executeStop(client: BluetoothClient, eventBus: EventBus) async {
+        client.stopScanning()
+        await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
     }
 }

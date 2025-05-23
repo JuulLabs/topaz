@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import DevicePicker
+import EventBus
 import JsMessage
 
 /**
@@ -14,7 +15,7 @@ public protocol BluetoothAction: Sendable {
 
     init(request: Request)
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> Response
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> Response
 }
 
 extension BluetoothAction {

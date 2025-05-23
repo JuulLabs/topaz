@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -68,7 +69,7 @@ struct DiscoverDescriptors: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: DiscoverDescriptorsRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverDescriptorsResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DiscoverDescriptorsResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (_, characteristic) = try await state.getCharacteristic(
@@ -77,7 +78,11 @@ struct DiscoverDescriptors: BluetoothAction {
             characteristicId: request.characteristicUuid,
             instance: request.instance
         )
-        let result = try await client.discoverDescriptors(peripheral, characteristic: characteristic)
+        let result: DescriptorDiscoveryEvent = try await eventBus.awaitEvent(
+            forKey: .descriptorDiscovery(peripheralId: peripheral.id, characteristicId: characteristic.uuid, instance: characteristic.instance)
+        ) {
+            client.discoverDescriptors(peripheral: peripheral, characteristic: characteristic)
+        }
         await state.setDescriptors(
             result.descriptors,
             on: peripheral.id,

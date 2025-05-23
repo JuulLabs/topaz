@@ -8,7 +8,7 @@ import Helpers
  Stateless system for relaying messages to/from CoreBluetooth.
  All operations run synchronously on the same queue as CoreBlutooth.
  */
-class Coordinator: @unchecked Sendable, BluetoothClientV2 {
+class Coordinator: @unchecked Sendable, BluetoothClient {
     private let queue: DispatchQueue
     private let locker: LockingStrategy
     private var manager: CBCentralManager?
