@@ -2,6 +2,7 @@ import Bluetooth
 @testable import BluetoothAction
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import Helpers
 import JsMessage
@@ -58,14 +59,16 @@ struct GetDevicesResponseTests {
 
 @Suite(.tags(.getDevices))
 struct GetDevicesTests {
+    private let eventBus = EventBus()
+
     @Test
     func execute_withClientProvidingOnePeripheral_respondsWithOneResult() async throws {
         var client = MockBluetoothClient()
-        client.onGetPeripherals = { _ in
+        client.onRetrievePeripherals = { _ in
             [FakePeripheral(id: UUID(n: 0))]
         }
         let sut = GetDevices(request: GetDevicesRequest())
-        let response = try await sut.execute(state: BluetoothState(), client: client)
+        let response = try await sut.execute(state: BluetoothState(), client: client, eventBus: eventBus)
         let jsMessage = response.toJsMessage()
         let body = try #require(jsMessage.extractBody(as: NSArray.self))
         #expect(body.count == 1)
@@ -75,7 +78,7 @@ struct GetDevicesTests {
     func execute_withOneActivePeripheral_requestsSamePeripheralFromClient() async throws {
         let callbackExpectation = XCTestExpectation(description: "Client get peripherals")
         var client = MockBluetoothClient()
-        client.onGetPeripherals = { uuids in
+        client.onRetrievePeripherals = { uuids in
             #expect(uuids == [UUID(n: 0)])
             callbackExpectation.fulfill()
             return []
@@ -85,7 +88,7 @@ struct GetDevicesTests {
         let state = BluetoothState(store: storage)
         let sut = GetDevices(request: GetDevicesRequest())
 
-        _ = try await sut.execute(state: state, client: client)
+        _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
 
         let outcome = await XCTWaiter().fulfillment(of: [callbackExpectation], timeout: 1.0)
         #expect(outcome == .completed)
@@ -95,7 +98,7 @@ struct GetDevicesTests {
     func execute_withOneRememberedPeripheral_requestsSamePeripheralFromClient() async throws {
         let callbackExpectation = XCTestExpectation(description: "Client get peripherals")
         var client = MockBluetoothClient()
-        client.onGetPeripherals = { uuids in
+        client.onRetrievePeripherals = { uuids in
             #expect(uuids == [UUID(n: 0)])
             callbackExpectation.fulfill()
             return []
@@ -103,7 +106,7 @@ struct GetDevicesTests {
         let state = BluetoothState(store: InMemoryStorage())
         await state.rememberPeripheral(identifier: UUID(n: 0))
         let sut = GetDevices(request: GetDevicesRequest())
-        _ = try await sut.execute(state: state, client: client)
+        _ = try await sut.execute(state: state, client: client, eventBus: eventBus)
         let outcome = await XCTWaiter().fulfillment(of: [callbackExpectation], timeout: 1.0)
         #expect(outcome == .completed)
     }
@@ -111,7 +114,7 @@ struct GetDevicesTests {
     @Test
     func execute_withClientNotFinding3PeripheralsFromBluetoothState_thosePeripheralIdsAreForgotten_respondsWithOneResult() async throws {
         var client = MockBluetoothClient()
-        client.onGetPeripherals = { _ in
+        client.onRetrievePeripherals = { _ in
             [FakePeripheral(id: UUID(n: 1))]
         }
         let storage = InMemoryStorage()
@@ -119,7 +122,7 @@ struct GetDevicesTests {
         let state = BluetoothState(store: storage)
         let sut = GetDevices(request: GetDevicesRequest())
 
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
 
         // Execute response assertions
         let jsMessage = response.toJsMessage()

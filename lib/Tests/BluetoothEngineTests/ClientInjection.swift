@@ -6,6 +6,7 @@ import DevicePicker
 import EventBus
 
 func withClient(
+    eventBus: EventBus,
     modify: (
         _ state: BluetoothState,
         _ client: inout MockBluetoothClient,
@@ -16,13 +17,13 @@ func withClient(
     var client = MockBluetoothClient()
     var selector: InteractiveDeviceSelector = await TestDeviceSelector()
     await modify(state, &client, &selector)
-    return BluetoothEngine(state: state, client: client, deviceSelector: selector)
+    return BluetoothEngine(eventBus: eventBus, state: state, client: client, deviceSelector: selector)
 }
 
-func poweredOnMockClient() -> MockBluetoothClient {
+func poweredOnMockClient(eventBus: EventBus) -> MockBluetoothClient {
     var client = MockBluetoothClient()
-    client.onEnable = { [events = client.eventsContinuation] in
-        events.yield(SystemStateEvent(.poweredOn))
+    client.onEnable = {
+        eventBus.enqueueEvent(SystemStateEvent(.poweredOn))
     }
     return client
 }
