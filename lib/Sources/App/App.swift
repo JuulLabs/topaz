@@ -49,13 +49,14 @@ public struct AppContentView: View {
 private func previewModel() -> AppModel {
     let state = BluetoothState()
     let selector = DeviceSelector()
+    let eventBus = EventBus()
 #if targetEnvironment(simulator)
-    let mockClient = MockBluetoothClient.clientWithMockAds(selector: selector)
+    let mockClient = MockBluetoothClient.clientWithMockAds(selector: selector, eventBus: eventBus)
 #else
     let mockClient = MockBluetoothClient()
 #endif
     let bluetoothEngine = BluetoothEngine(
-        eventBus: EventBus(),
+        eventBus: eventBus,
         state: state,
         client: mockClient,
         deviceSelector: selector

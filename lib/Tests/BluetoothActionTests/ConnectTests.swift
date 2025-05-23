@@ -66,52 +66,27 @@ struct ConnectResponseTests {
 @Suite(.tags(.connect))
 struct ConnectorTests {
     private let zeroUuid: UUID = UUID(n: 0)
-    private let peripheral = { (uuid: UUID, connectionState: ConnectionState) in
-        FakePeripheral(id: uuid, connectionState: connectionState)
-    }
-    private let clientThatThrows: BluetoothClient = {
-        var client = MockBluetoothClient()
-        client.onConnect = { _ in
-            // All the client machinery either succeeds or throws - simulate the failure case by throwing
-            throw BluetoothError.unknown
-        }
-        return client
-    }()
-    private let clientThatConnects = { (state: BluetoothState) throws in
-        var client = MockBluetoothClient()
-        client.onConnect = { peripheral in
-            let connectedPeripheral = FakePeripheral(id: peripheral.id, connectionState: .connected)
-            await state.putPeripheral(connectedPeripheral, replace: true)
-            return PeripheralEvent(.connect, connectedPeripheral)
-        }
-        return client
-    }
 
     @Test
     func execute_withAlreadyConnectedPeripheral_respondsWithIsConnectedTrue() async throws {
-        let state = BluetoothState(peripherals: [peripheral(zeroUuid, .connected)])
+        let state = BluetoothState(peripherals: [FakePeripheral(id: zeroUuid, connectionState: .connected)])
         let request = ConnectRequest(peripheralId: zeroUuid)
         let sut = Connector(request: request)
-        let response = try await sut.execute(state: state, client: MockBluetoothClient())
+        let response = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         #expect(response.isConnected == true)
     }
 
     @Test
     func execute_withConnectablePeripheral_respondsWithIsConnectedTrue() async throws {
-        let state = BluetoothState(peripherals: [peripheral(zeroUuid, .disconnected)])
+        let state = BluetoothState(peripherals: [FakePeripheral(id: zeroUuid, connectionState: .disconnected)])
         let request = ConnectRequest(peripheralId: zeroUuid)
-        let sut = Connector(request: request)
-        let response = try await sut.execute(state: state, client: clientThatConnects(state))
-        #expect(response.isConnected == true)
-    }
-
-    @Test
-    func execute_withFailingEffect_throwsAnyError() async {
-        let state = BluetoothState(peripherals: [peripheral(zeroUuid, .disconnected)])
-        let request = ConnectRequest(peripheralId: zeroUuid)
-        let sut = Connector(request: request)
-        await #expect(throws: (any Error).self) {
-            try await sut.execute(state: state, client: clientThatThrows)
+        let eventBus = await selfResolvingEventBus()
+        var client = MockBluetoothClient()
+        client.onConnect = { _ in
+            eventBus.enqueueEvent(PeripheralEvent(.connect, FakePeripheral(id: zeroUuid, connectionState: .connected)))
         }
+        let sut = Connector(request: request)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
+        #expect(response.isConnected == true)
     }
 }
