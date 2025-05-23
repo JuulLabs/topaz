@@ -2,6 +2,7 @@ import Bluetooth
 import BluetoothClient
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -45,22 +46,25 @@ struct RequestDevice: BluetoothAction {
         self.selector = selector
     }
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> RequestDeviceResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> RequestDeviceResponse {
         let options = try request.decodeAndValidateOptions()
+        let services = options.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
         try await checkSecurityList(securityList: state.securityList, options: options)
         guard let selector else {
             throw BluetoothError.unavailable
         }
-        let task = Task {
-            let scanner = await client.scan(options: options)
-            defer { scanner.cancel() }
-            for await event in scanner.advertisements {
-                try Task.checkCancellation()
-                await selector.showAdvertisement(peripheral: event.peripheral, advertisement: event.advertisement)
-            }
+
+        await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
+            guard case let .success(event) = result else { return }
+            guard options.includeAdvertisementEventInDeviceList(event) else { return }
+            await selector.showAdvertisement(peripheral: event.peripheral, advertisement: event.advertisement)
         }
-        let peripheral = try await selector.awaitSelection().get()
-        task.cancel()
+        client.startScanning(serviceUuids: services)
+        let selection = await selector.awaitSelection()
+        client.stopScanning()
+        await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
+
+        let peripheral = try selection.get()
         await state.putPeripheral(peripheral, replace: true)
         return RequestDeviceResponse(peripheralId: peripheral.id, name: peripheral.name)
     }

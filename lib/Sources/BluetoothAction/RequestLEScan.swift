@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -67,28 +68,22 @@ enum RequestLEScanResponse: JsMessageEncodable {
 struct RequestLEScan: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: RequestLEScanRequest
-    let jsEventForwarder: JsEventForwarder
 
-    init(request: RequestLEScanRequest) {
-        self.request = request
-        self.jsEventForwarder = JsEventForwarder { _ in }
-    }
-
-    init(request: RequestLEScanRequest, jsEventForwarder: JsEventForwarder) {
-        self.request = request
-        self.jsEventForwarder = jsEventForwarder
-    }
-
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> RequestLEScanResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> RequestLEScanResponse {
         switch request {
         case let .start(options):
-            try await executeStart(state: state, client: client, options: options)
+            try await executeStart(state: state, client: client, eventBus: eventBus, options: options)
         case let .stop(scanId):
-            try await executeStop(state: state, scanId: scanId)
+            try await executeStop(client: client, eventBus: eventBus, scanId: scanId)
         }
     }
 
-    private func executeStart(state: BluetoothState, client: BluetoothClient, options: RequestLEScanOptions) async throws -> RequestLEScanResponse {
+    private func executeStart(
+        state: BluetoothState,
+        client: BluetoothClient,
+        eventBus: EventBus,
+        options: RequestLEScanOptions
+    ) async throws -> RequestLEScanResponse {
         let scanId = UUID().uuidString
         let filters = try options.decodeAndValidateFilters()
         try await checkFiltersAreAllowed(securityList: state.securityList, filters: filters)
@@ -98,30 +93,30 @@ struct RequestLEScan: BluetoothAction {
             acceptAllAdvertisements: options.acceptAllAdvertisements,
             active: true
         )
-        let task = Task { [jsEventForwarder] in
-            let scanner = await client.scan(options: activeScan.toFilterOptions())
-            defer {
-                scanner.cancel()
-            }
-            for await event in scanner.advertisements {
-                guard !Task.isCancelled else { return }
-                // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
-                await state.putPeripheral(event.peripheral, replace: false)
-                // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-                // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
-                // allow what is in optionalServices/optionalManufacturerData after applying the blocklist
-                await jsEventForwarder.forwardEvent(event.toJs(targetId: "bluetooth"))
-            }
+        let options = activeScan.toFilterOptions()
+        // TODO: add a method to get these services:
+        let services = options.filters?.compactMap { $0.services?.compactMap { $0 } }.flatMap { $0 } ?? []
+        await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
+            guard case let .success(event) = result else { return }
+            guard options.includeAdvertisementEventInDeviceList(event) else { return }
+            // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
+            await state.putPeripheral(event.peripheral, replace: false)
+            // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
+            // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
+            // allow what is in optionalServices/optionalManufacturerData after applying the blocklist
+            await eventBus.sendJsEvent(event.toJs(targetId: "bluetooth"))
         }
-        let scanTask = ScanTask(id: scanId, task: task)
-        await state.addScanTask(scanTask)
+        client.startScanning(serviceUuids: services)
         return .start(id: scanId, scan: activeScan)
     }
 
-    private func executeStop(state: BluetoothState, scanId: String) async throws -> RequestLEScanResponse {
-        if let scanTask = await state.removeScanTask(id: scanId) {
-            scanTask.cancel()
-        }
+    private func executeStop(
+        client: BluetoothClient,
+        eventBus: EventBus,
+        scanId: String
+    ) async throws -> RequestLEScanResponse {
+        client.stopScanning()
+        await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
         return .stop
     }
 }

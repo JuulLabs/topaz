@@ -1,5 +1,4 @@
 import Bluetooth
-import BluetoothClient
 import EventBus
 import Foundation
 
