@@ -12,7 +12,6 @@ private let log = Logger(subsystem: "BluetoothMessage", category: "BluetoothStat
 public actor BluetoothState {
     public private(set) var systemState: SystemState
     public private(set) var peripherals: [UUID: Peripheral]
-    public private(set) var scanTasks: [String: ScanTask]
 
     public let securityList: SecurityList
 
@@ -29,27 +28,11 @@ public actor BluetoothState {
             dictionary[peripheral.id] = peripheral
         }
         self.securityList = securityList
-        self.scanTasks = [:]
         self.store = store
     }
 
     public func setSystemState(_ systemState: SystemState) {
         self.systemState = systemState
-    }
-
-    public func setCanSendWriteWithoutResponse(_ peripheralId: UUID, value: Bool) async {
-        await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(value)
-    }
-
-    public func getCanSendWriteWithoutResponse(_ peripheralId: UUID) async throws -> Bool {
-        try await getPeripheral(peripheralId).canSendWriteWithoutResponse.getValue()
-    }
-
-    // TODO: we need a cleaner way to manage this dynamic between the CBPeripheral object and the local state copy
-    // Probably switching to using classes/actors for the data is the best approach as the hybrid struct+class objects is problematic
-    public func refreshCanSendWriteWithoutResponse(_ peripheralId: UUID) async throws {
-        let liveValue = try getPeripheral(peripheralId).isReadyToSendWriteWithoutResponse
-        await self.peripherals[peripheralId]?.canSendWriteWithoutResponse.setValue(liveValue)
     }
 
     public func removeAllPeripherals() -> [Peripheral] {
@@ -136,28 +119,6 @@ public actor BluetoothState {
             return
         }
         self.peripherals[peripheralId]?.services[serviceIndex].characteristics[characteristicIndex].descriptors = descriptors
-    }
-
-    public func addScanTask(_ scanTask: ScanTask) {
-        scanTasks[scanTask.id] = scanTask
-    }
-
-    public func getScanTask(id: String) -> ScanTask? {
-        scanTasks[id]
-    }
-
-    public func allScanTasks() -> [ScanTask] {
-        Array(scanTasks.values)
-    }
-
-    public func removeScanTask(id: String) -> ScanTask? {
-        scanTasks.removeValue(forKey: id)
-    }
-
-    public func removeAllScanTasks() -> [ScanTask] {
-        let allTasks = Array(scanTasks.values)
-        scanTasks.removeAll()
-        return allTasks
     }
 
     private func save(peripheralIds: Set<UUID>) async {
