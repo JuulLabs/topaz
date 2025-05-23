@@ -2,6 +2,7 @@ import Bluetooth
 import BluetoothClient
 @testable import BluetoothEngine
 import BluetoothMessage
+import EventBus
 import Foundation
 import TestHelpers
 import Testing

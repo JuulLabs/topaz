@@ -1,5 +1,6 @@
 import Bluetooth
 import BluetoothClient
+import EventBus
 import JsMessage
 
 extension BluetoothError: DomErrorConvertable {
@@ -31,9 +32,10 @@ extension BluetoothClientError: DomErrorConvertable {
     }
 }
 
-extension EventServiceError: DomErrorConvertable {
+extension EventBusError: DomErrorConvertable {
     public var domErrorName: DomErrorName {
         switch self {
+        case .jsContextUnavailable: .operation
         case .typeMismatch: .operation
         }
     }

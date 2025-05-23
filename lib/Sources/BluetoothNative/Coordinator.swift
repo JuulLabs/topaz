@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import CoreBluetooth
+import EventBus
 import Helpers
 
 /**

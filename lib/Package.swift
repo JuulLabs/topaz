@@ -53,6 +53,7 @@ let package = Package(
                 "BluetoothClient",
                 "BluetoothMessage",
                 "DevicePicker",
+                "EventBus",
                 "JsMessage",
                 "SecurityList",
             ]
@@ -66,11 +67,8 @@ let package = Package(
             name: "BluetoothClient",
             dependencies: [
                 "Bluetooth",
+                "EventBus",
             ]
-        ),
-        .testTarget(
-            name: "BluetoothClientTests",
-            dependencies: ["BluetoothClient", "TestHelpers"]
         ),
 
         .target(
@@ -81,6 +79,7 @@ let package = Package(
                 "BluetoothClient",
                 "BluetoothMessage",
                 "DevicePicker",
+                "EventBus",
                 "JsMessage",
             ]
         ),
@@ -95,6 +94,7 @@ let package = Package(
                 "Bluetooth",
                 "BluetoothClient",
                 "DevicePicker",
+                "EventBus",
                 "JsMessage",
                 "SecurityList",
             ]
@@ -108,6 +108,7 @@ let package = Package(
             name: "BluetoothNative",
             dependencies: [
                 "BluetoothClient",
+                "EventBus",
             ]
         ),
         .testTarget(
@@ -132,6 +133,19 @@ let package = Package(
         .testTarget(
             name: "DevicePickerTests",
             dependencies: ["DevicePicker", "TestHelpers"]
+        ),
+
+        .target(
+            name: "EventBus",
+            dependencies: [
+                "Bluetooth",
+                "JsMessage",
+                "Helpers",
+            ]
+        ),
+        .testTarget(
+            name: "EventBusTests",
+            dependencies: ["EventBus", "TestHelpers"]
         ),
 
         .target(

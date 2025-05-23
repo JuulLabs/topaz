@@ -1,4 +1,4 @@
-@testable import BluetoothClient
+@testable import EventBus
 import Foundation
 import TestHelpers
 import Testing

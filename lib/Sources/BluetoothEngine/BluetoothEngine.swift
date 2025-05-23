@@ -3,6 +3,7 @@ import BluetoothAction
 import BluetoothClient
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import Foundation
 import JsMessage
 import OSLog

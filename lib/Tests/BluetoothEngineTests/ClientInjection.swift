@@ -3,6 +3,7 @@ import BluetoothClient
 @testable import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import EventBus
 
 func withClient(
     modify: (

@@ -86,8 +86,7 @@ struct WebPageScrollViewKey: PreferenceKey {
 @MainActor
 private func previewModel() -> WebPageModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-    var client = MockBluetoothClient()
-    client.onSystemState = { SystemStateEvent(.poweredOn) }
+    let client = MockBluetoothClient(initialState: .poweredOn)
     let bluetoothEngine = BluetoothEngine(
         state: BluetoothState(),
         client: client,
