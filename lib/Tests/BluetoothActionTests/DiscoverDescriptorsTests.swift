@@ -245,6 +245,30 @@ struct DiscoverDescriptorsTests {
         }
     }
 
+    @Test
+    func execute_withRequestForUnspecifiedDescriptor_respondsWithBlockedDescriptorsRemoved() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let allowed = FakeDescriptor(uuid: UUID(n: 40))
+        let blocked = FakeDescriptor(uuid: UUID(n: 41))
+        let fakeDescriptors = [allowed, blocked]
+        let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
+        let fakeService = FakeService(uuid: UUID(n: 30), characteristics: [fakeCharacteristic])
+        let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [fakeService])
+        let client = clientThatSucceeds(with: fakeDescriptors, eventBus: eventBus)
+        let securityList = SecurityList(descriptors: [blocked.uuid: .any])
+        let state = BluetoothState(peripherals: [fake], securityList: securityList)
+        let request = DiscoverDescriptorsRequest(
+            peripheralId: fake.id,
+            serviceUuid: fakeService.uuid,
+            characteristicUuid: fakeCharacteristic.uuid,
+            instance: fakeCharacteristic.instance,
+            query: .all(nil)
+        )
+        let sut = DiscoverDescriptors(request: request)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
+        #expect(response.descriptors == [allowed])
+    }
+
     private func clientThatSucceeds(with descriptors: [Descriptor], eventBus: EventBus) -> BluetoothClient {
         var client = MockBluetoothClient()
         client.onDiscoverDescriptors = { peripheral, characteristic in
