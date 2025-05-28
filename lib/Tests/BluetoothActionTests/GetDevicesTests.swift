@@ -29,7 +29,7 @@ struct GetDevicesResponseTests {
         let jsMessage = sut.toJsMessage()
         let body = try #require(jsMessage.extractBody(as: NSArray.self))
         let responseDict0 = [
-            "uuid": "00000000-0000-0000-0000-000000000000",
+            "uuid": "00000000-0000-beef-cafe-000000000000",
             "name": "Slartibartfast",
         ]
         #expect(body == [responseDict0])
@@ -46,11 +46,11 @@ struct GetDevicesResponseTests {
         let jsMessage = sut.toJsMessage()
         let body = try #require(jsMessage.extractBody(as: NSArray.self))
         let responseDict0 = [
-            "uuid": "00000000-0000-0000-0000-000000000000",
+            "uuid": "00000000-0000-beef-cafe-000000000000",
             "name": "Slarti",
         ]
         let responseDict1 = [
-            "uuid": "00000000-0000-0000-0000-000000000001",
+            "uuid": "00000000-0000-beef-cafe-000000000001",
             "name": "Bartfast",
         ]
         #expect(body == [responseDict0, responseDict1])

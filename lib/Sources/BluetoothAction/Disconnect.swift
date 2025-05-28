@@ -17,7 +17,6 @@ struct DisconnectRequest: JsMessageDecodable {
 }
 
 struct DisconnectResponse: JsMessageEncodable {
-    let peripheralId: UUID
     let isDisconnected: Bool = true
 
     func toJsMessage() -> JsMessage.JsMessageResponse {
@@ -32,12 +31,12 @@ struct Disconnector: BluetoothAction {
     func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DisconnectResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         if case .disconnected = peripheral.connectionState {
-            return DisconnectResponse(peripheralId: peripheral.id)
+            return DisconnectResponse()
         }
         let _: DisconnectionEvent = try await eventBus.awaitEvent(forKey: .peripheral(.disconnect, peripheral)) {
             client.disconnect(peripheral: peripheral)
         }
-        return DisconnectResponse(peripheralId: peripheral.id)
+        return DisconnectResponse()
     }
 }
 
