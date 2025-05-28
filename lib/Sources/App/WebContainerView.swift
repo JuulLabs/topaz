@@ -107,8 +107,7 @@ func previewWebConfig() -> WKWebViewConfiguration {
 extension MockBluetoothClient {
     nonisolated static public func clientWithMockAds(selector: DeviceSelector) -> BluetoothClient {
         var injectionTask: Task<Void, Never>?
-        var client = MockBluetoothClient()
-        client.onSystemState = { SystemStateEvent(.poweredOn) }
+        var client = MockBluetoothClient(initialState: .poweredOn)
         client.onScan = { _ in
             Task { @MainActor in
                 injectionTask = selector.injectMockAds()

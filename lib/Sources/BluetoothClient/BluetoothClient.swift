@@ -1,4 +1,5 @@
 import Bluetooth
+import EventBus
 import Foundation
 
 public protocol BluetoothClient: Sendable {

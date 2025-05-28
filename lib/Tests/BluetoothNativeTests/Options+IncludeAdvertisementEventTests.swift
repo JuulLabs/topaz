@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 @testable import BluetoothNative
+import EventBus
 import Foundation
 import Testing
 

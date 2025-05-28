@@ -4,6 +4,7 @@ import BluetoothClient
 @testable import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import Foundation
 import Helpers
 import JsMessage

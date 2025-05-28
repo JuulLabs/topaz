@@ -1,5 +1,6 @@
 import Bluetooth
 import BluetoothClient
+import EventBus
 
 struct NativeScanner: BluetoothScanner {
     private let options: Options?
