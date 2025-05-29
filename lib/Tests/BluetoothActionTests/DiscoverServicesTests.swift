@@ -169,4 +169,84 @@ struct DiscoverServicesTests {
         let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.services == [allowedService])
     }
+
+    @Test
+    func execute_withRequestForUnspecifiedServiceAndRestrictedPermissions_respondsWithDeniedServicesRemoved() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let allowedService = FakeService(uuid: UUID(n: 10))
+        let deniedService = FakeService(uuid: UUID(n: 11))
+        let fakeServices = [allowedService, deniedService]
+        var fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
+        fake.permissions = .init(allowedServices: .restricted([allowedService.uuid]))
+        var client = MockBluetoothClient()
+        client.onDiscoverServices = { peripheral, _ in
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
+            )
+        }
+        let state = BluetoothState(peripherals: [fake])
+        let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .all(nil))
+        let sut = DiscoverServices(request: request)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
+        #expect(response.services == [allowedService])
+    }
+
+    @Test
+    func execute_withRequestToQueryAllForAllowedService_respondsWithAllServices() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let allowedService = FakeService(uuid: UUID(n: 10))
+        var fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [allowedService])
+        fake.permissions = .init(allowedServices: .restricted([allowedService.uuid]))
+        var client = MockBluetoothClient()
+        client.onDiscoverServices = { peripheral, _ in
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: [allowedService])
+            )
+        }
+        let state = BluetoothState(peripherals: [fake])
+        let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .all(allowedService.uuid))
+        let sut = DiscoverServices(request: request)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
+        #expect(response.services == [allowedService])
+    }
+
+    @Test
+    func execute_withRequestToQueryAllForDeniedService_throwsAccessDeniedError() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let deniedService = FakeService(uuid: UUID(n: 11))
+        var fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected)
+        fake.permissions = .init(allowedServices: .restricted([]))
+        var client = MockBluetoothClient()
+        client.onDiscoverServices = { peripheral, _ in
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: [])
+            )
+        }
+        let state = BluetoothState(peripherals: [fake])
+        let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .all(deniedService.uuid))
+        let sut = DiscoverServices(request: request)
+        await #expect(throws: BluetoothError.accessToServiceDenied(deniedService.uuid)) {
+            try await sut.execute(state: state, client: client, eventBus: eventBus)
+        }
+    }
+
+    @Test
+    func execute_withRequestToQuerySingleDeniedService_throwsAccessDeniedError() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let deniedService = FakeService(uuid: UUID(n: 11))
+        var fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected)
+        fake.permissions = .init(allowedServices: .restricted([]))
+        var client = MockBluetoothClient()
+        client.onDiscoverServices = { peripheral, _ in
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: [])
+            )
+        }
+        let state = BluetoothState(peripherals: [fake])
+        let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .first(deniedService.uuid))
+        let sut = DiscoverServices(request: request)
+        await #expect(throws: BluetoothError.accessToServiceDenied(deniedService.uuid)) {
+            try await sut.execute(state: state, client: client, eventBus: eventBus)
+        }
+    }
 }

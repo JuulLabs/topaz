@@ -1,6 +1,7 @@
 import Foundation
 
 public enum BluetoothError: Error, Equatable, Sendable {
+    case accessToServiceDenied(UUID)
     case blocklisted(UUID)
     case cancelled
     case deviceNotConnected
@@ -20,6 +21,8 @@ public enum BluetoothError: Error, Equatable, Sendable {
 extension BluetoothError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case let .accessToServiceDenied(uuid):
+            "Access to service \(uuid.uuidString.lowercased()) denied. Tip: Add the service UUID to 'optionalServices' in requestDevice() options. https://goo.gl/HxfxSQ"
         case let .blocklisted(uuid):
             "UUID \(uuid) is on the block list"
         case .cancelled:
