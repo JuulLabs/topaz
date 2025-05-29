@@ -193,4 +193,31 @@ struct DiscoverCharacteristicsTests {
             _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
+
+    @Test
+    func execute_withRequestForUnspecifiedCharacteristic_respondsWithBlockedCharacteristicsRemoved() async throws {
+        let eventBus = await selfResolvingEventBus()
+        let fakeServices: [Service] = [
+            FakeService(uuid: UUID(n: 10)),
+            FakeService(uuid: UUID(n: 30)),
+        ]
+        let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
+        let allowed = FakeCharacteristic(uuid: UUID(n: 31))
+        let blocked = FakeCharacteristic(uuid: UUID(n: 32))
+        let fakeCharacteristics = [allowed, blocked]
+        var client = MockBluetoothClient()
+        client.onDiscoverCharacteristics = { peripheral, service, uuids in
+            #expect(service.uuid == fakeServices[1].uuid)
+            #expect(uuids == nil)
+            eventBus.enqueueEvent(
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: service.uuid, characteristics: fakeCharacteristics)
+            )
+        }
+        let securityList = SecurityList(characteristics: [blocked.uuid: .any])
+        let state = BluetoothState(peripherals: [fake], securityList: securityList)
+        let request = DiscoverCharacteristicsRequest(peripheralId: fake.id, serviceUuid: fakeServices[1].uuid, query: .all(nil))
+        let sut = DiscoverCharacteristics(request: request)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
+        #expect(response.characteristics == [allowed])
+    }
 }

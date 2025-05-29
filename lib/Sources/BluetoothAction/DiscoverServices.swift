@@ -65,16 +65,19 @@ struct DiscoverServices: BluetoothAction {
     let request: DiscoverServicesRequest
 
     func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DiscoverServicesResponse {
-        try await checkSecurityList(securityList: state.securityList)
+        let securityList = await state.securityList
+        try checkSecurityList(securityList: securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let result: ServiceDiscoveryEvent = try await eventBus.awaitEvent(
             forKey: .serviceDiscovery(peripheralId: peripheral.id)
         ) {
             client.discoverServices(peripheral: peripheral, uuids: request.filter.services)
         }
-        // TODO: Filter services as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-        await state.setServices(result.services, on: peripheral.id)
-        let primaryServices = result.services.filter { $0.isPrimary }
+        let services = result.services.filter {
+            !securityList.isBlocked($0.uuid, in: .services)
+        }
+        await state.setServices(services, on: peripheral.id)
+        let primaryServices = services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):
             // Already filtered, return the first one:

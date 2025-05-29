@@ -149,7 +149,7 @@ struct DiscoverServicesTests {
         }
     }
 
-    @Test(.disabled("Requires https://github.com/JuulLabs/topaz/issues/119"))
+    @Test
     func execute_withRequestForAllServices_respondsWithBlockedServicesRemoved() async throws {
         let eventBus = await selfResolvingEventBus()
         let allowedService = FakeService(uuid: UUID(n: 10))
