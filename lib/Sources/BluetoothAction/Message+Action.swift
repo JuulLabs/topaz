@@ -8,7 +8,6 @@ extension Message {
     public func buildAction(
         client: BluetoothClient,
         selector: any InteractiveDeviceSelector,
-        jsEventForwarder: JsEventForwarder
     ) -> Result<any BluetoothAction, Error> {
         switch action {
 
@@ -22,17 +21,13 @@ extension Message {
                 RequestDevice(request: $0, selector: selector)
             }
         case .requestLEScan:
-            return RequestLEScanRequest.decode(from: self).map {
-                RequestLEScan(request: $0, jsEventForwarder: jsEventForwarder)
-            }
+            return RequestLEScan.create(from: self)
 
         // BluetoothDevice
         case .forgetDevice:
             return ForgetDevice.create(from: self)
         case .watchAdvertisements:
-            return WatchAdvertisementsRequest.decode(from: self).map {
-                WatchAdvertisements(request: $0, jsEventForwarder: jsEventForwarder)
-            }
+            return WatchAdvertisements.create(from: self)
 
         // GATT Server
         case .connect:

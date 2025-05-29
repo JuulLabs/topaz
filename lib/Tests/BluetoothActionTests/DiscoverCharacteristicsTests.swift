@@ -97,26 +97,31 @@ struct DiscoverCharacteristicsResponseTests {
 
 @Suite(.tags(.discoverCharacteristics))
 struct DiscoverCharacteristicsTests {
+
     @Test
     func execute_withRequestForSingleCharacteristic_respondsWithSingleCharacteristic() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeService = FakeService(uuid: UUID(n: 30))
         let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: [fakeService])
         var client = MockBluetoothClient()
-        client.onDiscoverCharacteristics = { peripheral, filter in
-            #expect(filter.service == fakeService.uuid)
-            #expect(filter.characteristics == [fakeCharacteristic.uuid])
-            return CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: [fakeCharacteristic])
+        client.onDiscoverCharacteristics = { peripheral, service, uuids in
+            #expect(service.uuid == fakeService.uuid)
+            #expect(uuids == [fakeCharacteristic.uuid])
+            eventBus.enqueueEvent(
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: service.uuid, characteristics: [fakeCharacteristic])
+            )
         }
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverCharacteristicsRequest(peripheralId: fake.id, serviceUuid: fakeService.uuid, query: .first(fakeCharacteristic.uuid))
         let sut = DiscoverCharacteristics(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.characteristics == [fakeCharacteristic])
     }
 
     @Test
     func execute_withRequestForUnspecifiedCharacteristic_respondsWithAllCharacteristics() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeServices: [Service] = [
             FakeService(uuid: UUID(n: 10)),
             FakeService(uuid: UUID(n: 30)),
@@ -127,20 +132,23 @@ struct DiscoverCharacteristicsTests {
             FakeCharacteristic(uuid: UUID(n: 32)),
         ]
         var client = MockBluetoothClient()
-        client.onDiscoverCharacteristics = { peripheral, filter in
-            #expect(filter.service == fakeServices[1].uuid)
-            #expect(filter.characteristics == nil)
-            return CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: fakeCharacteristics)
+        client.onDiscoverCharacteristics = { peripheral, service, uuids in
+            #expect(service.uuid == fakeServices[1].uuid)
+            #expect(uuids == nil)
+            eventBus.enqueueEvent(
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: service.uuid, characteristics: fakeCharacteristics)
+            )
         }
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverCharacteristicsRequest(peripheralId: fake.id, serviceUuid: fakeServices[1].uuid, query: .all(nil))
         let sut = DiscoverCharacteristics(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.characteristics == fakeCharacteristics)
     }
 
     @Test
     func execute_withRequestForNonSingleCharacteristic_respondsWithMatchingCharacteristic() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeServices: [Service] = [
             FakeService(uuid: UUID(n: 10)),
             FakeService(uuid: UUID(n: 30)),
@@ -148,15 +156,17 @@ struct DiscoverCharacteristicsTests {
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         let fakeCharacteristic = FakeCharacteristic(uuid: UUID(n: 31))
         var client = MockBluetoothClient()
-        client.onDiscoverCharacteristics = { peripheral, filter in
-            #expect(filter.service == fakeServices[1].uuid)
-            #expect(filter.characteristics == [fakeCharacteristic.uuid])
-            return CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: filter.service, characteristics: [fakeCharacteristic])
+        client.onDiscoverCharacteristics = { peripheral, service, uuids in
+            #expect(service.uuid == fakeServices[1].uuid)
+            #expect(uuids == [fakeCharacteristic.uuid])
+            eventBus.enqueueEvent(
+                CharacteristicDiscoveryEvent(peripheralId: peripheral.id, serviceId: service.uuid, characteristics: [fakeCharacteristic])
+            )
         }
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverCharacteristicsRequest(peripheralId: fake.id, serviceUuid: fakeServices[1].uuid, query: .all(fakeCharacteristic.uuid))
         let sut = DiscoverCharacteristics(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.characteristics == [fakeCharacteristic])
     }
 
@@ -168,7 +178,7 @@ struct DiscoverCharacteristicsTests {
         let request = DiscoverCharacteristicsRequest(peripheralId: UUID(n: 0), serviceUuid: UUID(n: 30), query: .first(characteristicUuid))
         let sut = DiscoverCharacteristics(request: request)
         await #expect(throws: BluetoothError.blocklisted(characteristicUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
@@ -180,7 +190,7 @@ struct DiscoverCharacteristicsTests {
         let request = DiscoverCharacteristicsRequest(peripheralId: UUID(n: 0), serviceUuid: serviceUuid, query: .all(nil))
         let sut = DiscoverCharacteristics(request: request)
         await #expect(throws: BluetoothError.blocklisted(serviceUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 }

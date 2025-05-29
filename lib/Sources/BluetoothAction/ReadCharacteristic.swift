@@ -10,13 +10,24 @@ struct ReadCharacteristic: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: CharacteristicRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> CharacteristicResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> CharacteristicResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         let (service, characteristic) = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
-        // The Js characteristic object's `value` is mutated via an event that is triggered by the read
-        // So we ignore the result here and over on the Js side the updated value gets read from the characteristic directly
-        _ = try await client.characteristicRead(peripheral, service: service, characteristic: characteristic)
+        // The engine propagates all characteristic change events to javascript automatically because they can happen at any time,
+        // not only because we requested a read. Those events mutate the Js characteristic object's `value` property directly.
+        // So we ignore the result here and over on the Js side the updated value will be read from the characteristic object.
+        let _: CharacteristicChangedEvent = try await eventBus.awaitEvent(
+            forKey: .characteristic(
+                .characteristicValue,
+                peripheralId: peripheral.id,
+                serviceId: service.uuid,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        ) {
+            client.readCharacteristic(peripheral: peripheral, characteristic: characteristic)
+        }
         return CharacteristicResponse()
     }
 

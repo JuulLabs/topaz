@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import JsMessage
 import Observation
 import Settings
@@ -65,12 +66,14 @@ struct WebContainerView: View {
 private func previewModel(state: SystemState) -> WebContainerModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
     let selector = DeviceSelector()
+    let eventBus = EventBus()
 #if targetEnvironment(simulator)
-    let client = MockBluetoothClient.clientWithMockAds(selector: selector)
+    let client = MockBluetoothClient.clientWithMockAds(selector: selector, eventBus: eventBus)
 #else
     let client: BluetoothClient = MockBluetoothClient()
 #endif
     let bluetoothEngine = BluetoothEngine(
+        eventBus: eventBus,
         state: BluetoothState(),
         client: client,
         deviceSelector: selector
@@ -105,20 +108,21 @@ func previewWebConfig() -> WKWebViewConfiguration {
 
 #if targetEnvironment(simulator)
 extension MockBluetoothClient {
-    nonisolated static public func clientWithMockAds(selector: DeviceSelector) -> BluetoothClient {
+    nonisolated static public func clientWithMockAds(selector: DeviceSelector, eventBus: EventBus) -> BluetoothClient {
         var injectionTask: Task<Void, Never>?
-        var client = MockBluetoothClient(initialState: .poweredOn)
-        client.onScan = { _ in
+        var client = MockBluetoothClient()
+        client.onEnable = {
+            eventBus.enqueueEvent(SystemStateEvent(.poweredOn))
+        }
+        client.onStartScanning = { _ in
             Task { @MainActor in
                 injectionTask = selector.injectMockAds()
             }
-            let scanner = MockScanner()
-            scanner.continuation.onTermination = { _ in
-                Task { @MainActor in
-                    injectionTask?.cancel()
-                }
+        }
+        client.onStopScanning = {
+            Task { @MainActor in
+                injectionTask?.cancel()
             }
-            return scanner
         }
         return client
     }

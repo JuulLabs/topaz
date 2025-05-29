@@ -29,12 +29,14 @@ struct Disconnector: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: DisconnectRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DisconnectResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DisconnectResponse {
         let peripheral = try await state.getPeripheral(request.peripheralId)
         if case .disconnected = peripheral.connectionState {
             return DisconnectResponse(peripheralId: peripheral.id)
         }
-        _ = try await client.disconnect(peripheral)
+        let _: DisconnectionEvent = try await eventBus.awaitEvent(forKey: .peripheral(.disconnect, peripheral)) {
+            client.disconnect(peripheral: peripheral)
+        }
         return DisconnectResponse(peripheralId: peripheral.id)
     }
 }

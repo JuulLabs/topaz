@@ -6,7 +6,6 @@ public struct Peripheral: Sendable {
     public let id: UUID
     public let name: String?
     public var services: [Service]
-    public var canSendWriteWithoutResponse: StateValue<Bool>
 
     public init(
         peripheral: AnyProtectedObject,
@@ -18,7 +17,6 @@ public struct Peripheral: Sendable {
         self.peripheral = peripheral
         self.name = name
         self.services = services
-        self.canSendWriteWithoutResponse = StateValue(initialValue: false)
     }
 
     public var connectionState: ConnectionState? {

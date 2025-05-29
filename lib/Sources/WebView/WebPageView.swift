@@ -2,6 +2,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import EventBus
 import JsMessage
 import Navigation
 import SwiftUI
@@ -86,8 +87,9 @@ struct WebPageScrollViewKey: PreferenceKey {
 @MainActor
 private func previewModel() -> WebPageModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/index.html")!
-    let client = MockBluetoothClient(initialState: .poweredOn)
+    let client = MockBluetoothClient()
     let bluetoothEngine = BluetoothEngine(
+        eventBus: EventBus(),
         state: BluetoothState(),
         client: client,
         deviceSelector: DeviceSelector()

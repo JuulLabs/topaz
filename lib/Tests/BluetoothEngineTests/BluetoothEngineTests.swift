@@ -17,6 +17,7 @@ struct BluetoothEngineTests {
         id: JsContextIdentifier(tab: 0, url: URL(string: "https://topaz.com/")!),
         eventSink: { _ in .success(()) }
     )
+    private let eventBus = EventBus()
 
     private let fakeServices: [Service] = [
         FakeService(uuid: UUID(uuidString: "00000001-0000-0000-0000-000000000000")!, isPrimary: true),
@@ -29,10 +30,10 @@ struct BluetoothEngineTests {
         SystemState.poweredOn,
     ])
     func process_getAvailability_returnsTrue(state: SystemState) async throws {
-        let sut = await withClient { _, client, _ in
-            client.onEnable = { }
-            client.onSystemState = { SystemStateEvent(state) }
-        }
+        let sut = await withClient(eventBus: eventBus) { _, _, _ in }
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!), eventSink: { _ in .success(()) })
+        await sut.didAttach(to: context)
+        eventBus.enqueueEvent(SystemStateEvent(state))
         let response = try await sut.processAction(message: Message(action: .getAvailability))
         guard let response = response as? AvailabilityResponse else {
             Issue.record("Unexpected response: \(response)")
@@ -48,10 +49,10 @@ struct BluetoothEngineTests {
         SystemState.poweredOff,
     ])
     func process_getAvailability_returnsFalse(state: SystemState) async throws {
-        let sut = await withClient { _, client, _ in
-            client.onEnable = { }
-            client.onSystemState = { SystemStateEvent(state) }
-        }
+        let sut = await withClient(eventBus: eventBus) { _, _, _ in }
+        let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!), eventSink: { _ in .success(()) })
+        await sut.didAttach(to: context)
+        eventBus.enqueueEvent(SystemStateEvent(state))
         let response = try await sut.processAction(message: Message(action: .getAvailability))
         guard let response = response as? AvailabilityResponse else {
             Issue.record("Unexpected response: \(response)")
@@ -68,9 +69,9 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake.id.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, client, _ in
+        let sut: BluetoothEngine = await withClient(eventBus: eventBus) { state, client, _ in
             client.onEnable = { }
-            client.onConnect = { PeripheralEvent(.connect, $0) }
+            client.onConnect = { eventBus.enqueueEvent(PeripheralEvent(.connect, $0)) }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }
@@ -92,9 +93,9 @@ struct BluetoothEngineTests {
                 "uuid": .string(fake.id.uuidString),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, client, _ in
+        let sut: BluetoothEngine = await withClient(eventBus: eventBus) { state, client, _ in
             client.onEnable = { }
-            client.onDisconnect = { DisconnectionEvent.requested($0) }
+            client.onDisconnect = { eventBus.enqueueEvent(DisconnectionEvent.requested($0)) }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }
@@ -121,9 +122,11 @@ struct BluetoothEngineTests {
                 "single": .number(true),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, client, _ in
+        let sut: BluetoothEngine = await withClient(eventBus: eventBus) { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
+            client.onDiscoverServices = { peripheral, _ in
+                eventBus.enqueueEvent(ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices))
+            }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }
@@ -150,9 +153,11 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, client, _ in
+        let sut: BluetoothEngine = await withClient(eventBus: eventBus) { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
+            client.onDiscoverServices = { peripheral, _ in
+                eventBus.enqueueEvent(ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices))
+            }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }
@@ -179,9 +184,11 @@ struct BluetoothEngineTests {
                 "single": .number(false),
             ]),
         ]
-        let sut: BluetoothEngine = await withClient { state, client, _ in
+        let sut: BluetoothEngine = await withClient(eventBus: eventBus) { state, client, _ in
             client.onEnable = { }
-            client.onDiscoverServices = { peripheral, _ in ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices) }
+            client.onDiscoverServices = { peripheral, _ in
+                eventBus.enqueueEvent(ServiceDiscoveryEvent(peripheralId: peripheral.id, services: expectedServices))
+            }
             await state.setSystemState(.poweredOn)
             await state.putPeripheral(fake, replace: true)
         }

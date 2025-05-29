@@ -16,6 +16,7 @@ struct EndToEndBluetoothEngineTests {
 
     private let zeroUuid: UUID! = UUID(uuidString: "00000000-0000-0000-0000-000000000000")
     private let fakeServiceId = UUID(n: 9)
+    private let eventBus = EventBus()
 
     private let requestDeviceRequest = JsMessageRequest(
         handlerName: "bluetooth",
@@ -33,18 +34,18 @@ struct EndToEndBluetoothEngineTests {
     @Test func process_requestDevice_returnsDeviceWhenSelected() async throws {
         let context = JsContext(id: .init(tab: 0, url: URL(string: "http://test.com")!), eventSink: { _ in .success(()) })
         let fake = FakePeripheral(id: zeroUuid, name: "bob")
-        let scanner = MockScanner()
         let selectorSut = await DeviceSelector()
-        let engineSut = await withClient { _, client, selector in
-            client.onEnable = { }
-            client.onSystemState = { SystemStateEvent(.poweredOn) }
-            client.onScan = { _ in scanner }
+        let engineSut = await withClient(eventBus: eventBus) { _, client, selector in
+            client.onEnable = { eventBus.enqueueEvent(SystemStateEvent(.poweredOn)) }
+            client.onStartScanning = { _ in
+                eventBus.enqueueEvent(AdvertisementEvent(fake, fake.fakeAdvertisement(rssi: 0)))
+            }
+            client.onStopScanning = { }
             selector = selectorSut
         }
 
         await engineSut.didAttach(to: context)
         async let promise = await engineSut.process(request: requestDeviceRequest, in: context)
-        scanner.continuation.yield(AdvertisementEvent(fake, fake.fakeAdvertisement(rssi: 0)))
         let advertisements = await selectorSut.advertisements.first(where: { !$0.isEmpty })
         #expect(advertisements!.count == 1)
 
@@ -77,22 +78,29 @@ struct EndToEndBluetoothEngineTests {
             return .success(())
         }
 
-        var client = MockBluetoothClient()
         let resolveExpectation = XCTestExpectation(description: "Resolve pending request")
-        client.onResolvePendingRequests = { event in
-            #expect(event is CharacteristicChangedEvent)
+        let resolveTask = Task {
+            let _: CharacteristicChangedEvent = try await eventBus.awaitEvent(
+                forKey: .characteristic(
+                    .characteristicValue,
+                    peripheralId: fake.id,
+                    serviceId: fakeServiceId,
+                    characteristicId: characteristic.uuid,
+                    instance: characteristic.instance)
+            )
             resolveExpectation.fulfill()
         }
 
-        let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
+        let sut = BluetoothEngine(eventBus: eventBus, state: state, client: MockBluetoothClient(), deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
-        client.eventsContinuation.yield(
+        eventBus.enqueueEvent(
             CharacteristicChangedEvent(peripheralId: fake.id, serviceId: fakeServiceId, characteristicId: characteristic.uuid, instance: characteristic.instance, data: nil)
         )
 
         // It is critical that Js sees the `characteristicvaluechanged` event before the promise is resolved
         let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation], timeout: 1.0, enforceOrder: true)
         #expect(outcome == .completed)
+        resolveTask.cancel()
     }
 
     @Test
@@ -109,29 +117,31 @@ struct EndToEndBluetoothEngineTests {
             return .success(())
         }
 
-        var client = MockBluetoothClient()
+        // Check that regular targeted disconnect event propagates first
         let resolveExpectation = XCTestExpectation(description: "Resolve due to disconnection")
+        let resolveTask = Task {
+            let _: DisconnectionEvent = try await eventBus.awaitEvent(forKey: .peripheral(.disconnect, fake))
+            resolveExpectation.fulfill()
+        }
+
+        // Check that other requests are subsequently rejected with a wildcard error event
         let rejectExpectation = XCTestExpectation(description: "Reject due to disconnection error")
-        client.onResolvePendingRequests = { event in
-            #expect(event is ErrorEvent || event is DisconnectionEvent)
-            // Check that regular targeted disconnect event propagates first
-            if event is DisconnectionEvent {
-                resolveExpectation.fulfill()
-            }
-            // Check that all remaining requests are subsequently rejected with a wildcard error event
-            if event is ErrorEvent {
+        let rejectTask = Task {
+            do {
+                let _: PeripheralEvent = try await eventBus.awaitEvent(forKey: .peripheral(.discoverServices, fake))
+            } catch {
                 rejectExpectation.fulfill()
             }
         }
 
-        let sut = BluetoothEngine(state: state, client: client, deviceSelector: await TestDeviceSelector())
+        let sut = BluetoothEngine(eventBus: eventBus, state: state, client: MockBluetoothClient(), deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
-        client.eventsContinuation.yield(
-            DisconnectionEvent.unexpected(fake, BluetoothError.unknown)
-        )
+        eventBus.enqueueEvent(DisconnectionEvent.unexpected(fake, BluetoothError.unknown))
 
         let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation, rejectExpectation], timeout: 1.0, enforceOrder: true)
         #expect(outcome == .completed)
+        resolveTask.cancel()
+        rejectTask.cancel()
     }
 }
 

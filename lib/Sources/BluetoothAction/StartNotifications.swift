@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -9,14 +10,15 @@ struct StartNotifications: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: CharacteristicRequest
 
-    init(request: CharacteristicRequest) {
-        self.request = request
-    }
-
-    func execute(state: BluetoothState, client: any BluetoothClient) async throws -> CharacteristicResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> CharacteristicResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let (service, characteristic) = try await state.getCharacteristic(peripheralId: request.peripheralId, serviceId: request.serviceUuid, characteristicId: request.characteristicUuid, instance: request.characteristicInstance)
+        let (service, characteristic) = try await state.getCharacteristic(
+            peripheralId: request.peripheralId,
+            serviceId: request.serviceUuid,
+            characteristicId: request.characteristicUuid,
+            instance: request.characteristicInstance
+        )
 
         guard characteristic.properties.contains(.notify) || characteristic.properties.contains(.indicate) else {
             throw BluetoothError.characteristicNotificationsNotSupported(characteristic: request.characteristicUuid)
@@ -25,8 +27,17 @@ struct StartNotifications: BluetoothAction {
             return CharacteristicResponse()
         }
 
-        _ = try await client.characteristicSetNotifications(peripheral, service: service, characteristic: characteristic, enable: true)
-
+        let _: CharacteristicEvent = try await eventBus.awaitEvent(
+            forKey: .characteristic(
+                .characteristicNotify,
+                peripheralId: peripheral.id,
+                serviceId: service.uuid,
+                characteristicId: characteristic.uuid,
+                instance: characteristic.instance
+            )
+        ) {
+            client.setNotify(peripheral: peripheral, characteristic: characteristic, value: true)
+        }
         return CharacteristicResponse()
     }
 

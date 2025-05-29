@@ -1,6 +1,7 @@
 import Bluetooth
 import BluetoothClient
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import SecurityList
@@ -63,10 +64,14 @@ struct DiscoverServices: BluetoothAction {
     let requiresReadyState: Bool = true
     let request: DiscoverServicesRequest
 
-    func execute(state: BluetoothState, client: BluetoothClient) async throws -> DiscoverServicesResponse {
+    func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DiscoverServicesResponse {
         try await checkSecurityList(securityList: state.securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
-        let result = try await client.discoverServices(peripheral, filter: request.filter)
+        let result: ServiceDiscoveryEvent = try await eventBus.awaitEvent(
+            forKey: .serviceDiscovery(peripheralId: peripheral.id)
+        ) {
+            client.discoverServices(peripheral: peripheral, uuids: request.filter.services)
+        }
         // TODO: Filter services as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
         await state.setServices(result.services, on: peripheral.id)
         let primaryServices = result.services.filter { $0.isPrimary }

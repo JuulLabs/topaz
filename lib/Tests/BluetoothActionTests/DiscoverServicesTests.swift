@@ -94,6 +94,7 @@ struct DiscoverServicesResponseTests {
 struct DiscoverServicesTests {
     @Test
     func execute_withRequestForSingleService_respondsWithSingleService() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeServices = [
             FakeService(uuid: UUID(n: 10)),
             FakeService(uuid: UUID(n: 11)),
@@ -101,33 +102,38 @@ struct DiscoverServicesTests {
         let matchingService = fakeServices[1]
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         var client = MockBluetoothClient()
-        client.onDiscoverServices = { peripheral, filter in
-            #expect(filter.services == [matchingService.uuid])
-            return ServiceDiscoveryEvent(peripheralId: peripheral.id, services: [matchingService])
+        client.onDiscoverServices = { peripheral, uuids in
+            #expect(uuids == [matchingService.uuid])
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: [matchingService])
+            )
         }
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverServicesRequest(peripheralId: fake.id, query: .first(matchingService.uuid))
         let sut = DiscoverServices(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.services == [matchingService])
     }
 
     @Test
     func execute_withRequestForUnspecifiedservice_respondsWithAllServices() async throws {
+        let eventBus = await selfResolvingEventBus()
         let fakeServices = [
             FakeService(uuid: UUID(n: 10)),
             FakeService(uuid: UUID(n: 11)),
         ]
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         var client = MockBluetoothClient()
-        client.onDiscoverServices = { peripheral, filter in
-            #expect(filter.services == nil)
-            return ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
+        client.onDiscoverServices = { peripheral, uuids in
+            #expect(uuids == nil)
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
+            )
         }
         let state = BluetoothState(peripherals: [fake])
         let request = DiscoverServicesRequest(peripheralId: fake.id, query: .all(nil))
         let sut = DiscoverServices(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.services == fakeServices)
     }
 
@@ -139,25 +145,28 @@ struct DiscoverServicesTests {
         let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .first(serviceUuid))
         let sut = DiscoverServices(request: request)
         await #expect(throws: BluetoothError.blocklisted(serviceUuid)) {
-            _ = try await sut.execute(state: state, client: MockBluetoothClient())
+            _ = try await sut.execute(state: state, client: MockBluetoothClient(), eventBus: EventBus())
         }
     }
 
     @Test(.disabled("Requires https://github.com/JuulLabs/topaz/issues/119"))
     func execute_withRequestForAllServices_respondsWithBlockedServicesRemoved() async throws {
+        let eventBus = await selfResolvingEventBus()
         let allowedService = FakeService(uuid: UUID(n: 10))
         let blockedService = FakeService(uuid: UUID(n: 11))
         let fakeServices = [allowedService, blockedService]
         let fake = FakePeripheral(id: UUID(n: 0), connectionState: .connected, services: fakeServices)
         var client = MockBluetoothClient()
         client.onDiscoverServices = { peripheral, _ in
-            return ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
+            eventBus.enqueueEvent(
+                ServiceDiscoveryEvent(peripheralId: peripheral.id, services: fakeServices)
+            )
         }
         let securityList = SecurityList(services: [blockedService.uuid: .any])
         let state = BluetoothState(peripherals: [fake], securityList: securityList)
         let request = DiscoverServicesRequest(peripheralId: UUID(n: 0), query: .all(nil))
         let sut = DiscoverServices(request: request)
-        let response = try await sut.execute(state: state, client: client)
+        let response = try await sut.execute(state: state, client: client, eventBus: eventBus)
         #expect(response.services == [allowedService])
     }
 }

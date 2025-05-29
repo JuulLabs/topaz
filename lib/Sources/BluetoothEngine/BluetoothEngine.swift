@@ -19,25 +19,27 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private var runState: RunState = .ready
     private var isEnabled: Bool = false
+    private let eventBus: EventBus
     private let state: BluetoothState
     private let client: BluetoothClient
     private let deviceSelector: InteractiveDeviceSelector
-    private var jsEventForwarder: JsEventForwarder
-    private var task: Task<Void, Never>?
     private var zombieDetector: ZombieDetector
+    private let listenerKey: EventBusListenerKey
 
     public init(
+        eventBus: EventBus,
         state: BluetoothState,
         client: BluetoothClient,
         deviceSelector: InteractiveDeviceSelector,
         enableDebugLogging: Bool = false
     ) {
+        self.eventBus = eventBus
         self.state = state
         self.client = client
         self.deviceSelector = deviceSelector
         self.enableDebugLogging = enableDebugLogging
-        self.jsEventForwarder = JsEventForwarder { _ in }
         self.zombieDetector = ZombieDetector(state: state)
+        self.listenerKey = .init(listenerId: "engine", filter: .unfiltered)
     }
 
     // MARK: - Bluetooth Events
@@ -47,7 +49,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         await monitorZombies(for: event)
         await updateState(for: event)
         await sendJsEvent(for: event)
-        await client.resolvePendingRequests(for: event)
+        await eventBus.resolvePendingRequests(for: event)
         await handleUnexpectedDisconnect(for: event)
     }
 
@@ -69,7 +71,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             error: cause,
             lookup: .wildcard(peripheralId: peripheral.id)
         )
-        await client.resolvePendingRequests(for: disconnectionErrorEvent)
+        await eventBus.resolvePendingRequests(for: disconnectionErrorEvent)
     }
 
     private func updateState(for event: BluetoothEvent) async {
@@ -77,8 +79,6 @@ public actor BluetoothEngine: JsMessageProcessor {
         case let event as SystemStateEvent:
             await BluetoothSystemState.shared.updateSystemState(event.systemState)
             await state.setSystemState(event.systemState)
-        case let event as PeripheralEvent where event.name == .canSendWriteWithoutResponse:
-            await state.setCanSendWriteWithoutResponse(event.peripheral.id, value: true)
         default:
             break
         }
@@ -86,7 +86,7 @@ public actor BluetoothEngine: JsMessageProcessor {
 
     private func sendJsEvent(for event: BluetoothEvent) async {
         guard let jsEvent = event.toJsEvent() else { return }
-        await sendEvent(jsEvent)
+        await eventBus.sendJsEvent(jsEvent)
     }
 
     // MARK: - JsMessageProcessor
@@ -96,14 +96,8 @@ public actor BluetoothEngine: JsMessageProcessor {
     public func didAttach(to context: JsContext) async {
         if case .ready = self.runState {
             self.runState = .running(context)
-            self.task = Task {
-                for await event in self.client.events {
-                    await handleDelegateEvent(event)
-                }
-            }
-            self.jsEventForwarder = JsEventForwarder { [weak self] event in
-                await self?.sendEvent(event)
-            }
+            await eventBus.setJsContext(context)
+            await eventBus.attachGenericListener(listenerKey: listenerKey, onEvent: handleDelegateEvent)
         }
     }
 
@@ -112,29 +106,19 @@ public actor BluetoothEngine: JsMessageProcessor {
         // Firstly, modify runState immediately so all future requests and events are dropped
         self.runState = .shutdown
 
-        // Shut down the delegate event handler
-        self.task?.cancel()
-        self.task = nil
-        self.jsEventForwarder = JsEventForwarder { _ in }
+        // Shut down all event propagation
+        await eventBus.detachAllListeners()
+        await eventBus.setJsContext(nil)
 
-        // Shut down any active scans
-        await state.removeAllScanTasks().forEach { $0.cancel() }
-
-        // Tell the system to disconnect all known peripherals and then shutdown
-        let peripherals = await state.removeAllPeripherals()
-        await client.prepareForShutdown(peripherals: peripherals)
-        await client.disable()
-    }
-
-    private func sendEvent(_ event: JsEvent) async {
-        guard case let .running(context) = self.runState else { return }
-        if enableDebugLogging {
-            messageLog.debug("Event \(event.eventName, privacy: .public): \(event.asDebugString(), privacy: .public)")
+        // Stop scanning, disconnect all known peripherals and then disable the client
+        client.stopScanning()
+        for peripheral in await state.removeAllPeripherals() {
+            client.disconnect(peripheral: peripheral)
         }
-        let result = await context.sendEvent(event)
-        if case let .failure(error) = result {
-            messageLog.error("Event send failed \(event.eventName, privacy: .public): \(error.localizedDescription, privacy: .public)")
-        }
+        client.disable()
+
+        // Finally, shut down the event bus to kill any still-pending promises
+        await eventBus.cancelEverything(with: BluetoothError.cancelled)
     }
 
     public func process(request: JsMessageRequest, in context: JsContext) async -> JsMessageResponse {
@@ -142,7 +126,7 @@ public actor BluetoothEngine: JsMessageProcessor {
             return .error(BluetoothError.unavailable.toDomError())
         }
         if !self.isEnabled {
-            await client.enable()
+            client.enable()
             self.isEnabled = true
         }
         var actionForFailureLogging: Message.Action?
@@ -161,11 +145,11 @@ public actor BluetoothEngine: JsMessageProcessor {
     }
 
     func processAction(message: Message) async throws -> JsMessageEncodable {
-        let action = try message.buildAction(client: client, selector: deviceSelector, jsEventForwarder: jsEventForwarder).get()
+        let action = try message.buildAction(client: client, selector: deviceSelector).get()
         if action.requiresReadyState {
             try await bluetoothReadyState()
         }
-        return try await action.execute(state: state, client: client)
+        return try await action.execute(state: state, client: client, eventBus: eventBus)
     }
 
     // MARK: - Private Helpers
@@ -193,7 +177,9 @@ public actor BluetoothEngine: JsMessageProcessor {
     private func checkSystemState(predicate: @Sendable (SystemState) throws -> Bool) async throws {
         let currentState = await self.state.systemState
         guard try predicate(currentState) == false else { return }
-        _ = try await client.awaitSystemState(predicate: predicate)
+        try await eventBus.awaitEvent(forKey: .systemState) { (event: SystemStateEvent) in
+            try predicate(event.systemState)
+        }
     }
 
     private func logRequest(message: Message) {
