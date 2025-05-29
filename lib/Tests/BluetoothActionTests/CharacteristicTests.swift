@@ -1,6 +1,7 @@
 import Bluetooth
 @testable import BluetoothAction
 import BluetoothMessage
+import EventBus
 import Foundation
 import JsMessage
 import Testing
@@ -106,5 +107,40 @@ struct CharacteristicResponseTests {
         let jsMessage = sut.toJsMessage()
         let body = try #require(jsMessage.extractBody(as: NSDictionary.self))
         #expect(body == [:])
+    }
+}
+
+@Suite(.tags(.characteristic))
+struct CharacteristicChangedEventTests {
+    @Test
+    func characteristicValueChangedEvent_asJsValue_hasExpectedBody() throws {
+        let deviceUuid = UUID(n: 0)
+        let serviceUuid = UUID(n: 1)
+        let characteristicUuid = UUID(n: 2)
+        let instance: NSNumber = 3
+        let sut = CharacteristicChangedEvent(
+            peripheralId: deviceUuid,
+            serviceId: serviceUuid,
+            characteristicId: characteristicUuid,
+            instance: instance.uint32Value,
+            data: nil
+        )
+        let jsEvent = sut.characteristicValueChangedEvent()
+
+        // Convert the event to the Js representation
+        let encoded = jsEvent.jsValue
+        // Convert it back to the native representation so we can check the values
+        let decoded = try #require(JsType.bridge(encoded).dictionary)
+        let decodedBody = try #require(decoded["data"]?.dictionary)
+
+        // Event properties
+        #expect(decoded["id"]?.string == characteristicUuid.uuidString.lowercased())
+        #expect(decoded["name"]?.string == "characteristicvaluechanged")
+
+        // Event data properties
+        #expect(decodedBody["device"]?.string == deviceUuid.uuidString.lowercased())
+        #expect(decodedBody["service"]?.string == serviceUuid.uuidString.lowercased())
+        #expect(decodedBody["characteristic"]?.string == characteristicUuid.uuidString.lowercased())
+        #expect(decodedBody["instance"]?.number == instance)
     }
 }

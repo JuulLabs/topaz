@@ -76,7 +76,7 @@ struct DiscoverCharacteristicsResponseTests {
         let bodyCharacteristicsArray = try #require(body["characteristics"]! as? NSArray)
         let characteristicBody = try #require(bodyCharacteristicsArray[0] as? NSDictionary)
         let expectedCharacteristicBody: NSDictionary = [
-            "uuid": fake.uuid.uuidString,
+            "uuid": fake.uuid.uuidString.lowercased(),
             "instance": fake.instance,
             "properties": [
                 "authenticatedSignedWrites": false,
