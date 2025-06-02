@@ -69,7 +69,8 @@ struct DiscoverCharacteristics: BluetoothAction {
     let request: DiscoverCharacteristicsRequest
 
     func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> DiscoverCharacteristicsResponse {
-        try await checkSecurityList(securityList: state.securityList)
+        let securityList = await state.securityList
+        try checkSecurityList(securityList: securityList)
         let peripheral = try await state.getConnectedPeripheral(request.peripheralId)
         guard let service = peripheral.services.first(where: { $0.uuid == request.filter.service }) else {
             throw BluetoothError.noSuchService(request.filter.service)
@@ -79,18 +80,20 @@ struct DiscoverCharacteristics: BluetoothAction {
         ) {
             client.discoverCharacteristics(peripheral: peripheral, service: service, uuids: request.filter.characteristics)
         }
-        // TODO: Filter characteristics as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-        await state.setCharacteristics(result.characteristics, on: peripheral.id, serviceId: result.serviceId)
+        let characteristics = result.characteristics.filter {
+            !securityList.isBlocked($0.uuid, in: .characteristics)
+        }
+        await state.setCharacteristics(characteristics, on: peripheral.id, serviceId: result.serviceId)
         switch request.query {
         case let .first(characteristicUuid):
             // Already filtered, return the first one:
-            guard let characteristic = result.characteristics.first else {
+            guard let characteristic = characteristics.first else {
                 throw BluetoothError.noSuchCharacteristic(service: request.serviceUuid, characteristic: characteristicUuid)
             }
             return DiscoverCharacteristicsResponse(characteristics: [characteristic])
         case .all:
             // Already filtered, return all of them:
-            return DiscoverCharacteristicsResponse(characteristics: result.characteristics)
+            return DiscoverCharacteristicsResponse(characteristics: characteristics)
         }
     }
 
