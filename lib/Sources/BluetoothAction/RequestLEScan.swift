@@ -99,9 +99,8 @@ struct RequestLEScan: BluetoothAction {
             guard options.includeAdvertisementEventInDeviceList(event) else { return }
             // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
             await state.putPeripheral(event.peripheral, replace: false)
-            // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-            // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
-            // allow what is in optionalServices/optionalManufacturerData after applying the blocklist
+            // Scanning is unrestricted so clear any access permissions on the device here:
+            await state.setPermissions(.init(allowedServices: .all), on: event.peripheral.id)
             await eventBus.sendJsEvent(event.toJs(targetId: "bluetooth"))
         }
         client.startScanning(serviceUuids: options.allServiceUuids())

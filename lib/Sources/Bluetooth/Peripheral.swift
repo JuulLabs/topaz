@@ -6,17 +6,20 @@ public struct Peripheral: Sendable {
     public let id: UUID
     public let name: String?
     public var services: [Service]
+    public var permissions: PeripheralPermissions
 
     public init(
         peripheral: AnyProtectedObject,
         id: UUID,
         name: String? = nil,
-        services: [Service] = []
+        services: [Service] = [],
+        permissions: PeripheralPermissions = .init(allowedServices: .all)
     ) {
         self.id = id
         self.peripheral = peripheral
         self.name = name
         self.services = services
+        self.permissions = permissions
     }
 
     public var connectionState: ConnectionState? {

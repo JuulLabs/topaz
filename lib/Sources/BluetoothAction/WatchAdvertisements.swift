@@ -33,6 +33,8 @@ struct WatchAdvertisements: BluetoothAction {
 
     func execute(state: BluetoothState, client: BluetoothClient, eventBus: EventBus) async throws -> WatchAdvertisementsResponse {
         if request.enable {
+            // Watch advertisements is only allowed on already-discovered peripherals so check it exists:
+            _ = try await state.getPeripheral(request.peripheralId)
             await executeStart(client: client, eventBus: eventBus)
         } else {
             await executeStop(client: client, eventBus: eventBus)
@@ -44,10 +46,6 @@ struct WatchAdvertisements: BluetoothAction {
         await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
             guard case let .success(event) = result else { return }
             guard event.peripheral.id == request.peripheralId else { return }
-            // TODO: Filter both serviceData and manufacturerData as per https://webbluetoothcg.github.io/web-bluetooth/#device-discovery
-            // This means only allowing what is in the filters if provided, and in the case of acceptAllAdvertisements only
-            // allow what is in optionalServices/optionalManufacturerData after applying the blocklist.
-            // This further means we need to keep track of the options provided to the original requestDevice or requestLEScan
             await eventBus.sendJsEvent(event.toJs(targetId: request.peripheralId.uuidString.lowercased()))
         }
         client.startScanning(serviceUuids: [])
