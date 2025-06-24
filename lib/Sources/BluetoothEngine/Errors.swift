@@ -6,6 +6,7 @@ import JsMessage
 extension BluetoothError: DomErrorConvertable {
     public var domErrorName: DomErrorName {
         switch self {
+        case .accessToServiceDenied: .security
         case .blocklisted: .security
         case .cancelled: .abort
         case .deviceNotConnected: .network

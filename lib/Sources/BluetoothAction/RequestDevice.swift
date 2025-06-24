@@ -8,7 +8,7 @@ import JsMessage
 import SecurityList
 
 struct RequestDeviceRequest: JsMessageDecodable {
-    private let rawOptionsData: [String: JsType]?
+    let rawOptionsData: [String: JsType]?
 
     static func decode(from data: [String: JsType]?) -> Self? {
         return .init(rawOptionsData: data?["options"]?.dictionary)
@@ -63,7 +63,8 @@ struct RequestDevice: BluetoothAction {
         client.stopScanning()
         await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
 
-        let peripheral = try selection.get()
+        var peripheral = try selection.get()
+        peripheral.permissions = options.toRestrictivePermissions()
         await state.putPeripheral(peripheral, replace: true)
         return RequestDeviceResponse(peripheralId: peripheral.id, name: peripheral.name)
     }
