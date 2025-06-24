@@ -25,9 +25,17 @@ import SecurityList
  * The inference here is that the blocklist is applied to optionalServices/optionalManufacturerData
  * by dint of the parser implementation. The intended effect is that advertisements and discovery
  * would silently strip out such elements later on due to the filter logic.
- *
- * TODO: apply the full filter logic to advertisements and discovery
  */
+
+extension Options {
+    /**
+     Create restricted permissions set to be applied when using the interactive device picker.
+     */
+    func toRestrictivePermissions() -> PeripheralPermissions {
+        let services = Set(allServiceUuids() + (optionalServices ?? []))
+        return PeripheralPermissions(allowedServices: .restricted(services))
+    }
+}
 
 /**
  * Check the given list of filters against the blocklist and throw an error if there is a match.

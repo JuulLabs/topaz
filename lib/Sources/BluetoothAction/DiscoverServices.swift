@@ -80,20 +80,50 @@ struct DiscoverServices: BluetoothAction {
         let primaryServices = services.filter { $0.isPrimary }
         switch request.query {
         case let .first(serviceUuid):
-            // Already filtered, return the first one:
+            guard isQueryAllowed(for: serviceUuid, in: peripheral.permissions) else {
+                throw BluetoothError.accessToServiceDenied(serviceUuid)
+            }
+            // Already filtered during discovery, return the first one:
             guard let service = primaryServices.first else {
                 throw BluetoothError.noSuchService(serviceUuid)
             }
             return DiscoverServicesResponse(services: [service])
-        case .all:
-            // Already filtered, return all of them:
+        case let .all(.some(serviceUuid)):
+            guard isQueryAllowed(for: serviceUuid, in: peripheral.permissions) else {
+                throw BluetoothError.accessToServiceDenied(serviceUuid)
+            }
+            // Already filtered during discovery, return all of them:
             return DiscoverServicesResponse(services: primaryServices)
+        case .all(.none):
+            // Not yet filtered, only provide services that are in the allow list:
+            let allowedServices = filterForAllowed(services: primaryServices, permissions: peripheral.permissions)
+            return DiscoverServicesResponse(services: allowedServices)
         }
     }
 
     private func checkSecurityList(securityList: SecurityList) throws {
         if let uuid = request.query.serviceUuid, securityList.isBlocked(uuid, in: .services) {
             throw BluetoothError.blocklisted(uuid)
+        }
+    }
+
+    private func isQueryAllowed(for uuid: UUID, in permissions: PeripheralPermissions) -> Bool {
+        switch permissions.allowedServices {
+        case .all:
+            true
+        case let .restricted(grantedUids):
+            grantedUids.contains(uuid)
+        }
+    }
+
+    private func filterForAllowed(services: [Service], permissions: PeripheralPermissions) -> [Service] {
+        switch permissions.allowedServices {
+        case .all:
+            services
+        case let .restricted(grantedUids):
+            services.filter { service in
+                grantedUids.contains(service.uuid)
+            }
         }
     }
 }
