@@ -121,6 +121,10 @@ public actor BluetoothState {
         self.peripherals[peripheralId]?.services[serviceIndex].characteristics[characteristicIndex].descriptors = descriptors
     }
 
+    public func setPermissions(_ permissions: PeripheralPermissions, on peripheralId: UUID) {
+        self.peripherals[peripheralId]?.permissions = permissions
+    }
+
     private func save(peripheralIds: Set<UUID>) async {
         guard let store else { return }
         do {
