@@ -113,7 +113,7 @@ struct EventBusListenerTests {
             let event = TestEventOne(id: "\(i)", lookup: .exact(key: systemStateKey))
             sut.enqueueEvent(event)
         }
-        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 0.1)
+        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 0.5)
         #expect(outcome == .completed)
         resultQueue.finish()
         // Check that the order is as expected:

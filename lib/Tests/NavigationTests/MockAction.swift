@@ -5,9 +5,9 @@ class MockAction: MockActionWithoutSourceFrame {
 
     init(
         navigationType: WKNavigationType = .other,
-        request: @escaping () -> URLRequest = { fatalError() },
-        sourceFrame: @escaping () -> WKFrameInfo = { fatalError() },
-        targetFrame: @escaping () -> WKFrameInfo? = { fatalError() }
+        request: @escaping () -> URLRequest = { fatalError("MockAction: request missing") },
+        sourceFrame: @escaping () -> WKFrameInfo = { fatalError("MockAction: sourceFrame missing") },
+        targetFrame: @escaping () -> WKFrameInfo? = { fatalError("MockAction: targetFrame missing") }
     ) {
         _sourceFrame = sourceFrame
         super.init(navigationType: navigationType, request: request, targetFrame: targetFrame)
@@ -27,8 +27,8 @@ open class MockActionWithoutSourceFrame: WKNavigationAction {
 
     init(
         navigationType: WKNavigationType = .other,
-        request: @escaping () -> URLRequest = { fatalError() },
-        targetFrame: @escaping () -> WKFrameInfo? = { fatalError() }
+        request: @escaping () -> URLRequest = { fatalError("MockActionWithoutSourceFrame: request missing") },
+        targetFrame: @escaping () -> WKFrameInfo? = { fatalError("MockActionWithoutSourceFrame: targetFrame missing") }
     ) {
         _navigationType = navigationType
         _request = request

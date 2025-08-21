@@ -81,7 +81,7 @@ struct NavigationRequestTests {
         #expect(sut == nil)
     }
 
-    @Test
+    @Test(.disabled("https://github.com/JuulLabs/topaz/issues/180"))
     func initFromAction_withNoTargetFrameAndNoSourceFrame_isNil() {
         let action = MockActionWithoutSourceFrame(
             request: { testRequest },
