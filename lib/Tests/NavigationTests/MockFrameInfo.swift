@@ -6,9 +6,9 @@ class MockFrameInfo: WKFrameInfo {
     let _securityOrigin: () -> WKSecurityOrigin
 
     init(
-        isMainFrame: @escaping () -> Bool = { fatalError() },
-        request: @escaping () -> URLRequest = { fatalError() },
-        securityOrigin: @escaping () -> WKSecurityOrigin = { fatalError() }
+        isMainFrame: @escaping () -> Bool = { fatalError("MockFrameInfo: isMainFrame missing") },
+        request: @escaping () -> URLRequest = { fatalError("MockFrameInfo: request missing") },
+        securityOrigin: @escaping () -> WKSecurityOrigin = { fatalError("MockFrameInfo: securityOrigin missing") }
     ) {
         _isMainFrame = isMainFrame
         _request = request
