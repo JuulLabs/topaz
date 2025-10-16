@@ -51,7 +51,8 @@ $(IPA_ARTIFACT): $(ARCHIVE_ARTIFACT)
 		$(XCODE_ARCHIVE_OPTIONS) \
 		-exportPath $(ARTIFACTS_ROOT) \
 		-exportOptionsPlist $(EXPORT_PLIST) \
-		-exportArchive
+		-exportArchive \
+		CODE_SIGN_IDENTITY="iPhone Distribution"
 
 ipa: $(IPA_ARTIFACT)
 
