@@ -7,15 +7,13 @@
 # 2. Not really secret but put the key ID and issuer ID into the appropriate GitHub secrets. Also put them
 # in the Makefile for running the build process locally. These can be copied from App Store Connect UI directly.
 #
-# 3. Download the API key private key from App Store Connect and save it in the 1Password account. Put it in
-# the local repo checkout under ./private_keys/AuthKey_$API_KEY_ID.p8 temporarily for the next step, and also
-# put it in the appropriate GitHub secret (APPLE_API_KEY_BASE64_P8) as base64:
-# % cat ./private_keys/AuthKey_$API_KEY_ID.p8 | base64 | pbcopy
+# 3. Download the API key private key from App Store Connect and save it somewhere secure. Put it in
+# the appropriate GitHub secret (APPLE_API_KEY_BASE64_P8) as base64:
+# % cat AuthKey.p8 | base64 | pbcopy
 #
-# 4. Perform an IPA build locally with the above API credentials in place (make ipa). The Makefile command
-# uses the `allowProvisioningUpdates` option along with the API credentials which asks Xcode to perform cloud
-# based app signing. Critically, this process also involves a certificate + key from the local keychain, and 
-# it will generate this if necessary during the build.
+# 4. Use Keychain Access app to create a certificate request, then go to developer.apple.com and create a new
+# distribution certificate using that request. Download the certificate and double click to install it in your
+# local keychain.
 #
 # 5. Export the certificate + private key (gererated from the previous step) from your local keyhchain. In the
 # KeyChain app go to "My Certificates" and find the "Apple Development" certificate labeled with your organization
@@ -27,16 +25,17 @@
 # (APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12). 
 # % cat Certificates.p12 | base64 | pbcopy
 #
-# The API key supposedly never expires, bit certificates expire after one year so only these last two steps need
+# The API key supposedly never expires, bit certificates expire after one yearby default so only these last two steps need
 # to be repeated and the GitHub secret updated when that happens. Note: when adding the base64 items to GitHub secrets,
 # be careful not to prepend/append any whitespace.
 #
 
 name: 'Publish'
 on:
-  push:
-    tags:
-      - 'release/**'
+  workflow_dispatch:
+#   push:
+#     tags:
+#       - 'release/**'
 
 jobs:
   publish:
@@ -76,7 +75,6 @@ jobs:
           echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
           security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
-          security default-keychain -s $KEYCHAIN_PATH
           security list-keychains -d user -s $KEYCHAIN_PATH
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
@@ -88,12 +86,31 @@ jobs:
           echo -n "$DEV_CERT_BASE64_P12" | base64 -d > $DEV_CERT
           security import $DEV_CERT -P "$DEV_CERT_PASSKEY" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
 
+      # Extract the client certificate from the p12 and check the expiration date:
+      - name: Validate Development Certificate
+        run: |
+          DEV_CERT=$API_KEY_DIR/dev_cert.p12
+          openssl pkcs12 -in $DEV_CERT -out client_cert.pem -clcerts -nodes -passin "pass:$DEV_CERT_PASSKEY"
+          openssl x509 -in client_cert.pem -noout -text
+          CERT_DATE=$(openssl x509 -in client_cert.pem -noout -enddate | cut -d= -f 2)
+          rm client_cert.pem
+          echo "Certificate expiration date: $CERT_DATE"
+          test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
+
       - name: Set Keychain Partition List
         run: |
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
-          security show-keychain-info $KEYCHAIN_PATH
-          security find-identity -v -p codesigning
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security find-certificate -Z $KEYCHAIN_PATH
+
+      - name: Validate Keychain Codesigning Identity
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security list-keychains -d user
+          security find-identity -v -p codesigning
+          test $(security find-identity -v -p codesigning | grep 'valid identities found' | awk '{print $1}') -eq 1
+          echo "Invoking artifical failure to end build debugging"
+          test 1 -eq 0
 
       - name: Log Version Info
         run: |
@@ -117,6 +134,7 @@ jobs:
 
       # GH recommends manual cleanup of keychains:
       - run: |
+          security list-keychains -d user -s login.keychain
           security delete-keychain $RUNNER_TEMP/app-signing.keychain-db
           rm -rf $API_KEY_DIR
         if: always()
