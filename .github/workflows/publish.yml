@@ -15,7 +15,7 @@
 # distribution certificate using that request. Download the certificate and double click to install it in your
 # local keychain.
 #
-# 5. Export the certificate + private key (gererated from the previous step) from your local keyhchain. In the
+# 5. Export the certificate + private key (generated from the previous step) from your local keychain. In the
 # KeyChain app go to "My Certificates" and find the "Apple Development" certificate labeled with your organization
 # (Note the label may be on the private key not on the cert itself). Right click the certificate and "export" to
 # save to a local file (note it may land in ~/Documents folder). It will prompt for a password to encrypt the
@@ -25,17 +25,16 @@
 # (APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12). 
 # % cat Certificates.p12 | base64 | pbcopy
 #
-# The API key supposedly never expires, bit certificates expire after one yearby default so only these last two steps need
-# to be repeated and the GitHub secret updated when that happens. Note: when adding the base64 items to GitHub secrets,
+# The API key supposedly never expires, but certificates expire after one year by default so only these last three steps
+# need to be repeated and the GitHub secret updated when that happens. Note: when adding the base64 items to GitHub secrets,
 # be careful not to prepend/append any whitespace.
 #
 
 name: 'Publish'
 on:
-  workflow_dispatch:
-#   push:
-#     tags:
-#       - 'release/**'
+  push:
+    tags:
+      - 'release/**'
 
 jobs:
   publish:
@@ -109,8 +108,6 @@ jobs:
           security list-keychains -d user
           security find-identity -v -p codesigning
           test $(security find-identity -v -p codesigning | grep 'valid identities found' | awk '{print $1}') -eq 1
-          echo "Invoking artifical failure to end build debugging"
-          test 1 -eq 0
 
       - name: Log Version Info
         run: |
