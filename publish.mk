@@ -28,7 +28,8 @@ XCODE_ARCHIVE_OPTIONS = \
 	-allowProvisioningUpdates \
 	-authenticationKeyPath $(API_KEY_FILE_ABS) \
 	-authenticationKeyID $(API_KEY_ID) \
-	-authenticationKeyIssuerID $(API_ISSUER_ID)
+	-authenticationKeyIssuerID $(API_ISSUER_ID) \
+	CODE_SIGN_IDENTITY="iPhone Distribution"
 
 $(API_KEY_FILE):
 	@if test -z "$(API_KEY_FILE_ABS)"; then \
@@ -51,8 +52,7 @@ $(IPA_ARTIFACT): $(ARCHIVE_ARTIFACT)
 		$(XCODE_ARCHIVE_OPTIONS) \
 		-exportPath $(ARTIFACTS_ROOT) \
 		-exportOptionsPlist $(EXPORT_PLIST) \
-		-exportArchive \
-		CODE_SIGN_IDENTITY="iPhone Distribution"
+		-exportArchive
 
 ipa: $(IPA_ARTIFACT)
 
