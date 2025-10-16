@@ -28,7 +28,8 @@ XCODE_ARCHIVE_OPTIONS = \
 	-allowProvisioningUpdates \
 	-authenticationKeyPath $(API_KEY_FILE_ABS) \
 	-authenticationKeyID $(API_KEY_ID) \
-	-authenticationKeyIssuerID $(API_ISSUER_ID)
+	-authenticationKeyIssuerID $(API_ISSUER_ID) \
+	CODE_SIGN_IDENTITY="Apple Distribution"
 
 $(API_KEY_FILE):
 	@if test -z "$(API_KEY_FILE_ABS)"; then \
