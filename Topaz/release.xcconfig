@@ -1,1 +1,4 @@
 #include "version.xcconfig"
+
+CODE_SIGN_IDENTITY = 5EH8QG4538
+CODE_SIGN_STYLE = Automatic
