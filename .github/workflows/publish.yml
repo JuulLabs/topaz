@@ -32,10 +32,9 @@
 
 name: 'Publish'
 on:
-  workflow_dispatch:
-#   push:
-#     tags:
-#       - 'release/**'
+  push:
+    tags:
+      - 'release/**'
 
 jobs:
   publish:
