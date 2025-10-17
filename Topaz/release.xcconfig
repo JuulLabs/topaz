@@ -1,4 +1,5 @@
 #include "version.xcconfig"
 
-CODE_SIGN_IDENTITY = 5EH8QG4538
-CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Distribution
+CODE_SIGN_STYLE = Manual
+PROVISIONING_PROFILE_SPECIFIER = Topaz Distribution
