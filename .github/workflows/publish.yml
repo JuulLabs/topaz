@@ -89,7 +89,7 @@ jobs:
       - name: Validate Development Certificate
         run: |
           DEV_CERT=$API_KEY_DIR/dev_cert.p12
-          openssl pkcs12 -in $DEV_CERT -out client_cert.pem -clcerts -nodes -passin "pass:$DEV_CERT_PASSKEY"
+          openssl pkcs12 -in $DEV_CERT -out client_cert.pem -nokeys -passin "pass:$DEV_CERT_PASSKEY"
           openssl x509 -in client_cert.pem -noout -text
           CERT_DATE=$(openssl x509 -in client_cert.pem -noout -enddate | cut -d= -f 2)
           rm client_cert.pem
