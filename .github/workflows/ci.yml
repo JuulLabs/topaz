@@ -9,7 +9,7 @@ jobs:
     name: Lint
     runs-on: [macOS-15]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: brew install swiftlint
       - run: swiftlint --version
       - run: swiftlint lint --strict --reporter github-actions-logging
@@ -17,7 +17,7 @@ jobs:
     name: Build
     runs-on: [macOS-15]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: xcrun simctl list runtimes
       - run: xcrun simctl list devices available iOS
       - run: xcodes select
@@ -28,7 +28,7 @@ jobs:
     runs-on: [macOS-15]
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: xcodes select
       - run: xcodebuild -version
       - run: make test
