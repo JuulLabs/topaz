@@ -50,8 +50,13 @@ struct StateValueTests {
 
     @Test
     func getValue_whenSetFalseRepeatedlyAndThenSetTrue_emitsFalseTheExactNumberOfTimesAndTrueOnce() async throws {
+        struct Result {
+            let stateValue: Bool
+            let trueCount: Int
+            let falseCount: Int
+        }
         let sut = StateValue<Bool>(initialValue: false)
-        let task = Task { @Sendable () async -> (stateValue: Bool, trueCount: Int, falseCount: Int) in
+        let task = Task {
             var falseCount = 0
             var trueCount = 0
             var state: Bool
@@ -63,7 +68,7 @@ struct StateValueTests {
                     falseCount += 1
                 }
             } while state == false
-            return (state, trueCount, falseCount)
+            return Result(stateValue: state, trueCount: trueCount, falseCount: falseCount)
         }
         for _ in 1...3 {
             await Task.bigYield()
