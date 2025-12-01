@@ -50,17 +50,25 @@ struct StateValueTests {
 
     @Test
     func getValue_whenSetFalseRepeatedlyAndThenSetTrue_emitsFalseTheExactNumberOfTimesAndTrueOnce() async throws {
-        var falseCount = 0
-        var trueCount = 0
+        struct Result {
+            let stateValue: Bool
+            let trueCount: Int
+            let falseCount: Int
+        }
         let sut = StateValue<Bool>(initialValue: false)
         let task = Task {
+            var falseCount = 0
+            var trueCount = 0
             var state: Bool
             repeat {
                 state = await sut.getValue()
-                falseCount += state ? 0 : 1
-                trueCount += state ? 1 : 0
+                if state {
+                    trueCount += 1
+                } else {
+                    falseCount += 1
+                }
             } while state == false
-            return state
+            return Result(stateValue: state, trueCount: trueCount, falseCount: falseCount)
         }
         for _ in 1...3 {
             await Task.bigYield()
@@ -68,14 +76,14 @@ struct StateValueTests {
         }
         await Task.bigYield()
         await sut.setValue(true)
-        let value = await task.value
-        #expect(value == true)
-        #expect(trueCount == 1)
+        let result = await task.value
+        #expect(result.stateValue == true)
+        #expect(result.trueCount == 1)
 
         // The `setValue` "while signal() == true" loop races against the `getValue` in this test
         // It is not harmful for our use case except for a few CPU cycles but what we actually need is
         // for `AsyncSemaphore` to support a new API where the loop can happen within the semaphore lock.
         // TODO: add a new method to AsyncSemaphore for this test to fully pass: `semaphore.signalAll()`
-        // #expect(falseCount == 3)
+        // #expect(result.falseCount == 3)
     }
 }

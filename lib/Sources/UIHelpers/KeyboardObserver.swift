@@ -10,24 +10,28 @@ public final class KeyboardObserver {
 
     public init() {
         Task { [weak self] in
-            for await newFrame in compactMapNotifications(
-                name: UIResponder.keyboardWillShowNotification,
-                transform: KeyboardObserver.extractKeyboardFrame
-            ) {
+            for await newFrame in KeyboardObserver.keyboardWillShowNotifications() {
                 self?.frame = newFrame
             }
         }
         Task { [weak self] in
-            for await _ in mapNotifications(
-                name: UIResponder.keyboardWillHideNotification,
-                transform: { _ in 0 }
-            ) {
+            for await _ in KeyboardObserver.keyboardWillHideNotifications() {
                 self?.frame = nil
             }
         }
     }
 
-    private static func extractKeyboardFrame(from notification: Notification) -> CGRect? {
-        notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+    private static func keyboardWillShowNotifications() -> AsyncCompactMapSequence<NotificationCenter.Notifications, CGRect> {
+        NotificationCenter.default
+            .notifications(named: UIResponder.keyboardWillShowNotification)
+            .compactMap { notification in
+                notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+            }
+    }
+
+    private static func keyboardWillHideNotifications() -> AsyncMapSequence<NotificationCenter.Notifications, Void> {
+        NotificationCenter.default
+            .notifications(named: UIResponder.keyboardWillHideNotification)
+            .map { _ in () }
     }
 }
