@@ -16,11 +16,7 @@ endif
 DERIVED_DATA_ROOT := .derivedData
 DERIVED_DATA_PATH := $(DERIVED_DATA_ROOT)/$(XCODE_CONFIG)
 
-define first_available_sim_uuid
-$(shell xcrun simctl list devices available | grep '$(1)' | sort -r | head -1 | awk -F '[()]' '{ print $$(NF-3) }')
-endef
-
-IOS_SIM_UUID := $(call first_available_sim_uuid,iPhone \d\+ Pro [^M])
+IOS_SIM_UUID := $(shell ./scripts/find_optimal_sim_uuid.sh)
 PLATFORM_IOS := platform=iOS Simulator,id=$(IOS_SIM_UUID)
 PLATFORM_MACOS := platform=macOS,arch=arm64,variant=Designed for iPad
 PLATFORM_GENERIC := generic/platform=iOS
