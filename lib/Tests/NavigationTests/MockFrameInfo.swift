@@ -13,7 +13,6 @@ class MockFrameInfo: WKFrameInfo {
         _isMainFrame = isMainFrame
         _request = request
         _securityOrigin = securityOrigin
-        super.init()
     }
 
     override var isMainFrame: Bool {

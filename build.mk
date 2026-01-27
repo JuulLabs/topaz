@@ -51,24 +51,7 @@ build: XCODE_COMMAND := build
 build: boot-simulator
 	$(XCODEBUILD)
 
-# Hack to find hanging test
-# test: $(TEST_MODULES)
-test: XCODE_SCHEME := NavigationTests
-test: boot-simulator
-	xcodebuild $(XCODEBUILD_FLAGS) test $(XCODE_EXTRA_PARAMS) \
-		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withNilURL_isNil()()'
-	xcodebuild $(XCODEBUILD_FLAGS) test-without-building $(XCODE_EXTRA_PARAMS) \
-		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withNoTargetFrameAndSourceIsMainFrame_navigatesToNewWindow()()'
-	xcodebuild $(XCODEBUILD_FLAGS) test-without-building $(XCODE_EXTRA_PARAMS) \
-		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withNoTargetFrameAndSourceIsNotMainFrame_isNil()()'
-	xcodebuild $(XCODEBUILD_FLAGS) test-without-building $(XCODE_EXTRA_PARAMS) \
-		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withRequestAndTargetOriginMismatch_navigatesToCrossOrigin()()'
-	xcodebuild $(XCODEBUILD_FLAGS) test-without-building $(XCODE_EXTRA_PARAMS) \
-		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withRequestAndTargetOriginMatch_navigatesToSameOrigin()()'
-
-# failing?
-#	xcodebuild $(XCODEBUILD_FLAGS) test $(XCODE_EXTRA_PARAMS) \
-#		-only-testing 'NavigationTests/NavigationRequestTests/initFromAction_withValidRequest_takesUrlAndActionTypeFromAction()()'
+test: $(TEST_MODULES)
 
 %Tests: XCODE_SCHEME = $@
 %Tests: XCODE_COMMAND := test

@@ -33,7 +33,6 @@ open class MockActionWithoutSourceFrame: WKNavigationAction {
         _navigationType = navigationType
         _request = request
         _targetFrame = targetFrame
-        super.init()
     }
 
     override open var navigationType: WKNavigationType {
