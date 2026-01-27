@@ -22,6 +22,11 @@ private let nilUrlRequest: URLRequest = {
 @Suite(.tags(.navigation))
 struct NavigationRequestTests {
 
+    // As of iOS 26.2 the WebKit ABI null-but-not-nullable crash is triggered on dealloc of the WK* test doubles.
+    // The hacky workaround is to avoid invoking dealloc by retaining the instances in a static store.
+    // Caused by https://github.com/JuulLabs/topaz/issues/180 but manifests on dealloc instead of on the getter.
+    static var retainBucket: Set<NSObject> = []
+
     init() {
         // There is some critical init code in the framework needed for WKNavigationAction subclasses to function
         // correctly. We can force that by initializing a web view.
@@ -41,7 +46,7 @@ struct NavigationRequestTests {
     func initFromAction_withValidRequest_takesUrlAndActionTypeFromAction() {
         let sourceFrame = MockFrameInfo(
             isMainFrame: { true }
-        )
+        ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             navigationType: .linkActivated,
             request: { testRequest },
@@ -57,7 +62,7 @@ struct NavigationRequestTests {
     func initFromAction_withNoTargetFrameAndSourceIsMainFrame_navigatesToNewWindow() {
         let sourceFrame = MockFrameInfo(
             isMainFrame: { true }
-        )
+        ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
             sourceFrame: { sourceFrame },
@@ -71,7 +76,7 @@ struct NavigationRequestTests {
     func initFromAction_withNoTargetFrameAndSourceIsNotMainFrame_isNil() {
         let sourceFrame = MockFrameInfo(
             isMainFrame: { false }
-        )
+        ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
             sourceFrame: { sourceFrame },
@@ -98,7 +103,7 @@ struct NavigationRequestTests {
             isMainFrame: { true },
             request: { testRequest },
             securityOrigin: { origin }
-        )
+        ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
             targetFrame: { targetFrame }
@@ -114,12 +119,19 @@ struct NavigationRequestTests {
             isMainFrame: { true },
             request: { testRequest },
             securityOrigin: { origin }
-        )
+        ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
             targetFrame: { targetFrame }
         )
         let sut = NavigationRequest(action: action)
         #expect(sut?.kind == .sameOrigin)
+    }
+}
+
+private extension NSObject {
+    func immortalize(in sink: inout Set<NSObject>) -> Self {
+        sink.insert(self)
+        return self
     }
 }
