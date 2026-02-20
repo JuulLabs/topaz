@@ -49,6 +49,9 @@ public struct WebPageView: View {
 
         func makeUIView(context: Context) -> WKWebView {
             let webView = model.createWebView()
+            
+            webView.underPageBackgroundColor = UIColor(Color.topaz600)
+            
 #if DEBUG
             webView.isInspectable = true
 #endif
