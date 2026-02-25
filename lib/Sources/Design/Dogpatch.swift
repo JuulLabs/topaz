@@ -51,7 +51,7 @@ public enum Dogpatch: String, CaseIterable {
 
     func scaleMapping(for typography: Typography) -> (size: CGFloat, relativeTo: Font.TextStyle) {
         switch typography {
-        case .launchHeadline: return (48, .largeTitle)
+        case .launchHeadline: return (100, .largeTitle)
         }
     }
 }
