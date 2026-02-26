@@ -41,6 +41,7 @@ struct FreshPageView: View {
     @ViewBuilder private var topAlignedHeaderView: some View {
         VStack(spacing: -55) {
             Image(media: .mainLogo)
+                .padding(.bottom, -55)
             if !veryLimitedVerticalSpace {
                 VStack(spacing: 13) {
                     Text("Topaz")
