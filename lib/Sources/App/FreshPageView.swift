@@ -15,7 +15,11 @@ struct FreshPageView: View {
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
             centerAlignedSearchView
+//                .frame(alignment: .bottom)
         }
+//        .safeAreaInset(edge: .bottom) {
+//            centerAlignedSearchView
+//        }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
             resignFirstResponder()
@@ -68,20 +72,23 @@ struct FreshPageView: View {
                     .padding(.bottom, 30)
                 Spacer()
             } else {
-                SearchBarView(model: model.searchBarModel)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 12)
-                if !keyboardPresent && !isCompact {
-                    Spacer()
-                }
+                NavBarViewV2(model: model.navBarModel)
+//                    .frame(alignment: .bottom)
+//                SearchBarView(model: model.searchBarModel)
+//                    .padding(.horizontal, 24)
+//                    .padding(.bottom, 12)
+//                if !keyboardPresent && !isCompact {
+//                    Spacer()
+//                }
             }
         }
+//        .border(Color.red)
         .animation(.spring, value: keyboardPresent)
     }
 }
 
 #Preview("New") {
-    let model = FreshPageModel(searchBarModel: SearchBarModel())
+    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }))
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -89,7 +96,7 @@ struct FreshPageView: View {
 }
 
 #Preview("Loading") {
-    let model = FreshPageModel(searchBarModel: SearchBarModel(), isLoading: true)
+    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }), isLoading: true)
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()

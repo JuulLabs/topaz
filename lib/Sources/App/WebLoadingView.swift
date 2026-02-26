@@ -65,7 +65,7 @@ struct WebLoadingView: View {
 @MainActor
 private func previewModel() -> WebLoadingModel {
     let navBarModel = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
-    let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
+    let freshPageModel = FreshPageModel(navBarModel: navBarModel)
     return WebLoadingModel(
         freshPageModel: freshPageModel,
         navBarModel: navBarModel
