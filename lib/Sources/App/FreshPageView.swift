@@ -39,7 +39,7 @@ struct FreshPageView: View {
 
     // Pins to the top, tightens up and drops the text when compact
     @ViewBuilder private var topAlignedHeaderView: some View {
-        VStack(spacing: -55) {
+        VStack(spacing: 0) {
             Image(media: .mainLogo)
                 .padding(.bottom, -55)
             if !veryLimitedVerticalSpace {
