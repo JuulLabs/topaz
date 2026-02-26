@@ -11,7 +11,7 @@ struct FreshPageView: View {
 
     var body: some View {
         ZStack {
-            Color.topaz600
+            Color.backgroundPrimary
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
             centerAlignedSearchView
@@ -41,11 +41,16 @@ struct FreshPageView: View {
     @ViewBuilder private var topAlignedHeaderView: some View {
         VStack(spacing: 0) {
             Image(media: .mainLogo)
+                .padding(.bottom, -55)
             if !veryLimitedVerticalSpace {
-                Text("Topaz")
-                    .font(.dogpatch(custom: .launchHeadline, weight: .bold))
-                    .foregroundStyle(Color.white)
-                    .padding(.top, 30)
+                VStack(spacing: 13) {
+                    Text("Topaz")
+                        .font(.dogpatch(custom: .launchHeadline, weight: .light))
+                        .foregroundStyle(Color.textPrimary)
+                    Text("Bluetooth® enabled browser")
+                        .font(.dogpatch(.headline))
+                        .foregroundStyle(Color.textPrimary)
+                }
             }
             Spacer()
         }

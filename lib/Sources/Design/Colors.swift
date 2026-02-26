@@ -2,6 +2,10 @@ import SwiftUI
 
 public extension Color {
 
+    static var backgroundPrimary: Color {
+        Color(hex: "#FAFAFC")!
+    }
+
     static var borderActive: Color {
         Color(hex: "#F8F8F8")!
     }
@@ -19,7 +23,7 @@ public extension Color {
     }
 
     static var textPrimary: Color {
-        Color(hex: "#F9F9F9")!
+        Color(hex: "#273E8E")!
     }
 
     static var textSecondary: Color {
