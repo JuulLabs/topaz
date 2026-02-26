@@ -1,5 +1,3 @@
-//
-
 import SwiftUI
 import Navigation
 
@@ -21,7 +19,6 @@ struct SearchBarViewV2: View {
                     .font(.dogpatch(.headline))
             )
                 .frame(maxHeight: .infinity)
-//                .containerRelativeFrame(.vertical)
                 .font(.dogpatch(.headline))
                 .foregroundStyle(Color.textPrimary)
                 .focused($focusedField, equals: .searchBar)
@@ -31,13 +28,6 @@ struct SearchBarViewV2: View {
                 .onSubmit {
                     model.didSubmitSearchString()
                 }
-//                .border(Color.red)
-//                .overlay(
-//                    RoundedRectangle(cornerRadius: 50)
-//                        .inset(by: -0.25)
-//                        .stroke(.white, lineWidth: 0.5)
-//                )
-//                .background(Color.cellFillPrimary)
             Image(systemName: "microphone")
                 .foregroundStyle(Color.textPrimary)
                 .font(.system(size: 24).weight(.light))
@@ -47,13 +37,12 @@ struct SearchBarViewV2: View {
         .frame(maxWidth: .infinity, maxHeight: 48)
         .background(
             RoundedRectangle(cornerRadius: 24)
-                .fill(Color.cellFillPrimary) // 2. Add a background color
+                .fill(Color.cellFillPrimary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.white, lineWidth: 0.25) // 3. Add the border as an overlay
+                .stroke(Color.white, lineWidth: 0.25)
         )
-//        .border(Color.red)
     }
 }
 
