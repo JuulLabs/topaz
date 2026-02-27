@@ -22,11 +22,12 @@ struct NavBarViewV2: View {
                         )
                 })
             } else {
-                Button(action: {
-                    model.isInSearchMode = true
-                }, label: {
-                    Text("nav mode placeholder")
-                })
+//                Button(action: {
+//                    model.isInSearchMode = true
+//                }, label: {
+//                    Text("nav mode placeholder")
+//                })
+                NavIconStripV2(model: model)
             }
         }
         .animation(.spring, value: model.isInSearchMode)
