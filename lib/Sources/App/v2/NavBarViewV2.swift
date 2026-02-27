@@ -15,13 +15,15 @@ struct NavBarViewV2: View {
     // Because of how SwiftUI is drawing the background in regards to the keyboard, we need to change how much the gradient
     // stops when the keyboard is present vs when it's not.
     private var backgroundGradientStops: [Gradient.Stop] {
-        if keyboardPresent {
-            [Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
-            Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.8), location: 0.2),
-            Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),]
-        } else {
-            [Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
-            Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),]
+        if keyboardPresent {[
+                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
+                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.8), location: 0.2),
+                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),
+            ]
+        } else {[
+                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
+                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),
+            ]
         }
     }
 
