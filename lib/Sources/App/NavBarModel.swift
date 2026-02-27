@@ -16,6 +16,7 @@ public final class NavBarModel {
 
     var fullscreenButtonDisabled: Bool = false
     var isSettingsPresented: Bool = false
+    var isInSearchMode: Bool = true
 
     private(set) var isFullscreen: Bool = false
     private let tabManagementAction: () -> Void

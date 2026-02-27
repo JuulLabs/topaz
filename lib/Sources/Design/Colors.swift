@@ -14,6 +14,14 @@ public extension Color {
         Color(hex: "#1C1C23")!
     }
 
+    static var cellFillPrimary: Color {
+        Color(hex: "#EAEDF7")!
+    }
+
+    static var iconDefault: Color {
+        Color(hex: "#273E8E")!
+    }
+
     static var redNotification: Color {
         Color(hex: "#E71A40")!
     }

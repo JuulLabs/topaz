@@ -89,7 +89,7 @@ public class AppModel {
 
     private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel {
         let navBarModel = buildNavModel(tabIndex: tabIndex)
-        let freshPageModel = FreshPageModel(searchBarModel: navBarModel.searchBarModel)
+        let freshPageModel = FreshPageModel(navBarModel: navBarModel)
         let loadingModel = WebLoadingModel(freshPageModel: freshPageModel, navBarModel: navBarModel)
         if let url = initialUrl, url.isAboutBlank() == false {
             performInitialLoad(on: loadingModel, tabIndex: tabIndex, initialUrl: url)

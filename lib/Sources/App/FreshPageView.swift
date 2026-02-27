@@ -14,7 +14,7 @@ struct FreshPageView: View {
             Color.backgroundPrimary
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
-            centerAlignedSearchView
+            searchView
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
@@ -58,8 +58,7 @@ struct FreshPageView: View {
         .animation(.easeIn, value: keyboardPresent)
     }
 
-    // Pins to the center normally and to the bottom when compact or keyboard is up
-    @ViewBuilder private var centerAlignedSearchView: some View {
+    @ViewBuilder private var searchView: some View {
         VStack(spacing: 0) {
             Spacer()
             if model.isLoading {
@@ -69,12 +68,7 @@ struct FreshPageView: View {
                     .padding(.bottom, 30)
                 Spacer()
             } else {
-                SearchBarView(model: model.searchBarModel)
-                    .padding(.horizontal, 24)
-                    .padding(.bottom, 12)
-                if !keyboardPresent && !isCompact {
-                    Spacer()
-                }
+                NavBarViewV2(model: model.navBarModel)
             }
         }
         .animation(.spring, value: keyboardPresent)
@@ -82,7 +76,7 @@ struct FreshPageView: View {
 }
 
 #Preview("New") {
-    let model = FreshPageModel(searchBarModel: SearchBarModel())
+    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }))
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -90,7 +84,7 @@ struct FreshPageView: View {
 }
 
 #Preview("Loading") {
-    let model = FreshPageModel(searchBarModel: SearchBarModel(), isLoading: true)
+    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }), isLoading: true)
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
