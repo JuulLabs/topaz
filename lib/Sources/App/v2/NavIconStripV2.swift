@@ -22,9 +22,9 @@ struct NavIconStripV2: View {
             .disabled(model.forwardButtonDisabled)
             Spacer()
             Button {
-                
+                model.navigator.isInSearchMode = true
             } label: {
-                systemIcon(imageName: "magnifyingglass")
+                systemIcon(imageName: "magnifyingglass", size: 24)
             }
             Spacer()
             Button {

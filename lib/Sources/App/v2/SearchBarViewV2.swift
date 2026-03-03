@@ -33,7 +33,7 @@ struct SearchBarViewV2: View {
                 .font(.system(size: 24).weight(.light))
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.vertical, 6)
         .frame(maxWidth: .infinity, maxHeight: 48)
         .background(
             RoundedRectangle(cornerRadius: 24)
@@ -43,6 +43,7 @@ struct SearchBarViewV2: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.white, lineWidth: 0.25)
         )
+//        .border(Color.red)
     }
 }
 

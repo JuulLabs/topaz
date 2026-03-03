@@ -22,6 +22,10 @@ public extension Color {
         Color(hex: "#273E8E")!
     }
 
+    static var navigationBackground: Color {
+        Color(hex: "#CBD3EC")!
+    }
+
     static var redNotification: Color {
         Color(hex: "#E71A40")!
     }
