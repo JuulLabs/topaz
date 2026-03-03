@@ -4,7 +4,7 @@ import SwiftUI
 struct NavIconStripV2: View {
 
     let model: NavBarModel
-    
+
     var body: some View {
         HStack(spacing: 0) {
             Button {
