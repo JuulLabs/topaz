@@ -33,12 +33,6 @@ struct NavIconStripV2: View {
                 customIcon(image: .fullscreenIcon, disabled: model.fullscreenButtonDisabled)
             }
             .disabled(model.fullscreenButtonDisabled)
-//            Spacer()
-//            Button {
-//                model.tabManagementButtonTapped()
-//            } label: {
-//                systemIcon(imageName: "square.on.square", size: 28)
-//            }
             Spacer()
             Button {
                 model.settingsButtonTapped()
@@ -56,7 +50,6 @@ struct NavIconStripV2: View {
         Image(systemName: imageName)
             .font(.system(size: size).weight(.light))
             .foregroundStyle(Color.iconDefault.opacity(disabled ? 0.5 : 1.0))
-//            .foregroundStyle(Color(white: 1.0, opacity: disabled ? 0.5 : 1.0))
             .padding(8) // For a larger hit box
     }
 

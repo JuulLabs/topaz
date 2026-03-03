@@ -43,7 +43,6 @@ struct SearchBarViewV2: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.white, lineWidth: 0.25)
         )
-//        .border(Color.red)
     }
 }
 

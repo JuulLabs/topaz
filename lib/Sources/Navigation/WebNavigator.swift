@@ -26,7 +26,7 @@ public final class WebNavigator {
         }
     }
 
-//    @ObservationIgnored
+    @ObservationIgnored
     public var onPageLoaded: (URL, String?) -> Void = { _, _ in }
 
     @ObservationIgnored

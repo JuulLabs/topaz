@@ -11,57 +11,16 @@ import SwiftUI
 import WebView
 import WebKit
 
-extension View {
-    @ViewBuilder func safeAreaBarIfAvailable(content: () -> some View) -> some View {
-        if #available(iOS 26.0, *) {
-            self
-                .ignoresSafeArea(.all, edges: .bottom)
-                .safeAreaBar(edge: .bottom) {
-                    content()
-                }
-        } else {
-            VStack(spacing: 0) {
-                self
-                content()
-                    .background(Color.white)
-//                    .blur(radius: 20)
-            }
-        }
-    }
-}
-
 struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-//        ZStack(alignment: .bottom) {
-//            WebPageView(model: webContainerModel.webPageModel)
-//                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
-//                    PullDrawerView {
-//                        webContainerModel.navBarModel.fullscreenButtonTapped()
-//                    }
-//                }
-//                .ignoresSafeArea(.all, edges: .bottom)
-////            VStack(spacing: 0) {
-////                if webContainerModel.shouldShowErrorState {
-////                    BluetoothErrorView(
-////                        state: webContainerModel.bluetoothSystem.systemState,
-////                        drawShadow: !webContainerModel.navBarModel.isFullscreen
-////                    )
-////                }
-////                if !webContainerModel.navBarModel.isFullscreen {
-////                    NavBarViewV2(model: webContainerModel.navBarModel)
-////                        .transition(.move(edge: .bottom).combined(with: .opacity))
-////                }
-////            }
-//        }
         WebPageView(model: webContainerModel.webPageModel)
             .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
                 PullDrawerView {
                     webContainerModel.navBarModel.fullscreenButtonTapped()
                 }
             }
-//            .ignoresSafeArea(.all, edges: .bottom)
             .safeAreaBarIfAvailable {
                 VStack(spacing: 0) {
                     if webContainerModel.shouldShowErrorState {
@@ -76,20 +35,6 @@ struct WebContainerView: View {
                     }
                 }
             }
-//        .safeAreaBar(edge: .bottom) {
-//            VStack(spacing: 0) {
-//                if webContainerModel.shouldShowErrorState {
-//                    BluetoothErrorView(
-//                        state: webContainerModel.bluetoothSystem.systemState,
-//                        drawShadow: !webContainerModel.navBarModel.isFullscreen
-//                    )
-//                }
-//                if !webContainerModel.navBarModel.isFullscreen {
-//                    NavBarViewV2(model: webContainerModel.navBarModel)
-//                        .transition(.move(edge: .bottom).combined(with: .opacity))
-//                }
-//            }
-//        }
             .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
             .sheet(isPresented: $webContainerModel.selector.isSelecting) {
                 NavigationStack {

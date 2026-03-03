@@ -16,7 +16,6 @@ public final class FreshPageModel {
         self.navBarModel = navBarModel
         self.isLoading = isLoading
         self.searchBarFocusOnLoad = searchBarFocusOnLoad
-//        self.navBarModel.isInSearchMode = true
     }
 
     func onAppear() {
