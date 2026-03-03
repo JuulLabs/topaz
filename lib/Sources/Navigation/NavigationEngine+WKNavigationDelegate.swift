@@ -4,6 +4,8 @@ import WebKit
 
 private let log = Logger(subsystem: "WebView", category: "NavigationDelegate")
 
+private let FrameLoadInterruptedErrorCode = 102
+
 extension NavigationEngine: WKNavigationDelegate {
 
     // MARK: - Policy decisions
@@ -23,21 +25,19 @@ extension NavigationEngine: WKNavigationDelegate {
             return .cancel
         }
         latestRequest = newRequest
-        log.debug("Request allowed action=\(navigationAction)")
-        return .allow
+        log.debug("Request allowed url=\(navigationAction.request.url?.absoluteString ?? "nil") isDownload=\(newRequest.isDownload) action=\(navigationAction)")
+        if newRequest.isDownload {
+            rememberRecentDownload(newRequest.url)
+        }
+        return newRequest.isDownload ? .download : .allow
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
         rejectionReason = nil
         rejectionStatusCode = nil
-        guard let latestRequest else {
+        guard let latestRequest = latestRequest?.updated(with: navigationResponse) else {
             rejectionReason = "Out-of-band navigation response"
             log.warning("Unexpected response ignored response=\(navigationResponse)")
-            return .cancel
-        }
-        guard navigationResponse.canShowMIMEType else {
-            rejectionReason = "Unsupported mime-type \(navigationResponse.response.mimeType ?? "nil")"
-            log.warning("Response ignored due to unsupported mime-type response=\(navigationResponse)")
             return .cancel
         }
         if let httpResponse = navigationResponse.response as? HTTPURLResponse {
@@ -46,11 +46,14 @@ extension NavigationEngine: WKNavigationDelegate {
                 log.warning("Response rejected statusCode=\(httpResponse.statusCode) url=\(latestRequest.url.absoluteString)")
                 return .cancel
             }
-            log.info("Response accepted statusCode=\(httpResponse.statusCode) url=\(latestRequest.url.absoluteString)")
+            log.debug("Response accepted statusCode=\(httpResponse.statusCode) url=\(latestRequest.url.absoluteString) isDownload=\(latestRequest.isDownload)")
         } else {
-            log.info("Response accepted url=\(latestRequest.url.absoluteString)")
+            log.debug("Response accepted url=\(latestRequest.url.absoluteString) isDownload=\(latestRequest.isDownload) response=\(navigationResponse)")
         }
-        return .allow
+        if latestRequest.isDownload {
+            rememberRecentDownload(latestRequest.url)
+        }
+        return latestRequest.isDownload ? .download : .allow
     }
 
     // MARK: - Navigation logic
@@ -58,7 +61,7 @@ extension NavigationEngine: WKNavigationDelegate {
     // Request has been sent to the web server and we are ready to start receiving a response
     public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         if let request = latestRequest {
-            log.debug("Provisional navigation started navigation=\(navigation)")
+            log.debug("Provisional navigation started url=\(request.url.absoluteString) isDownload=\(request.isDownload) navigation=\(navigation)")
             let navigationItem = NavigationItem(navigation: navigation, request: request)
             navigations[navigation] = navigationItem
             navigator.startObservingLoadingProgress(of: webView)
@@ -91,9 +94,32 @@ extension NavigationEngine: WKNavigationDelegate {
         delegate?.didEndLoading(navigationItem, in: webView)
     }
 
+    // MARK: - Downloading
+
+    public func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+        if let url = navigationAction.request.url {
+            log.debug("Switching to download: \(download) url=\(url) action=\(navigationAction)")
+            download.delegate = self
+            rememberRecentDownload(url)
+        }
+    }
+
+    public func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+        if let url = navigationResponse.response.url {
+            log.debug("Switching to download: \(download) url=\(url) response=\(navigationResponse)")
+            download.delegate = self
+            rememberRecentDownload(url)
+        }
+    }
+
     // MARK: - Error handling
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
+        if (error as NSError).code == FrameLoadInterruptedErrorCode, let url = latestRequest?.url, isRecentDownload(url) {
+            log.debug("Benign provisional navigation failure ignored due to download conversion for \(url)")
+            latestRequest = nil
+            return
+        }
         log.debug("Provisional navigation failed navigation=\(navigation) error=\(error)")
         latestRequest = nil
         handleError(error, for: navigation, in: webView)

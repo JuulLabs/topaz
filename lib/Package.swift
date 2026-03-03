@@ -21,6 +21,7 @@ let package = Package(
             name: "App",
             dependencies: [
                 "Design",
+                "Downloader",
                 "Navigation",
                 "Permissions",
                 "SecurityList",
@@ -136,6 +137,13 @@ let package = Package(
         ),
 
         .target(
+            name: "Downloader",
+            dependencies: [
+                "Design",
+            ],
+        ),
+
+        .target(
             name: "EventBus",
             dependencies: [
                 "Bluetooth",
@@ -169,6 +177,7 @@ let package = Package(
         .target(
             name: "Navigation",
             dependencies: [
+                "Downloader",
                 "Helpers",
             ]
         ),
@@ -202,6 +211,7 @@ let package = Package(
             name: "Settings",
             dependencies: [
                 "Design",
+                "Downloader",
                 "Permissions",
                 "UIHelpers",
             ]

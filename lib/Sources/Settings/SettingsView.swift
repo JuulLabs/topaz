@@ -1,4 +1,5 @@
 import Design
+import Downloader
 import Permissions
 import SwiftUI
 
@@ -74,6 +75,15 @@ public struct SettingsView: View {
                     Text("Remove all website data including cache, cookies, etc.")
                 })
 
+                if !model.isDownloadsDisabled {
+                    LabeledContent("Recent Downloads") {
+                        Image(systemName: "chevron.right")
+                    }
+                    .listRowTintedButton(color: Color.topaz800) {
+                        model.downloadsButtonTapped()
+                    }
+                }
+
                 LabeledContent("Bluetooth Permissions") {
                     Image(systemName: "chevron.right")
                 }
@@ -94,7 +104,7 @@ public struct SettingsView: View {
         }
         .font(.dogpatch(.headline))
         .imageScale(.large)
-        .foregroundStyle(Color.textPrimary)
+        .foregroundStyle(Color.brightTextPrimary)
         .scrollContentBackground(.hidden)
         .background(Color.topaz700)
         .toolbar {
@@ -102,7 +112,12 @@ public struct SettingsView: View {
                 model.doneButtonTapped()
             }
             .font(.dogpatch(.title3))
-            .foregroundStyle(Color.textPrimary)
+            .foregroundStyle(Color.brightTextPrimary)
+        }
+        .navigationDestination(isPresented: $model.presentDownloadsView) {
+            DownloadListView(model: .shared)
+                .navigationTitle("Recent Downloads")
+                .navigationBarTitleDisplayMode(.inline)
         }
         .navigationDestination(isPresented: $model.presentPermissionsView) {
             PermissionsView(model: .shared)

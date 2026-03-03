@@ -27,6 +27,8 @@ public class WebPageModel: Identifiable {
 
     public var presentPermissionsDialog: Bool = false
 
+    public var isDownloadsPresented: Bool = false
+
     let messageProcessorFactory: JsMessageProcessorFactory
 
     // TODO: dynamically construct this

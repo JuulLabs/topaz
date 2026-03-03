@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import Downloader
 import Helpers
 import JsMessage
 import Navigation
