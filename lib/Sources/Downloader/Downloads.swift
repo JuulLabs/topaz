@@ -6,14 +6,14 @@ import SwiftUI
 @Observable
 public final class Downloads {
     private var nextId: Int = 0
-    private var cache: [ObjectIdentifier: Download] = [:]
+    private var cache: [ObjectIdentifier: DownloadRowModel] = [:]
 
-    var downloads: [Download] {
+    var downloads: [DownloadRowModel] {
         cache.values.sorted(by: orderByIdDescending)
     }
 
     public func beginDownload(url: URL, for progressReporting: ProgressReporting) {
-        let download = Download(id: nextId, destinationURL: url)
+        let download = DownloadRowModel(id: nextId, destinationURL: url)
         nextId += 1
         withAnimation {
             cache[ObjectIdentifier(progressReporting)] = download
@@ -59,6 +59,6 @@ extension Downloads {
     public static let shared: Downloads = .init()
 }
 
-private func orderByIdDescending(_ lhs: Download, _ rhs: Download) -> Bool {
+private func orderByIdDescending(_ lhs: DownloadRowModel, _ rhs: DownloadRowModel) -> Bool {
     lhs.id > rhs.id
 }

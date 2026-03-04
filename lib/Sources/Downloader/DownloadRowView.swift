@@ -2,7 +2,7 @@ import Design
 import SwiftUI
 
 struct DownloadRowView: View {
-    @Bindable var model: Download
+    @Bindable var model: DownloadRowModel
 
     var body: some View {
         HStack(spacing: 12) {
@@ -72,14 +72,14 @@ struct DownloadRowView: View {
 #Preview {
     let url = URL(fileURLWithPath: "/foo/download.bin")
     List {
-        DownloadRowView(model: Download(id: 0, destinationURL: url))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, percentageProgress: 0.0))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, percentageProgress: 0.5))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, percentageProgress: 1.0))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, bytesProgress: 150_000))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, state: .finished))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, state: .finished, bytesProgress: 1024))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, state: .failed))
-        DownloadRowView(model: Download(id: 0, destinationURL: url, state: .failed, errorDescription: "Custom error"))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, percentageProgress: 0.0))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, percentageProgress: 0.5))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, percentageProgress: 1.0))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, bytesProgress: 150_000))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, state: .finished))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, state: .finished, bytesProgress: 1024))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, state: .failed))
+        DownloadRowView(model: DownloadRowModel(id: 0, destinationURL: url, state: .failed, errorDescription: "Custom error"))
     }
 }

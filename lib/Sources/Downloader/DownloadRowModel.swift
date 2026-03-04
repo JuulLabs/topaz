@@ -5,11 +5,11 @@ import SwiftUI
 
 @MainActor
 @Observable
-public final class Download: Identifiable {
-    public enum State { case downloading, finished, failed }
+final class DownloadRowModel: Identifiable {
+    enum State { case downloading, finished, failed }
 
-    public let id: Int
-    public let destinationURL: URL
+    let id: Int
+    let destinationURL: URL
 
     private(set) var state: State
     private(set) var percentageProgress: Double?
@@ -21,7 +21,7 @@ public final class Download: Identifiable {
 
     let creationDate: Date = .init()
 
-    public init(
+    init(
         id: Int,
         destinationURL: URL,
         state: State = .downloading,
