@@ -24,9 +24,13 @@ public struct AppContentView: View {
     public var body: some View {
         if let webLoadingModel = model.activePageModel {
             WebLoadingView(model: webLoadingModel)
+                // TODO: This locks the app to light mode. Remove this when we want to support dark mode.
+                .preferredColorScheme(.light)
                 .background(Color.backgroundPrimary)
         } else {
             TabGridView(model: model.tabsModel)
+                // TODO: This locks the app to light mode. Remove this when we want to support dark mode.
+                .preferredColorScheme(.light)
         }
     }
 }
