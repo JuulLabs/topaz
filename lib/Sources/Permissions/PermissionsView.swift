@@ -26,7 +26,7 @@ public struct PermissionsView: View {
         }
         .font(.dogpatch(.headline))
         .imageScale(.large)
-        .foregroundStyle(Color.textPrimary)
+        .foregroundStyle(Color.brightTextPrimary)
         .scrollContentBackground(.hidden)
         .background(Color.topaz700)
         .toolbar {

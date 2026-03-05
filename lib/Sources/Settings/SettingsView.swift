@@ -94,7 +94,7 @@ public struct SettingsView: View {
         }
         .font(.dogpatch(.headline))
         .imageScale(.large)
-        .foregroundStyle(Color.textPrimary)
+        .foregroundStyle(Color.brightTextPrimary)
         .scrollContentBackground(.hidden)
         .background(Color.topaz700)
         .toolbar {
@@ -102,7 +102,7 @@ public struct SettingsView: View {
                 model.doneButtonTapped()
             }
             .font(.dogpatch(.title3))
-            .foregroundStyle(Color.textPrimary)
+            .foregroundStyle(Color.brightTextPrimary)
         }
         .navigationDestination(isPresented: $model.presentPermissionsView) {
             PermissionsView(model: .shared)
