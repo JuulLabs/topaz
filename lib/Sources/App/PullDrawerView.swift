@@ -12,7 +12,7 @@ struct PullDrawerView: View {
                 Image(media: .exitFullscreen)
                 Text("Exit fullscreen")
                     .font(.dogpatch(.subheadline))
-                    .foregroundStyle(Color.textPrimary)
+                    .foregroundStyle(Color.brightTextPrimary)
             }
             .padding(.vertical, 8)
             .padding(.horizontal, 16)

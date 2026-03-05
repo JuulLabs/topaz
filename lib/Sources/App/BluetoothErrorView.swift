@@ -17,7 +17,7 @@ struct BluetoothErrorView: View {
                         .font(.headline)
                     Text(determineErrorText(for: state))
                         .font(.dogpatch(.headline))
-                        .foregroundStyle(Color.textPrimary)
+                        .foregroundStyle(Color.brightTextPrimary)
                 }
                 if state == .unauthorized {
                     Button {

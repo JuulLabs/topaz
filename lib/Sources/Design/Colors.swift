@@ -38,6 +38,10 @@ public extension Color {
         Color(hex: "#273E8E")!
     }
 
+    static var brightTextPrimary: Color {
+        Color(hex: "#F9F9F9")!
+    }
+
     static var textSecondary: Color {
         Color(hex: "#BABABA")!
     }

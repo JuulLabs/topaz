@@ -8,7 +8,7 @@ struct PickerLineView: View {
         HStack {
             Text(model.name)
                 .font(.dogpatch(.headline))
-                .foregroundStyle(Color.textPrimary)
+                .foregroundStyle(Color.brightTextPrimary)
             Spacer()
             Image(media: determineSignalImage(basedOn: model.ad.rssi))
         }
