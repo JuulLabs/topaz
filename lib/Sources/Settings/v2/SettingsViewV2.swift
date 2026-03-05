@@ -25,38 +25,15 @@ public struct SettingsViewV2: View {
             }
         }
         .padding(24)
-//        .cornerRadius(48)
         .background {
             RoundedRectangle(cornerRadius: 48)
                 .fill(Color.cellFillPrimary.opacity(0.97))
                 .blur(radius: 1)
-//            Color.red//.cellFillPrimary.opacity(0.1)
-//                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 48))
-//                .environment(\.colorScheme, .light)
         }
-
-//        .preferredColorScheme(.light)
-
-//        .background(Color.clear)
-
-//        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 48))
-
-//        .background(
-////            Color.cellFillPrimary.opacity(0.5)
-//            RoundedRectangle(cornerRadius: 48)
-//                .stroke(.white, lineWidth: 1)
-//                .background(.ultraThinMaterial)
-////                .fill(Color.cellFillPrimary)
-//
-//        )
         .overlay(
             RoundedRectangle(cornerRadius: 48)
                 .stroke(.white, lineWidth: 1)
         )
-//        .mask(
-//            RoundedRectangle(cornerRadius: 48)
-//                .stroke(.white, lineWidth: 1)
-//        )
     }
 
     @ViewBuilder private func settingsButton(systemImageName: String, title: String, action: @escaping () -> Void) -> some View {

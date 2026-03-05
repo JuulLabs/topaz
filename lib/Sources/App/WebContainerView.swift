@@ -43,13 +43,6 @@ struct WebContainerView: View {
                     }
                     .accentColor(.white)
                 }
-//                .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
-//                    NavigationStack {
-//                        SettingsView(model: webContainerModel.navBarModel.settingsModel)
-//                            .navigationTitle("Settings")
-//                    }
-//                    .accentColor(.white)
-//                }
             if webContainerModel.navBarModel.isSettingsPresented {
                 Color.clear
                     .contentShape(Rectangle()) // Ensures the entire area is tappable
@@ -65,7 +58,6 @@ struct WebContainerView: View {
                             .padding(.trailing, 16)
                             .offset(y: -57)
                     }
-//                    .border(Color.red)
             }
         }
         .animation(.spring(.smooth), value: webContainerModel.navBarModel.isSettingsPresented)
