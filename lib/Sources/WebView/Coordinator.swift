@@ -87,6 +87,14 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
     }
+
+    public func startedDownload(for url: URL) {
+        viewModel?.isDownloadsPresented = true
+    }
+
+    public func completedDownload(for url: URL) {
+        viewModel?.isDownloadsPresented = true
+    }
 }
 
 extension WKWebView {

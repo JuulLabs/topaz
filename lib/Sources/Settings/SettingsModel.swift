@@ -1,3 +1,4 @@
+import Downloader
 import Observation
 import SwiftUI
 
@@ -14,6 +15,7 @@ public final class SettingsModel {
     public var shareItem: SharingUrl = .init()
 
     public var presentClearCacheDialogue: Bool = false
+    public var presentDownloadsView: Bool = false
     public var presentPermissionsView: Bool = false
 
     public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
@@ -40,6 +42,14 @@ public final class SettingsModel {
     }
 
     func privacyPolicyButtonTapped() {
+    }
+
+    var isDownloadsDisabled: Bool {
+        Downloads.shared.isEmpty
+    }
+
+    func downloadsButtonTapped() {
+        presentDownloadsView = true
     }
 
     func permissionsButtonTapped() {

@@ -3,6 +3,7 @@ import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
 import DevicePicker
+import Downloader
 import EventBus
 import JsMessage
 import Observation
@@ -48,6 +49,13 @@ struct WebContainerView: View {
                         .navigationTitle("Settings")
                 }
                 .accentColor(.white)
+            }
+            .sheet(isPresented: $webContainerModel.webPageModel.isDownloadsPresented) {
+                NavigationStack {
+                    DownloadListView(model: Downloads.shared)
+                        .navigationTitle("Downloads")
+                }
+                .presentationDetents([.medium])
             }
     }
 }
