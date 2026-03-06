@@ -16,23 +16,23 @@ struct NavBarViewV2: View {
     // stops when the keyboard is present vs when it's not.
     private var backgroundGradientStops: [Gradient.Stop] {
         if keyboardPresent {[
-                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
-                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.8), location: 0.2),
-                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),
+                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
+                Gradient.Stop(color: Color.navigationBackground.opacity(0.8), location: 0.2),
+                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
             ]
         } else {[
-                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0), location: 0),
-                Gradient.Stop(color: Color.init(hex: "#CBD3EC")!.opacity(0.95), location: 1),
+                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
+                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
             ]
         }
     }
 
     var body: some View {
         HStack(spacing: 20) {
-            if model.isInSearchMode {
+            if model.navigator.isInSearchMode {
                 SearchBarViewV2(model: model.searchBarModel)
                 Button(action: {
-                    model.isInSearchMode = false
+                    model.navigator.isInSearchMode = false
                 }, label: {
                     Image(systemName: "xmark")
                         .foregroundStyle(Color.iconDefault)
@@ -44,21 +44,18 @@ struct NavBarViewV2: View {
                         )
                 })
             } else {
-                Button(action: {
-                    model.isInSearchMode = true
-                }, label: {
-                    Text("nav mode placeholder")
-                })
+                NavIconStripV2(model: model)
             }
         }
-        .animation(.spring, value: model.isInSearchMode)
-        .padding([.leading, .trailing], 36)
-        .frame(maxWidth: .infinity, minHeight: 92)
+        .animation(.spring, value: model.navigator.isInSearchMode)
+        .padding(.horizontal, 16)
+        .padding(.bottom, 6)
+        .frame(maxWidth: .infinity)
         .background(
             LinearGradient(
                 stops: backgroundGradientStops,
-                startPoint: UnitPoint(x: 0.5, y: 0),
-                endPoint: UnitPoint(x: 0.5, y: 1)
+                startPoint: .top,
+                endPoint: .bottom
             )
             .edgesIgnoringSafeArea(.all)
         )

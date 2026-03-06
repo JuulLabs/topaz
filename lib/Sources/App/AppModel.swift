@@ -108,6 +108,7 @@ public class AppModel {
             settingsModel.shareItem = SharingUrl(url: url, subject: title)
             self?.tabsModel.update(url: url, at: tabIndex)
             searchBarModel?.searchString = url.absoluteString
+            navigator.isInSearchMode = false
         }
         navigator.launchNewPage = { [weak self] newUrl in
             guard let self else { return }
