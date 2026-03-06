@@ -56,9 +56,11 @@ public class WebPageModel: Identifiable {
     }
 
     func createWebView() -> WKWebView {
-         let webView = WKWebView(frame: .zero, configuration: config)
-         webView.allowsBackForwardNavigationGestures = true
-         return webView
+        let webView = WKWebView(frame: .zero, configuration: config)
+        // Ensures that content at the bottom of the webview is scrollable above the nav bar
+        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 85, right: 0)
+        webView.allowsBackForwardNavigationGestures = true
+        return webView
     }
 
     func didBeginLoading(url: URL) {

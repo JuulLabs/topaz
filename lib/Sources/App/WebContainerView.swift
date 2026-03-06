@@ -15,38 +15,40 @@ struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            WebPageView(model: webContainerModel.webPageModel)
-                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
-                    PullDrawerView {
-                        webContainerModel.navBarModel.fullscreenButtonTapped()
+        WebPageView(model: webContainerModel.webPageModel)
+            .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
+                PullDrawerView {
+                    webContainerModel.navBarModel.fullscreenButtonTapped()
+                }
+            }
+            .safeAreaBarIfAvailable {
+                VStack(spacing: 0) {
+                    if webContainerModel.shouldShowErrorState {
+                        BluetoothErrorView(
+                            state: webContainerModel.bluetoothSystem.systemState,
+                            drawShadow: !webContainerModel.navBarModel.isFullscreen
+                        )
+                    }
+                    if !webContainerModel.navBarModel.isFullscreen {
+                        NavBarViewV2(model: webContainerModel.navBarModel)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-            if webContainerModel.shouldShowErrorState {
-                BluetoothErrorView(
-                    state: webContainerModel.bluetoothSystem.systemState,
-                    drawShadow: !webContainerModel.navBarModel.isFullscreen
-                )
             }
-            if !webContainerModel.navBarModel.isFullscreen {
-                NavBarView(model: webContainerModel.navBarModel)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+            .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
+            .sheet(isPresented: $webContainerModel.selector.isSelecting) {
+                NavigationStack {
+                    DevicePickerView(model: webContainerModel.pickerModel)
+                }
+                .accentColor(.white)
             }
-        }
-        .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
-        .sheet(isPresented: $webContainerModel.selector.isSelecting) {
-            NavigationStack {
-                DevicePickerView(model: webContainerModel.pickerModel)
+            .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
+                NavigationStack {
+                    SettingsView(model: webContainerModel.navBarModel.settingsModel)
+                        .navigationTitle("Settings")
+                }
+                .accentColor(.white)
             }
-            .accentColor(.white)
-        }
-        .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
-            NavigationStack {
-                SettingsView(model: webContainerModel.navBarModel.settingsModel)
-                    .navigationTitle("Settings")
-            }
-            .accentColor(.white)
-        }
     }
 }
 

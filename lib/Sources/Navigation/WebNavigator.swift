@@ -16,6 +16,7 @@ public final class WebNavigator {
     public private(set) var backForwardList: WKBackForwardList = WebNavigator.placeholderBackForwardList
     public private(set) var canGoForward: Bool = false
     public private(set) var canGoBack: Bool = false
+    public var isInSearchMode: Bool = true
 
     public private(set) var loadingState: WebPageLoadingState {
         willSet {
