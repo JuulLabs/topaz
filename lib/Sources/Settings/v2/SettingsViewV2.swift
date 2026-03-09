@@ -12,19 +12,20 @@ public struct SettingsViewV2: View {
     public var body: some View {
         VStack(spacing: 24) {
             settingsButton(systemImageName: "square.on.square", title: "Tabs") {
-                print("hello")
+                // TODO: Implement
             }
             settingsButton(systemImageName: "square.and.arrow.up", title: "Share") {
-
+                // TODO: Implement
             }
             settingsButton(systemImageName: "trash", title: "Clear website data") {
-
+                // TODO: Implement
             }
             settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
-
+                // TODO: Implement
             }
         }
         .padding(24)
+        .frame(maxWidth: 322)
         .background {
             RoundedRectangle(cornerRadius: 48)
                 .fill(Color.cellFillPrimary.opacity(0.97))

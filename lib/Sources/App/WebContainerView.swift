@@ -16,7 +16,7 @@ struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .bottomTrailing) {
             WebPageView(model: webContainerModel.webPageModel)
                 .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
                     PullDrawerView {
@@ -37,38 +37,33 @@ struct WebContainerView: View {
                         }
                     }
                 }
-                .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
-                .sheet(isPresented: $webContainerModel.selector.isSelecting) {
-                    NavigationStack {
-                        DevicePickerView(model: webContainerModel.pickerModel)
-                    }
-                    .accentColor(.white)
-                }
-                .sheet(isPresented: $webContainerModel.webPageModel.isDownloadsPresented) {
-                    NavigationStack {
-                        DownloadListView(model: Downloads.shared)
-                            .navigationTitle("Downloads")
-                    }
-                    .presentationDetents([.medium])
-                }
             if webContainerModel.navBarModel.isSettingsPresented {
                 Color.clear
                     .contentShape(Rectangle()) // Ensures the entire area is tappable
                     .edgesIgnoringSafeArea(.all)
                     .onTapGesture {
-                        withAnimation {
-                            webContainerModel.navBarModel.settingsButtonTapped()
-                        }
+                        webContainerModel.navBarModel.settingsButtonTapped()
                     }
-                    .overlay(alignment: .bottomTrailing) {
-                        SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
-                            .padding(.leading, 56)
-                            .padding(.trailing, 16)
-                            .offset(y: -57)
-                    }
+                SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
+                    .padding(.trailing, 16)
+                    .offset(y: -50)
             }
         }
         .animation(.spring(.smooth), value: webContainerModel.navBarModel.isSettingsPresented)
+        .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
+        .sheet(isPresented: $webContainerModel.selector.isSelecting) {
+            NavigationStack {
+                DevicePickerView(model: webContainerModel.pickerModel)
+            }
+            .accentColor(.white)
+        }
+        .sheet(isPresented: $webContainerModel.webPageModel.isDownloadsPresented) {
+            NavigationStack {
+                DownloadListView(model: Downloads.shared)
+                    .navigationTitle("Downloads")
+            }
+            .presentationDetents([.medium])
+        }
     }
 }
 
