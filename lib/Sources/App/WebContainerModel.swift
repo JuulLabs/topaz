@@ -8,7 +8,7 @@ import WebView
 @MainActor
 @Observable
 public final class WebContainerModel {
-    public let webPageModel: WebPageModel
+    public var webPageModel: WebPageModel
     public let pickerModel: DevicePickerModel
     public var navBarModel: NavBarModel
     public var selector: DeviceSelector

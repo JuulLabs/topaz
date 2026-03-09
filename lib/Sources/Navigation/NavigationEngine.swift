@@ -3,6 +3,8 @@ import WebKit
 
 @MainActor
 public final class NavigationEngine: NSObject {
+    private var recentDownloads: [URL] = []
+
     var latestRequest: NavigationRequest?
     var navigations: [WKNavigation: NavigationItem] = [:]
 
@@ -35,5 +37,16 @@ public final class NavigationEngine: NSObject {
             return
         }
         webView.load(request)
+    }
+
+    func rememberRecentDownload(_ url: URL) {
+        recentDownloads.insert(url, at: 0)
+        if recentDownloads.count > 5 {
+            recentDownloads.removeLast(recentDownloads.count - 5)
+        }
+    }
+
+    func isRecentDownload(_ url: URL) -> Bool {
+        recentDownloads.contains(url)
     }
 }
