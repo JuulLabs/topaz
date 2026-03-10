@@ -18,15 +18,15 @@ public final class NavBarModel {
     var isSettingsPresented: Bool = false
 
     private(set) var isFullscreen: Bool = false
-    private let tabManagementAction: () -> Void
+//    private let tabManagementAction: () -> Void
     private let onFullscreenChanged: (Bool) -> Void
 
     init(
         navigator: WebNavigator = WebNavigator(),
-        settingsModel: SettingsModel = SettingsModel(),
+        settingsModel: SettingsModel,
         searchBarModel: SearchBarModel? = nil,
         isFullscreen: Bool = false,
-        tabManagementAction: @escaping () -> Void,
+//        tabManagementAction: @escaping () -> Void,
         onFullscreenChanged: @escaping (Bool) -> Void
     ) {
         self.navigator = navigator
@@ -34,7 +34,7 @@ public final class NavBarModel {
         self.pullDrawer = PullDrawerModel(height: 104.0, ratio: 1.25, activationDistance: 16)
         self.settingsModel = settingsModel
         self.isFullscreen = isFullscreen
-        self.tabManagementAction = tabManagementAction
+//        self.tabManagementAction = tabManagementAction
         self.onFullscreenChanged = onFullscreenChanged
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
@@ -75,9 +75,9 @@ public final class NavBarModel {
         }
     }
 
-    func tabManagementButtonTapped() {
-        tabManagementAction()
-    }
+//    func tabManagementButtonTapped() {
+//        tabManagementAction()
+//    }
 
     func settingsButtonTapped() {
         isSettingsPresented.toggle()

@@ -13,7 +13,7 @@ public struct TabGridView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
+        ZStack(alignment: .bottom) {
             ScrollView(.vertical) {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(model.tabCells) { tabCell in
@@ -27,7 +27,7 @@ public struct TabGridView: View {
                 .padding(16)
             }
             .animation(.smooth, value: model.tabCells)
-            .background(Color.topaz800)
+            .background(Color.backgroundSecondary)
             TabManagementToolbarView(model: model)
         }
     }

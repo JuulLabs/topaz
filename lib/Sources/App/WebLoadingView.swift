@@ -3,6 +3,7 @@ import BluetoothClient
 import DevicePicker
 import JsMessage
 import Observation
+import Settings
 import SwiftUI
 import WebView
 import WebKit
@@ -64,7 +65,7 @@ struct WebLoadingView: View {
 
 @MainActor
 private func previewModel() -> WebLoadingModel {
-    let navBarModel = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
     let freshPageModel = FreshPageModel(navBarModel: navBarModel)
     return WebLoadingModel(
         freshPageModel: freshPageModel,
@@ -74,7 +75,7 @@ private func previewModel() -> WebLoadingModel {
 
 @MainActor
 private func webModel(url: URL) -> WebContainerModel {
-    let navBarModel = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
     return WebContainerModel(
         webPageModel: WebPageModel(
             tab: 0,

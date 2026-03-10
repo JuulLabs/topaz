@@ -1,4 +1,5 @@
 import Design
+import Settings
 import SwiftUI
 
 struct NavIconStrip: View {
@@ -28,7 +29,7 @@ struct NavIconStrip: View {
             .disabled(model.fullscreenButtonDisabled)
             Spacer()
             Button {
-                model.tabManagementButtonTapped()
+                model.settingsModel.tabManagementButtonTapped()
             } label: {
                 systemIcon(imageName: "square.on.square", size: 28)
             }
@@ -78,7 +79,7 @@ struct NavIconStrip: View {
 
 @MainActor
 private func previewModel(disabled: Bool) -> NavBarModel {
-    let model = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+    let model = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
     model.fullscreenButtonDisabled = disabled
     return model
 }

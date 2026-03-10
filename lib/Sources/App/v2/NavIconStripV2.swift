@@ -1,4 +1,5 @@
 import Design
+import Settings
 import SwiftUI
 
 struct NavIconStripV2: View {
@@ -64,6 +65,6 @@ struct NavIconStripV2: View {
 }
 
 #Preview {
-    let model = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+    let model = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
     NavIconStripV2(model: model)
 }

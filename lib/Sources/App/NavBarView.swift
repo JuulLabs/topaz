@@ -1,4 +1,5 @@
 import Bluetooth
+import Settings
 import SwiftUI
 import WebView
 
@@ -32,6 +33,6 @@ struct NavBarView: View {
 
 #Preview {
     NavBarView(
-        model: NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+        model: NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
     )
 }
