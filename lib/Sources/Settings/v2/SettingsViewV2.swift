@@ -76,7 +76,7 @@ public struct SettingsViewV2: View {
 }
 
 #Preview {
-    SettingsViewV2(model: SettingsModel() {}, onOutsideTap: {})
+    SettingsViewV2(model: SettingsModel {}, onOutsideTap: {})
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

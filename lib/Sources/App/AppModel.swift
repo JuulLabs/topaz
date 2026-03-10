@@ -100,7 +100,7 @@ public class AppModel {
     }
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
-        let settingsModel = SettingsModel() { [weak self] in
+        let settingsModel = SettingsModel { [weak self] in
             self?.lastOpenedTabIndex = nil
             self?.activePageModel = nil
         }

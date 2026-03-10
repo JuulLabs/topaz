@@ -92,7 +92,7 @@ private func previewModel(state: SystemState) -> WebContainerModel {
     let factory = staticMessageProcessorFactory(
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
-    let navBarModel = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,

@@ -129,7 +129,7 @@ public struct SettingsView: View {
 
 #Preview {
     NavigationStack {
-        SettingsView(model: SettingsModel() {})
+        SettingsView(model: SettingsModel {})
             .navigationTitle("Settings")
     }
     .accentColor(.white)

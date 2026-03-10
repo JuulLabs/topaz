@@ -79,7 +79,7 @@ struct NavIconStrip: View {
 
 @MainActor
 private func previewModel(disabled: Bool) -> NavBarModel {
-    let model = NavBarModel(settingsModel: SettingsModel() {}, onFullscreenChanged: { _ in })
+    let model = NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
     model.fullscreenButtonDisabled = disabled
     return model
 }
