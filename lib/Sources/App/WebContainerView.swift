@@ -16,47 +16,54 @@ struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-        WebPageView(model: webContainerModel.webPageModel)
-            .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
-                PullDrawerView {
-                    webContainerModel.navBarModel.fullscreenButtonTapped()
-                }
-            }
-            .safeAreaBarIfAvailable {
-                VStack(spacing: 0) {
-                    if webContainerModel.shouldShowErrorState {
-                        BluetoothErrorView(
-                            state: webContainerModel.bluetoothSystem.systemState,
-                            drawShadow: !webContainerModel.navBarModel.isFullscreen
-                        )
-                    }
-                    if !webContainerModel.navBarModel.isFullscreen {
-                        NavBarViewV2(model: webContainerModel.navBarModel)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
+        ZStack(alignment: .bottomTrailing) {
+            WebPageView(model: webContainerModel.webPageModel)
+                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
+                    PullDrawerView {
+                        webContainerModel.navBarModel.fullscreenButtonTapped()
                     }
                 }
-            }
-            .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
-            .sheet(isPresented: $webContainerModel.selector.isSelecting) {
-                NavigationStack {
-                    DevicePickerView(model: webContainerModel.pickerModel)
+                .safeAreaBarIfAvailable {
+                    VStack(spacing: 0) {
+                        if webContainerModel.shouldShowErrorState {
+                            BluetoothErrorView(
+                                state: webContainerModel.bluetoothSystem.systemState,
+                                drawShadow: !webContainerModel.navBarModel.isFullscreen
+                            )
+                        }
+                        if !webContainerModel.navBarModel.isFullscreen {
+                            NavBarViewV2(model: webContainerModel.navBarModel)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        }
+                    }
                 }
-                .accentColor(.white)
+            if webContainerModel.navBarModel.isSettingsPresented {
+                Color.clear
+                    .contentShape(Rectangle()) // Ensures the entire area is tappable
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        webContainerModel.navBarModel.settingsButtonTapped()
+                    }
+                SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
+                    .padding(.trailing, 16)
+                    .offset(y: -50)
             }
-            .sheet(isPresented: $webContainerModel.navBarModel.isSettingsPresented) {
-                NavigationStack {
-                    SettingsView(model: webContainerModel.navBarModel.settingsModel)
-                        .navigationTitle("Settings")
-                }
-                .accentColor(.white)
+        }
+        .animation(.spring(.smooth), value: webContainerModel.navBarModel.isSettingsPresented)
+        .animation(.spring(.smooth), value: webContainerModel.navBarModel.isFullscreen)
+        .sheet(isPresented: $webContainerModel.selector.isSelecting) {
+            NavigationStack {
+                DevicePickerView(model: webContainerModel.pickerModel)
             }
-            .sheet(isPresented: $webContainerModel.webPageModel.isDownloadsPresented) {
-                NavigationStack {
-                    DownloadListView(model: Downloads.shared)
-                        .navigationTitle("Downloads")
-                }
-                .presentationDetents([.medium])
+            .accentColor(.white)
+        }
+        .sheet(isPresented: $webContainerModel.webPageModel.isDownloadsPresented) {
+            NavigationStack {
+                DownloadListView(model: Downloads.shared)
+                    .navigationTitle("Downloads")
             }
+            .presentationDetents([.medium])
+        }
     }
 }
 
