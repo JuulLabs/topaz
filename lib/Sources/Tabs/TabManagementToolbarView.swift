@@ -13,13 +13,11 @@ struct TabManagementToolbarView: View {
                 .foregroundStyle(Color.iconDefault, Color.cellFillPrimary)
                 .imageScale(.large)
                 .font(.largeTitle.weight(.light))
-//                .font(.title)
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
         .embedInNavigationBackground(keyboardPresent: false)
-//        .background(Color.topaz600)
     }
 }
 

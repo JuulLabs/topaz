@@ -5,11 +5,11 @@ public struct SettingsViewV2: View {
 
     @Bindable var model: SettingsModel
 
-    let onTap: () -> Void
+    let onOutsideTap: () -> Void
 
-    public init(model: SettingsModel, onTap: @escaping () -> Void) {
+    public init(model: SettingsModel, onOutsideTap: @escaping () -> Void) {
         self.model = model
-        self.onTap = onTap
+        self.onOutsideTap = onOutsideTap
     }
 
     public var body: some View {
@@ -18,11 +18,10 @@ public struct SettingsViewV2: View {
                 .contentShape(Rectangle()) // Ensures the entire area is tappable
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    onTap()
+                    onOutsideTap()
                 }
             VStack(spacing: 24) {
                 settingsButton(systemImageName: "square.on.square", title: "Tabs") {
-                    // TODO: Implement
                     model.tabManagementButtonTapped()
                 }
                 settingsButton(systemImageName: "square.and.arrow.up", title: "Share") {
@@ -77,7 +76,7 @@ public struct SettingsViewV2: View {
 }
 
 #Preview {
-    SettingsViewV2(model: SettingsModel() {}, onTap: {})
+    SettingsViewV2(model: SettingsModel() {}, onOutsideTap: {})
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

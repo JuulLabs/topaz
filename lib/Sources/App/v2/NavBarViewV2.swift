@@ -13,21 +13,6 @@ struct NavBarViewV2: View {
         keyboardObserver.frame != nil
     }
 
-    // Because of how SwiftUI is drawing the background in regards to the keyboard, we need to change how much the gradient
-    // stops when the keyboard is present vs when it's not.
-//    private var backgroundGradientStops: [Gradient.Stop] {
-//        if keyboardPresent {[
-//                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
-//                Gradient.Stop(color: Color.navigationBackground.opacity(0.8), location: 0.2),
-//                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
-//            ]
-//        } else {[
-//                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
-//                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
-//            ]
-//        }
-//    }
-
     var body: some View {
         HStack(spacing: 20) {
             if model.navigator.isInSearchMode {
@@ -53,14 +38,6 @@ struct NavBarViewV2: View {
         .padding(.bottom, 6)
         .frame(maxWidth: .infinity)
         .embedInNavigationBackground(keyboardPresent: keyboardPresent)
-//        .background(
-//            LinearGradient(
-//                stops: backgroundGradientStops,
-//                startPoint: .top,
-//                endPoint: .bottom
-//            )
-//            .edgesIgnoringSafeArea(.all)
-//        )
     }
 }
 
