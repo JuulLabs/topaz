@@ -65,7 +65,7 @@ struct WebLoadingView: View {
 
 @MainActor
 private func previewModel() -> WebLoadingModel {
-    let navBarModel = NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     let freshPageModel = FreshPageModel(navBarModel: navBarModel)
     return WebLoadingModel(
         freshPageModel: freshPageModel,
@@ -75,7 +75,7 @@ private func previewModel() -> WebLoadingModel {
 
 @MainActor
 private func webModel(url: URL) -> WebContainerModel {
-    let navBarModel = NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     return WebContainerModel(
         webPageModel: WebPageModel(
             tab: 0,

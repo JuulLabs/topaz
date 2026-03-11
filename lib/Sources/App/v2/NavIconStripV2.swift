@@ -65,6 +65,6 @@ struct NavIconStripV2: View {
 }
 
 #Preview {
-    let model = NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
+    let model = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     NavIconStripV2(model: model)
 }

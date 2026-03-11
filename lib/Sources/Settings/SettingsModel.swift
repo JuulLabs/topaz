@@ -21,13 +21,18 @@ public final class SettingsModel {
 
     public init(
         searchEngineSelectorModel: SearchEngineSelectorModel = .init(),
-        tabManagementAction: @escaping () -> Void,
+        tabManagementAction: @escaping () -> Void = {},
     ) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
         self.tabManagementAction = tabManagementAction
     }
 
+    // TODO: Remove after migrating SettingsViewV2 to SettingsView
     func doneButtonTapped() {
+        dismiss()
+    }
+
+    func onTapOutside() {
         dismiss()
     }
 
