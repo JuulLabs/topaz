@@ -24,7 +24,7 @@ struct WebContainerView: View {
                     }
                 }
                 .safeAreaBarIfAvailable {
-                    VStack(spacing: 0) {
+                    VStack(spacing: 16) {
                         if webContainerModel.shouldShowErrorState {
                             BluetoothErrorView(
                                 state: webContainerModel.bluetoothSystem.systemState,

@@ -14,6 +14,10 @@ public extension Color {
         Color(hex: "#F8F8F8")!
     }
 
+    static var buttonDefault: Color {
+        Color(hex: "#3B56B5")!
+    }
+
     static var canvasHighContrast: Color {
         Color(hex: "#1C1C23")!
     }
@@ -40,6 +44,10 @@ public extension Color {
 
     static var textPrimary: Color {
         Color(hex: "#273E8E")!
+    }
+
+    static var textPrimaryInverse: Color {
+        Color(hex: "#FAFAFC")!
     }
 
     static var brightTextPrimary: Color {
