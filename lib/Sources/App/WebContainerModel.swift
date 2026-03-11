@@ -15,10 +15,7 @@ public final class WebContainerModel {
 
     var bluetoothSystem: BluetoothSystemState
     var shouldShowErrorState: Bool {
-        let value = bluetoothSystem.systemState != .unknown && bluetoothSystem.systemState != .poweredOn
-//        print("batman: \(bluetoothSystem.systemState)")
-//        print("batman: \(value)")
-        return value
+        bluetoothSystem.systemState != .unknown && bluetoothSystem.systemState != .poweredOn
     }
 
     init(
