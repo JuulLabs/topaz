@@ -17,9 +17,7 @@ struct FreshPageView: View {
             topAlignedHeaderView
             searchView
             if model.navBarModel.isSettingsPresented {
-                SettingsViewV2(model: model.navBarModel.settingsModel) {
-                    model.navBarModel.settingsButtonTapped()
-                }
+                SettingsViewV2(model: model.navBarModel.settingsModel)
             }
         }
         .onTapGesture {
@@ -82,7 +80,7 @@ struct FreshPageView: View {
 }
 
 #Preview("New") {
-    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel {}) {_ in })
+    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel()) {_ in })
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -90,7 +88,7 @@ struct FreshPageView: View {
 }
 
 #Preview("Loading") {
-    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: {_ in }), isLoading: true)
+    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: {_ in }), isLoading: true)
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()

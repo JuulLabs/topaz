@@ -33,6 +33,6 @@ struct NavBarView: View {
 
 #Preview {
     NavBarView(
-        model: NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in })
+        model: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     )
 }

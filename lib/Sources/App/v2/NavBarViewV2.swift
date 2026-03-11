@@ -42,5 +42,5 @@ struct NavBarViewV2: View {
 }
 
 #Preview {
-    NavBarViewV2(model: NavBarModel(settingsModel: SettingsModel {}, onFullscreenChanged: { _ in }))
+    NavBarViewV2(model: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in }))
 }
