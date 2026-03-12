@@ -36,18 +36,9 @@ struct BluetoothErrorView: View {
             .padding(.leading, 16)
             .padding(.trailing, 8)
             .padding([.top, .bottom], 16)
-//            if drawShadow {
-//                Rectangle()
-//                    .frame(maxWidth: .infinity, maxHeight: 0.5)
-//                    .foregroundStyle(Color.black)
-//            }
         }
         .frame(width: 330)
-//        .frame(maxWidth: .infinity)
         .embedInRoundedRectangle(cornerRadius: 48)
-//        .border(Color.red)
-//        .cornerRadius(48)
-//        .background(Color.cellFillPrimary)
         
     }
 
