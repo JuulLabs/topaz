@@ -38,15 +38,7 @@ struct WebContainerView: View {
                     }
                 }
             if webContainerModel.navBarModel.isSettingsPresented {
-                Color.clear
-                    .contentShape(Rectangle()) // Ensures the entire area is tappable
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture {
-                        webContainerModel.navBarModel.settingsButtonTapped()
-                    }
                 SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
-                    .padding(.trailing, 16)
-                    .offset(y: -50)
             }
         }
         .animation(.spring(.smooth), value: webContainerModel.navBarModel.isSettingsPresented)
@@ -98,7 +90,7 @@ private func previewModel(state: SystemState) -> WebContainerModel {
     let factory = staticMessageProcessorFactory(
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
-    let navBarModel = NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in })
+    let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,

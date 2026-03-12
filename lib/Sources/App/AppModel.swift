@@ -100,7 +100,10 @@ public class AppModel {
     }
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
-        let settingsModel = SettingsModel()
+        let settingsModel = SettingsModel { [weak self] in
+            self?.lastOpenedTabIndex = nil
+            self?.activePageModel = nil
+        }
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)
         navigator.onPageLoaded = { [weak self, weak searchBarModel] url, title in
@@ -116,10 +119,7 @@ public class AppModel {
             let webLoadingModel = self.buildPageModel(tabModel: newTab)
             self.activePageModel = webLoadingModel
         }
-        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { [weak self] in
-                self?.lastOpenedTabIndex = nil
-                self?.activePageModel = nil
-        } onFullscreenChanged: { newValue in
+        return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
             self.lastOpenedTabWasInFullscreenMode = newValue
         }
     }

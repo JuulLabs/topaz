@@ -8,15 +8,16 @@ struct TabManagementToolbarView: View {
         Button {
             model.openNewTabButtonTapped()
         } label: {
-            Image(systemName: "plus.square.fill")
-                .foregroundStyle(Color.borderActive)
+            Image(systemName: "plus.circle.fill")
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(Color.iconDefault, Color.cellFillPrimary)
                 .imageScale(.large)
-                .font(.title)
+                .font(.largeTitle.weight(.light))
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        .background(Color.topaz600)
+        .embedInNavigationBackground(keyboardPresent: false)
     }
 }
 

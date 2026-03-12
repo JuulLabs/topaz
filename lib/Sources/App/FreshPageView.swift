@@ -1,4 +1,5 @@
 import Design
+import Settings
 import SwiftUI
 import UIHelpers
 
@@ -15,6 +16,9 @@ struct FreshPageView: View {
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
             searchView
+            if model.navBarModel.isSettingsPresented {
+                SettingsViewV2(model: model.navBarModel.settingsModel)
+            }
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
@@ -76,7 +80,7 @@ struct FreshPageView: View {
 }
 
 #Preview("New") {
-    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }))
+    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel()) {_ in })
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
@@ -84,7 +88,7 @@ struct FreshPageView: View {
 }
 
 #Preview("Loading") {
-    let model = FreshPageModel(navBarModel: NavBarModel(tabManagementAction: {}, onFullscreenChanged: {_ in }), isLoading: true)
+    let model = FreshPageModel(navBarModel: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: {_ in }), isLoading: true)
     FreshPageView(model: model)
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()

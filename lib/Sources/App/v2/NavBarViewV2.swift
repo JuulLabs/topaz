@@ -1,3 +1,4 @@
+import Settings
 import SwiftUI
 import UIHelpers
 import Navigation
@@ -10,21 +11,6 @@ struct NavBarViewV2: View {
 
     private var keyboardPresent: Bool {
         keyboardObserver.frame != nil
-    }
-
-    // Because of how SwiftUI is drawing the background in regards to the keyboard, we need to change how much the gradient
-    // stops when the keyboard is present vs when it's not.
-    private var backgroundGradientStops: [Gradient.Stop] {
-        if keyboardPresent {[
-                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
-                Gradient.Stop(color: Color.navigationBackground.opacity(0.8), location: 0.2),
-                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
-            ]
-        } else {[
-                Gradient.Stop(color: Color.navigationBackground.opacity(0), location: 0),
-                Gradient.Stop(color: Color.navigationBackground.opacity(0.95), location: 1),
-            ]
-        }
     }
 
     var body: some View {
@@ -51,17 +37,10 @@ struct NavBarViewV2: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 6)
         .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(
-                stops: backgroundGradientStops,
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .edgesIgnoringSafeArea(.all)
-        )
+        .embedInNavigationBackground(keyboardPresent: keyboardPresent)
     }
 }
 
 #Preview {
-    NavBarViewV2(model: NavBarModel(tabManagementAction: {}, onFullscreenChanged: { _ in }))
+    NavBarViewV2(model: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in }))
 }

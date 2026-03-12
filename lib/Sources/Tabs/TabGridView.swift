@@ -13,23 +13,23 @@ public struct TabGridView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            ScrollView(.vertical) {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(model.tabCells) { tabCell in
-                        TabCellView(tab: tabCell) {
-                            model.tabButtonTapped(tab: tabCell)
-                        } delete: {
-                            model.deleteButtonTapped(tab: tabCell)
-                        }
+        ScrollView(.vertical) {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(model.tabCells) { tabCell in
+                    TabCellView(tab: tabCell) {
+                        model.tabButtonTapped(tab: tabCell)
+                    } delete: {
+                        model.deleteButtonTapped(tab: tabCell)
                     }
                 }
-                .padding(16)
             }
-            .animation(.smooth, value: model.tabCells)
-            .background(Color.topaz800)
-            TabManagementToolbarView(model: model)
+            .padding(16)
         }
+        .animation(.smooth, value: model.tabCells)
+        .background(Color.backgroundSecondary)
+        .safeAreaInset(edge: .bottom, content: {
+            TabManagementToolbarView(model: model)
+        })
     }
 }
 
@@ -39,6 +39,11 @@ public struct TabGridView: View {
     @MainActor
     func previewModel() -> TabGridModel {
         let urls: [URL] = [
+            "https://sample.com",
+            "https://sample.com",
+            "https://sample.com",
+            "https://sample.com",
+            "https://sample.com",
             "https://sample.com",
             "https://sample.com",
         ].map { URL(string: $0)! }

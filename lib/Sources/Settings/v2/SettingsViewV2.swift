@@ -10,31 +10,41 @@ public struct SettingsViewV2: View {
     }
 
     public var body: some View {
-        VStack(spacing: 24) {
-            settingsButton(systemImageName: "square.on.square", title: "Tabs") {
-                // TODO: Implement
+        ZStack(alignment: .bottomTrailing) {
+            Color.clear
+                .contentShape(Rectangle()) // Ensures the entire area is tappable
+                .edgesIgnoringSafeArea(.all)
+                .onTapGesture {
+                    model.onTapOutside()
+                }
+            VStack(spacing: 24) {
+                settingsButton(systemImageName: "square.on.square", title: "Tabs") {
+                    model.tabManagementButtonTapped()
+                }
+                settingsButton(systemImageName: "square.and.arrow.up", title: "Share") {
+                    // TODO: Implement
+                }
+                settingsButton(systemImageName: "trash", title: "Clear website data") {
+                    // TODO: Implement
+                }
+                settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
+                    // TODO: Implement
+                }
             }
-            settingsButton(systemImageName: "square.and.arrow.up", title: "Share") {
-                // TODO: Implement
+            .padding(24)
+            .frame(maxWidth: 322)
+            .background {
+                RoundedRectangle(cornerRadius: 48)
+                    .fill(Color.cellFillPrimary.opacity(0.97))
+                    .blur(radius: 1)
             }
-            settingsButton(systemImageName: "trash", title: "Clear website data") {
-                // TODO: Implement
-            }
-            settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
-                // TODO: Implement
-            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 48)
+                    .stroke(.white, lineWidth: 1)
+            )
         }
-        .padding(24)
-        .frame(maxWidth: 322)
-        .background {
-            RoundedRectangle(cornerRadius: 48)
-                .fill(Color.cellFillPrimary.opacity(0.97))
-                .blur(radius: 1)
-        }
-        .overlay(
-            RoundedRectangle(cornerRadius: 48)
-                .stroke(.white, lineWidth: 1)
-        )
+        .padding(.trailing, 16)
+        .offset(y: -50)
     }
 
     @ViewBuilder private func settingsButton(systemImageName: String, title: String, action: @escaping () -> Void) -> some View {

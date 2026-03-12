@@ -10,6 +10,7 @@ public final class SettingsModel {
     }
 
     let searchEngineSelectorModel: SearchEngineSelectorModel
+    private let tabManagementAction: () -> Void
 
     public var dismiss: () -> Void  = {}
     public var shareItem: SharingUrl = .init()
@@ -18,11 +19,20 @@ public final class SettingsModel {
     public var presentDownloadsView: Bool = false
     public var presentPermissionsView: Bool = false
 
-    public init(searchEngineSelectorModel: SearchEngineSelectorModel = .init()) {
+    public init(
+        searchEngineSelectorModel: SearchEngineSelectorModel = .init(),
+        tabManagementAction: @escaping () -> Void = {},
+    ) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
+        self.tabManagementAction = tabManagementAction
     }
 
+    // TODO: Remove after migrating SettingsViewV2 to SettingsView
     func doneButtonTapped() {
+        dismiss()
+    }
+
+    func onTapOutside() {
         dismiss()
     }
 
@@ -54,6 +64,10 @@ public final class SettingsModel {
 
     func permissionsButtonTapped() {
         presentPermissionsView = true
+    }
+
+    public func tabManagementButtonTapped() {
+        tabManagementAction()
     }
 
     private func bluetoothPermissionsToggled() {

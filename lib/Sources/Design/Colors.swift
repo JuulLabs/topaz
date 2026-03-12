@@ -6,6 +6,10 @@ public extension Color {
         Color(hex: "#FAFAFC")!
     }
 
+    static var backgroundSecondary: Color {
+        Color(hex: "#EAEDF7")!
+    }
+
     static var borderActive: Color {
         Color(hex: "#F8F8F8")!
     }
