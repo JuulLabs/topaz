@@ -39,7 +39,6 @@ struct BluetoothErrorView: View {
         }
         .frame(width: 330)
         .embedInRoundedRectangle(cornerRadius: 48)
-        
     }
 
     private func determineErrorText(for bluetoothStatus: SystemState) -> String {
