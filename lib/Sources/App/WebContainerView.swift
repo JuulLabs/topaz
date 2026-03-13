@@ -27,8 +27,7 @@ struct WebContainerView: View {
                     VStack(spacing: 16) {
                         if webContainerModel.shouldShowErrorState {
                             BluetoothErrorView(
-                                state: webContainerModel.bluetoothSystem.systemState,
-                                drawShadow: !webContainerModel.navBarModel.isFullscreen
+                                state: webContainerModel.bluetoothSystem.systemState
                             )
                         }
                         if !webContainerModel.navBarModel.isFullscreen {
