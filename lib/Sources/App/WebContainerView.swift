@@ -16,14 +16,8 @@ struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-//        ZStack(alignment: .bottomTrailing) {
         ZStack {
             WebPageView(model: webContainerModel.webPageModel)
-//                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
-//                    PullDrawerView {
-//                        webContainerModel.navBarModel.fullscreenButtonTapped()
-//                    }
-//                }
                 .safeAreaBarIfAvailable {
                     VStack(spacing: 16) {
                         if webContainerModel.shouldShowErrorState {
@@ -61,7 +55,6 @@ struct WebContainerView: View {
             }
             .presentationDetents([.medium])
         }
-//        .border(Color.red)
     }
 }
 
