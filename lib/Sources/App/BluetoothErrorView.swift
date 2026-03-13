@@ -60,10 +60,3 @@ struct BluetoothErrorView: View {
         .forceLoadFontsInPreview()
 #endif
 }
-
-#Preview {
-    BluetoothErrorView(state: .poweredOff)
-#if targetEnvironment(simulator)
-        .forceLoadFontsInPreview()
-#endif
-}
