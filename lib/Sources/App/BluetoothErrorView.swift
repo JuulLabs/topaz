@@ -1,6 +1,6 @@
 import Bluetooth
-import Design
 import SwiftUI
+import UIHelpers
 
 struct BluetoothErrorView: View {
 
