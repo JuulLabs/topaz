@@ -22,7 +22,7 @@ struct ExitFullscreenButton: View {
         .highPriorityGesture(
             DragGesture()
                 .onChanged {
-                    self.draggedLocation = CGPoint(x: startLocation.x, y: $0.location.y)
+                    self.draggedLocation = CGPoint(x: startLocation.x, y: $0.location.y.clamped(to: 0...700))
                 }
         )
     }
