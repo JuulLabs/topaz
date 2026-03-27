@@ -11,10 +11,7 @@ extension View {
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .fill(Color.cellFillPrimary.opacity(opacity))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .stroke(Color.white, lineWidth: 0.25)
+                    .stroke(Color.white, lineWidth: borderStroke)
             )
     }
 }

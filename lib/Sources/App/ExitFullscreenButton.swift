@@ -6,6 +6,7 @@ struct ExitFullscreenButton: View {
 
     let action: () -> Void
     private let startLocation = CGPoint(x: 20, y: 50)
+    private  let maxY = UIScreen.main.bounds.height - 120
 
     var body: some View {
         Button {
@@ -18,11 +19,11 @@ struct ExitFullscreenButton: View {
                     .embedInRoundedRectangle(cornerRadius: 24, opacity: 0.75, borderStroke: 1.0)
         }
         .animation(.default, value: draggedLocation)
-        .position(self.draggedLocation ?? startLocation)
+        .position(draggedLocation ?? startLocation)
         .highPriorityGesture(
             DragGesture()
                 .onChanged {
-                    self.draggedLocation = CGPoint(x: startLocation.x, y: $0.location.y.clamped(to: 0...700))
+                    draggedLocation = CGPoint(x: startLocation.x, y: $0.location.y.clamped(to: 0...maxY))
                 }
         )
     }
