@@ -11,7 +11,10 @@ public final class WebNavigator {
     private weak var webView: WKWebView?
 
     @ObservationIgnored
-    var observer: WebViewObserver?
+    private var loadingObserver: LoadingStateObserver?
+
+    @ObservationIgnored
+    private var navigationStateObserver: NavigationStateObserver?
 
     public private(set) var backForwardList: WKBackForwardList = WebNavigator.placeholderBackForwardList
     public private(set) var canGoForward: Bool = false
@@ -37,50 +40,61 @@ public final class WebNavigator {
     }
 
     public func goForward() {
-        self.webView?.stopLoading()
-        self.webView?.goForward()
+        webView?.stopLoading()
+        webView?.goForward()
     }
 
     public func goBack() {
-        self.webView?.stopLoading()
-        self.webView?.goBack()
+        webView?.stopLoading()
+        webView?.goBack()
     }
 
     public func reload() {
-        self.webView?.reload()
+        webView?.reload()
     }
 
     public func stopLoading() {
-        self.webView?.stopLoading()
+        webView?.stopLoading()
     }
 
     public func go(to item: WKBackForwardListItem) {
-        self.webView?.go(to: item)
+        webView?.go(to: item)
     }
 
     private func update(webView: WKWebView) {
         self.webView = webView
-        self.backForwardList = webView.backForwardList
-        self.canGoForward = webView.canGoForward
-        self.canGoBack = webView.canGoBack
+        backForwardList = webView.backForwardList
+        canGoBack = webView.canGoBack
+        canGoForward = webView.canGoForward
+    }
+
+    public func startObservingNavigationState(of webView: WKWebView) {
+        update(webView: webView)
+        navigationStateObserver = NavigationStateObserver(webView: webView)
+        navigationStateObserver?.onNavigationStateChange = { [weak self] webView in
+            self?.update(webView: webView)
+        }
+    }
+
+    public func stopObservingNavigationState() {
+        navigationStateObserver = nil
     }
 
     func startObservingLoadingProgress(of webView: WKWebView) {
-        self.observer = WebViewObserver(webView: webView)
-        self.observer?.onLoadingStateChange = { [weak self] webView, newState in
+        loadingObserver = LoadingStateObserver(webView: webView)
+        loadingObserver?.onLoadingStateChange = { [weak self] webView, newState in
             guard let self else { return }
             self.loadingState = newState
-            self.update(webView: webView)
             if case let .complete(url) = newState {
                 self.onPageLoaded(url, webView.title)
-                self.observer = nil
+                self.loadingObserver = nil
             }
         }
     }
 
     func stopLoadingAndOpenNewWindow(url: URL) {
-        self.observer = nil
-        self.stopLoading()
-        self.launchNewPage(url)
+        loadingObserver = nil
+        stopLoading()
+        launchNewPage(url)
     }
 }
