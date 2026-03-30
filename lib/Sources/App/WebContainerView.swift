@@ -16,13 +16,8 @@ struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack {
             WebPageView(model: webContainerModel.webPageModel)
-                .webPagePullDrawer(webContainerModel.navBarModel.pullDrawer) {
-                    PullDrawerView {
-                        webContainerModel.navBarModel.fullscreenButtonTapped()
-                    }
-                }
                 .safeAreaBarIfAvailable {
                     VStack(spacing: 16) {
                         if webContainerModel.shouldShowErrorState {
@@ -38,6 +33,11 @@ struct WebContainerView: View {
                 }
             if webContainerModel.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
+            }
+            if webContainerModel.navBarModel.isFullscreen {
+                ExitFullscreenButton {
+                    webContainerModel.navBarModel.fullscreenButtonTapped()
+                }
             }
         }
         .animation(.spring(.smooth), value: webContainerModel.navBarModel.isSettingsPresented)

@@ -233,6 +233,7 @@ let package = Package(
         .target(
             name: "UIHelpers",
             dependencies: [
+                "Design",
                 "Helpers",
             ]
         ),
