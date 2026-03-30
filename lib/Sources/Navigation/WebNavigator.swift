@@ -82,11 +82,10 @@ public final class WebNavigator {
 
     func startObservingLoadingProgress(of webView: WKWebView) {
         loadingObserver = LoadingStateObserver(webView: webView)
-        loadingObserver?.onLoadingStateChange = { [weak self] webView, newState in
+        loadingObserver?.onLoadingStateChange = { [weak self] _, newState in
             guard let self else { return }
             self.loadingState = newState
-            if case let .complete(url) = newState {
-                self.onPageLoaded(url, webView.title)
+            if case .complete = newState {
                 self.loadingObserver = nil
             }
         }

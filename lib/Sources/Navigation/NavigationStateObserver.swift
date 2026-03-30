@@ -15,7 +15,6 @@ class NavigationStateObserver {
         let backObservation = webView.observe(\.canGoBack, options: .new) { [weak self] webView, _ in
             Task { @MainActor in
                 self?.onNavigationStateChange(webView)
-                print("canGoBack changed")
             }
         }
         kvoStore.append(backObservation)
@@ -23,7 +22,6 @@ class NavigationStateObserver {
         let forwardObservation = webView.observe(\.canGoForward, options: .new) { [weak self] webView, _ in
             Task { @MainActor in
                 self?.onNavigationStateChange(webView)
-                print("canGoForward changed")
             }
         }
         kvoStore.append(forwardObservation)
