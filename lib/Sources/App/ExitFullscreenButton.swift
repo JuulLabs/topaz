@@ -6,7 +6,7 @@ struct ExitFullscreenButton: View {
 
     let action: () -> Void
     private let startLocation = CGPoint(x: 20, y: 50)
-    private  let maxY = UIScreen.main.bounds.height - 120
+    private let maxY = UIScreen.main.bounds.height - 120
 
     var body: some View {
         Button {
