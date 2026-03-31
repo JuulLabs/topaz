@@ -48,10 +48,10 @@ public struct SettingsViewV2: View {
         .offset(y: -50)
         .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
             PermissionsModel.shared.onDismiss()
-        }) {
+        }, content: {
             PermissionsViewV2(model: .shared)
                 .presentationDetents([.fraction(0.98)])
-        }
+        })
     }
 
     @ViewBuilder private func settingsButton(systemImageName: String, title: String, action: @escaping () -> Void) -> some View {
