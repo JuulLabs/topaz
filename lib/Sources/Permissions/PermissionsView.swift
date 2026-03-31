@@ -1,6 +1,5 @@
 import Design
 import SwiftUI
-import UIHelpers
 
 public struct PermissionsView: View {
     @Bindable var model: PermissionsModel
@@ -28,6 +27,7 @@ public struct PermissionsView: View {
         .font(.dogpatch(.headline))
         .imageScale(.large)
         .foregroundStyle(Color.brightTextPrimary)
+        .background(Color.topaz700)
         .scrollContentBackground(.hidden)
         .toolbar {
             EditButton()
