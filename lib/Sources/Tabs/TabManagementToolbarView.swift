@@ -15,9 +15,6 @@ struct TabManagementToolbarView: View {
                 .imageScale(.large)
                 .font(.largeTitle.weight(.light))
         }
-//        CircleButton(systemImageName: "plus.circle.fill") {
-//            model.openNewTabButtonTapped()
-//        }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 24)
         .padding(.vertical, 16)

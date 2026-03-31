@@ -32,14 +32,6 @@ public struct SettingsViewV2: View {
                     model.permissionsButtonTapped()
                 }
             }
-//            .sheet(isPresented: $model.presentPermissionsView, content: {
-//                PermissionsViewV2(model: PermissionsModel.shared)
-//                    .presentationBackground {
-//                        Color.clear
-//                    }
-////                Text("Sheet content...")
-////                    .presentationBackground(.ultraThinMaterial)
-//            })
             .padding(24)
             .frame(maxWidth: 322)
             .background {
@@ -59,14 +51,6 @@ public struct SettingsViewV2: View {
         }) {
             PermissionsViewV2(model: .shared)
                 .presentationDetents([.fraction(0.98)])
-//                .presentationDetents([.medium, .large])
-//                .presentationBackground(.ultraThinMaterial)
-//                .presentationBackground {
-//                    Color.clear
-//                    Color.cellFillPrimary.opacity(0.75)
-//                }
-//                Text("Sheet content...")
-//                    .presentationBackground(.ultraThinMaterial)
         }
     }
 

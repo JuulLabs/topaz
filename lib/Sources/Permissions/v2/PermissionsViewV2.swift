@@ -25,10 +25,7 @@ public struct PermissionsViewV2: View {
                     model.editButtonTapped()
                 }
             }
-
-
             List {
-//                Section(header: Text("Allowed Websites")) {
                 Section {
                     Text("Allowed Websites").bold()
                     if model.models.isEmpty {
@@ -37,37 +34,23 @@ public struct PermissionsViewV2: View {
                         ForEach(model.models) { row in
                             Text("\(row.displayString)")
                                 .padding(.leading, 20)
-//                                .listRowBackground(Color.cellFillSecondary)
                         }
                         .onDelete(perform: model.removeRows)
                         .animation(.interactiveSpring, value: model.models)
-//                        .listRowInsets(EdgeInsets())
                     }
                 }
-//                .padding(0)
-//                .border(Color.green)
-//                .background(Color.red)
                 .listRowBackground(Color.cellFillSecondary)
                 .listRowSeparatorTint(Color.clear)
             }
             .environment(\.editMode, $model.editMode)
-//            .background(Color.cellFillSecondary)
             .font(.dogpatch(.headline))
             .imageScale(.large)
             .foregroundStyle(Color.textPrimary)
             .scrollContentBackground(.hidden)
-//            .border(Color.green)
-//            .listStyle(.plain)
-//            .cornerRadius(15)
-
             Spacer()
         }
         .frame(maxWidth: .infinity)
         .padding(24)
-//        .background(.ultraThinMaterial)
-//        .background(Color.clear)
-//        .border(Color.red)
-//        .background(Color.cellFillPrimary.opacity(0.75))
     }
 }
 
@@ -81,7 +64,6 @@ public struct PermissionsViewV2: View {
     ]
     NavigationStack {
         PermissionsViewV2(model: PermissionsModel(origins: origins))
-//            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)
@@ -92,7 +74,6 @@ public struct PermissionsViewV2: View {
 #Preview("Empty") {
     NavigationStack {
         PermissionsViewV2(model: PermissionsModel(origins: []))
-//            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)

@@ -22,7 +22,7 @@ public struct WebPageView: View {
             .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
             .alert("This website would like to use Bluetooth®", isPresented: $model.presentPermissionsDialog, actions: {
-                Button() {
+                Button {
                     model.allowPermissionsButtonTapped()
                 } label: {
                     Text("Allow")
@@ -35,20 +35,6 @@ public struct WebPageView: View {
             }, message: {
                 Text(model.permissionsDialogMessage)
             })
-//            .alert("Bluetooth Access", isPresented: $model.presentPermissionsDialog, actions: {
-//                Button {
-//                    model.allowPermissionsButtonTapped()
-//                } label: {
-//                    Text("Allow")
-//                }
-//                Button(role: .cancel) {
-//                    model.denyPermissionsButtonTapped()
-//                } label: {
-//                    Text("Deny")
-//                }
-//            }, message: {
-//                Text(model.permissionsDialogMessage)
-//            })
     }
 
     private struct _WebPageView: UIViewRepresentable {
