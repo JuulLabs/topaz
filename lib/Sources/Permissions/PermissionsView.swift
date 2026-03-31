@@ -27,8 +27,8 @@ public struct PermissionsView: View {
         .font(.dogpatch(.headline))
         .imageScale(.large)
         .foregroundStyle(Color.brightTextPrimary)
-        .background(Color.topaz700)
         .scrollContentBackground(.hidden)
+        .background(Color.topaz700)
         .toolbar {
             EditButton()
                 .font(.dogpatch(.title3))
