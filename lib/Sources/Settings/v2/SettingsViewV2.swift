@@ -1,4 +1,5 @@
 import Design
+import Permissions
 import SwiftUI
 
 public struct SettingsViewV2: View {
@@ -28,9 +29,17 @@ public struct SettingsViewV2: View {
                     // TODO: Implement
                 }
                 settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
-                    // TODO: Implement
+                    model.permissionsButtonTapped()
                 }
             }
+//            .sheet(isPresented: $model.presentPermissionsView, content: {
+//                PermissionsViewV2(model: PermissionsModel.shared)
+//                    .presentationBackground {
+//                        Color.clear
+//                    }
+////                Text("Sheet content...")
+////                    .presentationBackground(.ultraThinMaterial)
+//            })
             .padding(24)
             .frame(maxWidth: 322)
             .background {
@@ -45,6 +54,20 @@ public struct SettingsViewV2: View {
         }
         .padding(.trailing, 16)
         .offset(y: -50)
+        .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
+            PermissionsModel.shared.onDismiss()
+        }) {
+            PermissionsViewV2(model: .shared)
+                .presentationDetents([.fraction(0.98)])
+//                .presentationDetents([.medium, .large])
+//                .presentationBackground(.ultraThinMaterial)
+//                .presentationBackground {
+//                    Color.clear
+//                    Color.cellFillPrimary.opacity(0.75)
+//                }
+//                Text("Sheet content...")
+//                    .presentationBackground(.ultraThinMaterial)
+        }
     }
 
     @ViewBuilder private func settingsButton(systemImageName: String, title: String, action: @escaping () -> Void) -> some View {

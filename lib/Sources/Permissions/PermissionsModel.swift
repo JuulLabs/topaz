@@ -7,6 +7,8 @@ import SwiftUI
 public final class PermissionsModel {
     private var storage: CodableStorage?
     private(set) var models: [WebOriginViewModel]
+    public var presentPermissionsView: Bool = false
+    public var editMode: EditMode = .inactive
 
     public init(origins: [WebOrigin] = []) {
         self.models = Self.originsToViewModels(origins)
@@ -22,6 +24,21 @@ public final class PermissionsModel {
         let model = WebOriginViewModel(origin: origin, displayString: displayString(for: origin, in: allOrigins))
         models.append(model)
         saveAll()
+    }
+
+    public func backButtonTapped() {
+        editMode = .inactive
+        presentPermissionsView = false
+    }
+
+    public func editButtonTapped() {
+        withAnimation {
+            editMode = (editMode == .inactive && presentPermissionsView) ? .active : .inactive
+        }
+    }
+
+    public func onDismiss() {
+        backButtonTapped()
     }
 
     func removeRows(atOffsets offsets: IndexSet) {

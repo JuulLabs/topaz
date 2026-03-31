@@ -1,5 +1,6 @@
 import Design
 import SwiftUI
+import UIHelpers
 
 public struct PermissionsView: View {
     @Bindable var model: PermissionsModel
@@ -9,29 +10,57 @@ public struct PermissionsView: View {
     }
 
     public var body: some View {
-        List {
-            Section(header: Text("Allowed Websites")) {
-                if model.models.isEmpty {
-                    Text("Websites that have been granted permission to use Bluetooth will be listed here")
-                } else {
-                    ForEach(model.models) { row in
-                        Text("\(row.displayString)")
+        NavigationView {
+            List {
+                Section(header: Text("Allowed Websites")) {
+                    if model.models.isEmpty {
+                        Text("Websites that have been granted permission to use Bluetooth will be listed here")
+                    } else {
+                        ForEach(model.models) { row in
+                            Text("\(row.displayString)")
+                        }
+                        .onDelete(perform: model.removeRows)
+                        .animation(.interactiveSpring, value: model.models)
                     }
-                    .onDelete(perform: model.removeRows)
-                    .animation(.interactiveSpring, value: model.models)
                 }
+                .listRowBackground(Color.topaz800)
+                .listRowSeparatorTint(Color.borderActive)
             }
-            .listRowBackground(Color.topaz800)
-            .listRowSeparatorTint(Color.borderActive)
-        }
-        .font(.dogpatch(.headline))
-        .imageScale(.large)
-        .foregroundStyle(Color.brightTextPrimary)
-        .scrollContentBackground(.hidden)
-        .background(Color.topaz700)
-        .toolbar {
-            EditButton()
-                .font(.dogpatch(.title3))
+            .font(.dogpatch(.headline))
+            .imageScale(.large)
+            .foregroundStyle(Color.brightTextPrimary)
+            .scrollContentBackground(.hidden)
+//            .background(Color.topaz700)
+            .toolbar {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    CircleButton(systemImageName: "arrow.left") {
+//
+//                    }
+//                }
+//                ToolbarItem(placement: .title) {
+//                    Text("Bluetooth® Permissions")
+//                }
+//                ToolbarItem(placement: .topBarTrailing) {
+////                    EditButton()
+//                    CircleButton(systemImageName: "pencil") {
+//
+//                    }
+//                }
+                EditButton()
+                    .font(.dogpatch(.title3))
+
+//                ToolbarItemGroup(placement: .topBarLeading) {
+//                    HStack {
+//                        CircleButton(systemImageName: "arrow.left") {
+//                        
+//                        }
+//                        Text("Bluetooth® Permissions")
+//                        CircleButton(systemImageName: "pencil") {
+//                        
+//                        }
+//                    }
+//                }
+            }
         }
     }
 }
@@ -46,7 +75,7 @@ public struct PermissionsView: View {
     ]
     NavigationStack {
         PermissionsView(model: PermissionsModel(origins: origins))
-            .navigationTitle("Bluetooth Permissions")
+//            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)
@@ -57,7 +86,7 @@ public struct PermissionsView: View {
 #Preview("Empty") {
     NavigationStack {
         PermissionsView(model: PermissionsModel(origins: []))
-            .navigationTitle("Bluetooth Permissions")
+//            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)

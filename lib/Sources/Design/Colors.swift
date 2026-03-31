@@ -26,6 +26,10 @@ public extension Color {
         Color(hex: "#EAEDF7")!
     }
 
+    static var cellFillSecondary: Color {
+        Color(hex: "#CBD3EC")!
+    }
+
     static var iconDefault: Color {
         Color(hex: "#273E8E")!
     }
