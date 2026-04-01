@@ -27,6 +27,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.navigationDelegate = navigationEngine
         webView.uiDelegate = navigationEngine
         webView.customUserAgent = model.customUserAgent
+        model.navigator.startObservingNavigationState(of: webView)
 
         authorize = {
             await model.requestAuthorization()
@@ -34,6 +35,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     func deinitialize(webView: WKWebView) {
+        viewModel?.navigator.stopObservingNavigationState()
         navigationEngine = nil
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
