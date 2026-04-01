@@ -23,7 +23,7 @@ extension AdvertisementEvent {
             "advertisement": jsAdvertisement,
             "device": jsDevice,
         ]
-        return JsEvent(targetId: targetId, eventName: "advertisementreceived", body: body)
+        return JsEvent(.bluetooth, targetId: targetId, eventName: "advertisementreceived", body: body)
     }
 }
 

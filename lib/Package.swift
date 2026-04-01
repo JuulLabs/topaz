@@ -239,6 +239,14 @@ let package = Package(
         ),
 
         .target(
+            name: "VirtualKeyboard",
+            dependencies: [
+                "JsMessage",
+                "UIHelpers",
+            ]
+        ),
+
+        .target(
             name: "WebView",
             dependencies: [
                 "Bluetooth",
@@ -248,6 +256,7 @@ let package = Package(
                 "JsMessage",
                 "Navigation",
                 "Permissions",
+                "VirtualKeyboard",
             ],
             resources: [
                 .copy("Resources/Generated/BluetoothPolyfill.js")

@@ -50,6 +50,7 @@ extension DisconnectionEvent {
             (peripheral.id, cause.localizedDescription)
         }
         return JsEvent(
+            .bluetooth,
             targetId: peripheralId.uuidString.lowercased(),
             eventName: "gattserverdisconnected",
             body: ["reason": reason]

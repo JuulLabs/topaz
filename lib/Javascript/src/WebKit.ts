@@ -4,6 +4,7 @@ import { rethrowAsDOMException } from "./Error";
 declare namespace window.webkit.messageHandlers {
     const bluetooth: Channel<BluetoothMessage>;
     const logging: Channel<LogMessage>;
+    const keyboard: Channel<VirtualKeyboardMessage>;
 }
 
 interface Channel<Message> {
@@ -41,4 +42,22 @@ export type LogMessage = {
 
 export const appLog = function (msg: LogMessage): Promise<void> {
     return window.webkit.messageHandlers.logging.postMessage<void>(msg).catch(rethrowAsDOMException);
+}
+
+
+// Virtual Keyboard Channel
+
+type VirtualKeyboardMessage = {
+    action: string;
+    data?: any;
+}
+
+export const virtualKeyboardRequest = function <Request, Response>(
+    action: string,
+    data?: Request,
+): Promise<Response> {
+    return window.webkit.messageHandlers.keyboard.postMessage<Response>({
+        action: action,
+        data: data
+    }).catch(rethrowAsDOMException);
 }

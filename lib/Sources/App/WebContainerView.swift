@@ -9,6 +9,7 @@ import JsMessage
 import Observation
 import Settings
 import SwiftUI
+import VirtualKeyboard
 import WebView
 import WebKit
 
@@ -31,6 +32,9 @@ struct WebContainerView: View {
                         }
                     }
                 }
+                .ignoresSafeArea(
+                    webContainerModel.virtualKeyboard.overlaysContent ? .keyboard : [], edges: .bottom
+                )
             if webContainerModel.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
             }
@@ -70,6 +74,16 @@ struct WebContainerView: View {
     )
 }
 
+#Preview("VirtualKeyboard") {
+    VStack {
+        let model = previewModel(state: .poweredOn)
+        Button("Toggle VK OverlaysContent") {
+            model.virtualKeyboard.overlaysContent.toggle()
+        }
+        WebContainerView(webContainerModel: model)
+    }
+}
+
 @MainActor
 private func previewModel(state: SystemState) -> WebContainerModel {
     let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
@@ -97,10 +111,12 @@ private func previewModel(state: SystemState) -> WebContainerModel {
         messageProcessorFactory: factory,
         navigator: navBarModel.navigator
     )
+    let virtualKeyboard = VirtualKeyboardModel()
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: navBarModel,
         selector: selector,
+        virtualKeyboard: virtualKeyboard,
         bluetoothSystem: BluetoothSystemState(systemState: state)
     )
 }

@@ -22,7 +22,7 @@ struct SearchBarViewV2: View {
                 .font(.dogpatch(.headline))
                 .foregroundStyle(Color.textPrimary)
                 .focused($focusedField, equals: .searchBar)
-                .keyboardType(.URL)
+                .keyboardType(.webSearch)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .onSubmit {
