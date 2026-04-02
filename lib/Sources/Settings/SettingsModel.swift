@@ -11,7 +11,7 @@ public final class SettingsModel {
     }
 
     let searchEngineSelectorModel: SearchEngineSelectorModel
-    var permissionsModel: PermissionsModel = PermissionsModel.shared
+    var permissionsModel: PermissionsModel
     private let tabManagementAction: () -> Void
 
     public var dismiss: () -> Void  = {}
@@ -22,9 +22,11 @@ public final class SettingsModel {
 
     public init(
         searchEngineSelectorModel: SearchEngineSelectorModel = .init(),
+        permissionsModel: PermissionsModel = .shared,
         tabManagementAction: @escaping () -> Void = {},
     ) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
+        self.permissionsModel = permissionsModel
         self.tabManagementAction = tabManagementAction
     }
 

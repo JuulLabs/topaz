@@ -47,9 +47,9 @@ public struct SettingsViewV2: View {
         .padding(.trailing, 16)
         .offset(y: -50)
         .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
-            PermissionsModel.shared.onDismiss()
+            model.permissionsModel.onDismiss()
         }, content: {
-            PermissionsViewV2(model: .shared)
+            PermissionsViewV2(model: model.permissionsModel)
                 .presentationDetents([.fraction(0.98)])
         })
     }
