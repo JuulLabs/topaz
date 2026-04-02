@@ -2,7 +2,7 @@ import Foundation
 import WebKit
 
 @MainActor
-public class WebViewObserver {
+class LoadingStateObserver {
     private var kvoStore: [NSKeyValueObservation] = []
 
     var onLoadingStateChange: (WKWebView, WebPageLoadingState) -> Void = { _, _ in }
