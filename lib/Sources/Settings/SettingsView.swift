@@ -119,7 +119,7 @@ public struct SettingsView: View {
                 .navigationTitle("Recent Downloads")
                 .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationDestination(isPresented: $model.presentPermissionsView) {
+        .navigationDestination(isPresented: $model.permissionsModel.presentPermissionsView) {
             PermissionsView(model: .shared)
                 .navigationTitle("Bluetooth Permissions")
                 .navigationBarTitleDisplayMode(.inline)

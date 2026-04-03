@@ -1,4 +1,5 @@
 import Design
+import Permissions
 import SwiftUI
 
 public struct SettingsViewV2: View {
@@ -28,7 +29,7 @@ public struct SettingsViewV2: View {
                     // TODO: Implement
                 }
                 settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
-                    // TODO: Implement
+                    model.permissionsButtonTapped()
                 }
             }
             .padding(24)
@@ -45,6 +46,12 @@ public struct SettingsViewV2: View {
         }
         .padding(.trailing, 16)
         .offset(y: -50)
+        .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
+            model.permissionsModel.onDismiss()
+        }, content: {
+            PermissionsViewV2(model: model.permissionsModel)
+                .presentationDetents([.fraction(0.98)])
+        })
     }
 
     @ViewBuilder private func settingsButton(systemImageName: String, title: String, action: @escaping () -> Void) -> some View {

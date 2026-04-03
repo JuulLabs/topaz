@@ -84,7 +84,7 @@ public class WebPageModel: Identifiable {
     }
 
     var permissionsDialogMessage: String {
-        "\(webOrigin?.domain ?? "This website") would like to find and connect to Bluetooth devices."
+        "This will allow this website to find and connect to your Bluetooth® devices."
     }
 
     func denyPermissionsButtonTapped() {

@@ -21,7 +21,7 @@ public struct WebPageView: View {
         _WebPageView(model: model, scrollView: $scrollView)
             .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
-            .alert("Bluetooth Access", isPresented: $model.presentPermissionsDialog, actions: {
+            .alert("This website would like to use Bluetooth®", isPresented: $model.presentPermissionsDialog, actions: {
                 Button {
                     model.allowPermissionsButtonTapped()
                 } label: {

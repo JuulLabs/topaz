@@ -1,4 +1,5 @@
 import Downloader
+import Permissions
 import Observation
 import SwiftUI
 
@@ -10,6 +11,7 @@ public final class SettingsModel {
     }
 
     let searchEngineSelectorModel: SearchEngineSelectorModel
+    var permissionsModel: PermissionsModel
     private let tabManagementAction: () -> Void
 
     public var dismiss: () -> Void  = {}
@@ -17,13 +19,14 @@ public final class SettingsModel {
 
     public var presentClearCacheDialogue: Bool = false
     public var presentDownloadsView: Bool = false
-    public var presentPermissionsView: Bool = false
 
     public init(
         searchEngineSelectorModel: SearchEngineSelectorModel = .init(),
+        permissionsModel: PermissionsModel = .shared,
         tabManagementAction: @escaping () -> Void = {},
     ) {
         self.searchEngineSelectorModel = searchEngineSelectorModel
+        self.permissionsModel = permissionsModel
         self.tabManagementAction = tabManagementAction
     }
 
@@ -63,7 +66,7 @@ public final class SettingsModel {
     }
 
     func permissionsButtonTapped() {
-        presentPermissionsView = true
+        permissionsModel.presentPermissionsView = true
     }
 
     public func tabManagementButtonTapped() {
