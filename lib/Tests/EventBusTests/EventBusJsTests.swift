@@ -13,7 +13,7 @@ struct EventBusJsTests {
 
     @Test
     func sendJsEvent_withoutContext_returnsFailure() async throws {
-        let event = JsEvent(targetId: "test-id", eventName: "test-event")
+        let event = JsEvent(.bluetooth, targetId: "test-id", eventName: "test-event")
         let result = await sut.sendJsEvent(event)
         switch result {
         case .success:
@@ -30,7 +30,7 @@ struct EventBusJsTests {
                 .failure(FakeError())
         }
         await sut.setJsContext(context)
-        let event = JsEvent(targetId: "test-id", eventName: "test-event")
+        let event = JsEvent(.bluetooth, targetId: "test-id", eventName: "test-event")
         let result = await sut.sendJsEvent(event)
         switch result {
         case .success:
@@ -43,7 +43,7 @@ struct EventBusJsTests {
 
     @Test
     func sendJsEvent_withContextThatSucceeds_emitsEvent() async {
-        let expectedEvent = JsEvent(targetId: "test-id", eventName: "test-event")
+        let expectedEvent = JsEvent(.bluetooth, targetId: "test-id", eventName: "test-event")
         let eventSentExpectation = XCTestExpectation(description: "listenerCallback invoked")
         let context = JsContext(id: fakeContextId) { event in
             #expect(event.eventName == expectedEvent.eventName)
