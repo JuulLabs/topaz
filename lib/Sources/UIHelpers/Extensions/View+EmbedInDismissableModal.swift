@@ -3,9 +3,9 @@ import SwiftUI
 extension View {
 
     @ViewBuilder public func embedInDismissableModal(
-        onTapOutside: @escaping () -> Void,
-        trailingPadding: CGFloat = 16,
-        yOffset: CGFloat = -50
+        trailingPadding: CGFloat,
+        yOffset: CGFloat,
+        onTapOutside: @escaping () -> Void
     ) -> some View {
         ZStack(alignment: .bottomTrailing) {
             Color.clear

@@ -41,7 +41,7 @@ public struct SettingsViewV2: View {
         .padding(24)
         .frame(maxWidth: 322)
         .embedInRoundedRectangle(cornerRadius: 48, backgroundColor: Color.cellFillPrimary, opacity: 0.97, borderStroke: 1.0)
-        .embedInDismissableModal {
+        .embedInDismissableModal(trailingPadding: 16, yOffset: -50) {
             model.onTapOutside()
         }
         .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
