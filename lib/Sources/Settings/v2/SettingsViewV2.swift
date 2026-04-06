@@ -22,6 +22,7 @@ public struct SettingsViewV2: View {
             ShareLink(item: model.shareItem.url, subject: shareSubject) {
                 settingsButtonView(title: "Share page", image: Image(systemName: "square.and.arrow.up"))
             }
+            .disabled(model.shareItem.isDisabled)
             settingsButton(systemImageName: "trash", title: "Clear website data") {
                 model.clearCacheButtonTapped()
             }
