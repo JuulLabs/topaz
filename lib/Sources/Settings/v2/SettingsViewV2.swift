@@ -10,6 +10,10 @@ public struct SettingsViewV2: View {
         self.model = model
     }
 
+    private var shareSubject: Text? {
+        model.shareItem.subject.map(Text.init)
+    }
+
     public var body: some View {
         ZStack(alignment: .bottomTrailing) {
             Color.clear
@@ -22,8 +26,8 @@ public struct SettingsViewV2: View {
                 settingsButton(systemImageName: "square.on.square", title: "Tabs") {
                     model.tabManagementButtonTapped()
                 }
-                settingsButton(systemImageName: "square.and.arrow.up", title: "Share") {
-                    // TODO: Implement
+                ShareLink(item: model.shareItem.url, subject: shareSubject) {
+                    settingsButtonView(title: "Share page", image: Image(systemName: "square.and.arrow.up"))
                 }
                 settingsButton(systemImageName: "trash", title: "Clear website data") {
                     // TODO: Implement
@@ -66,15 +70,19 @@ public struct SettingsViewV2: View {
         Button {
             action()
         } label: {
-            HStack(spacing: 8) {
-                image
-                    .foregroundStyle(Color.iconDefault)
-                    .font(.system(size: 24).weight(.light))
-                Text(title)
-                    .font(.dogpatch(.headline))
-                    .foregroundStyle(Color.textPrimary)
-                Spacer()
-            }
+            settingsButtonView(title: title, image: image)
+        }
+    }
+
+    @ViewBuilder private func settingsButtonView(title: String, image: Image) -> some View {
+        HStack(spacing: 8) {
+            image
+                .foregroundStyle(Color.iconDefault)
+                .font(.system(size: 24).weight(.light))
+            Text(title)
+                .font(.dogpatch(.headline))
+                .foregroundStyle(Color.textPrimary)
+            Spacer()
         }
     }
 }
