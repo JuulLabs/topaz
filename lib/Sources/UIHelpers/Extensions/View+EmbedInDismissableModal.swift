@@ -12,11 +12,11 @@ extension View {
 }
 
 struct EmbeddedDissmissableModal: ViewModifier {
-    
+
     let trailingPadding: CGFloat
     let yOffset: CGFloat
     let onTapOutside: () -> Void
-    
+
     func body(content: Content) -> some View {
         ZStack(alignment: .bottomTrailing) {
             Color.clear
