@@ -15,10 +15,15 @@ struct FreshPageView: View {
             Color.backgroundPrimary
                 .ignoresSafeArea(.all)
             topAlignedHeaderView
-            searchView
             if model.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: model.navBarModel.settingsModel)
             }
+        }
+        .safeAreaBarIfAvailable {
+            NavBarViewV2(model: model.navBarModel)
+                .opacity(model.isLoading ? 0 : 1)
+                .animation(.spring, value: model.isLoading)
+                .animation(.spring, value: keyboardPresent)
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
@@ -56,26 +61,16 @@ struct FreshPageView: View {
                         .foregroundStyle(Color.textPrimary)
                 }
             }
+            if model.isLoading {
+                ProgressView()
+                    .controlSize(isCompact ? .regular : .extraLarge)
+                    .tint(Color.topaz600)
+                    .padding(.top, isCompact ? 6 : 40)
+            }
             Spacer()
         }
         .padding(.top, isCompact ? 6 : 60)
         .animation(.easeIn, value: keyboardPresent)
-    }
-
-    @ViewBuilder private var searchView: some View {
-        VStack(spacing: 0) {
-            Spacer()
-            if model.isLoading {
-                ProgressView()
-                    .controlSize(.extraLarge)
-                    .tint(.white)
-                    .padding(.bottom, 30)
-                Spacer()
-            } else {
-                NavBarViewV2(model: model.navBarModel)
-            }
-        }
-        .animation(.spring, value: keyboardPresent)
     }
 }
 
