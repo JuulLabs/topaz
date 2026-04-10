@@ -30,7 +30,7 @@ struct SearchBarView: View {
                 .font(.dogpatch(.subheadline))
                 .foregroundStyle(Color.steel600)
                 .focused($focusedField, equals: .searchBar)
-                .keyboardType(.URL)
+                .keyboardType(.webSearch)
                 .autocorrectionDisabled()
                 .textInputAutocapitalization(.never)
                 .onSubmit {

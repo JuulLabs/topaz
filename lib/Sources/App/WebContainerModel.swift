@@ -3,6 +3,7 @@ import BluetoothEngine
 import DevicePicker
 import Observation
 import SwiftUI
+import VirtualKeyboard
 import WebView
 
 @MainActor
@@ -12,6 +13,7 @@ public final class WebContainerModel {
     public let pickerModel: DevicePickerModel
     public var navBarModel: NavBarModel
     public var selector: DeviceSelector
+    public let virtualKeyboard: VirtualKeyboardModel
 
     var bluetoothSystem: BluetoothSystemState
     var shouldShowErrorState: Bool {
@@ -22,6 +24,7 @@ public final class WebContainerModel {
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
         selector: DeviceSelector,
+        virtualKeyboard: VirtualKeyboardModel = .shared,
         bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.webPageModel = webPageModel
@@ -34,6 +37,7 @@ public final class WebContainerModel {
                 selector.cancel()
             }
         )
+        self.virtualKeyboard = virtualKeyboard
         self.bluetoothSystem = bluetoothSystem
     }
 }

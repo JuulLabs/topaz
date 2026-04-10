@@ -47,6 +47,6 @@ extension CharacteristicChangedEvent {
             "instance": instance,
             "value": data ?? jsNull,
         ]
-        return JsEvent(targetId: characteristicId.uuidString.lowercased(), eventName: "characteristicvaluechanged", body: body)
+        return JsEvent(.bluetooth, targetId: characteristicId.uuidString.lowercased(), eventName: "characteristicvaluechanged", body: body)
     }
 }

@@ -6,11 +6,9 @@ extension View {
     // nav bar. If unavailable, will set the content as an approximation of that.
     @ViewBuilder func safeAreaBarIfAvailable(content: () -> some View) -> some View {
         if #available(iOS 26.0, *) {
-            self
-                .ignoresSafeArea(.all, edges: .bottom)
-                .safeAreaBar(edge: .bottom) {
-                    content()
-                }
+            self.safeAreaBar(edge: .bottom) {
+                content()
+            }
         } else {
             VStack(spacing: 0) {
                 self

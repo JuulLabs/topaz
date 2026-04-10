@@ -36,7 +36,7 @@ struct Availability: BluetoothAction {
 
 extension SystemStateEvent {
     public func availabilityChangedEvent() -> JsEvent {
-        JsEvent(targetId: "bluetooth", eventName: "availabilitychanged", body: systemState.isAvailable)
+        JsEvent(.bluetooth, targetId: "bluetooth", eventName: "availabilitychanged", body: systemState.isAvailable)
     }
 }
 
