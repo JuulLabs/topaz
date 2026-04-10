@@ -22,6 +22,7 @@ struct FreshPageView: View {
         .safeAreaBarIfAvailable {
             NavBarViewV2(model: model.navBarModel)
                 .opacity(model.isLoading ? 0 : 1)
+                .disabled(model.isLoading)
                 .animation(.spring, value: model.isLoading)
                 .animation(.spring, value: keyboardPresent)
         }
