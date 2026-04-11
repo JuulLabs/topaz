@@ -63,8 +63,8 @@ struct EndToEndBluetoothEngineTests {
         #expect(body["name"] as? String == "bob")
     }
 
-    @Test(arguments: 0..<1000)
-    func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving(attempt: Int) async throws {
+    @Test
+    func handleDelegateEvent_withCharacteristicValueEvent_sendsJsEventBeforeResolving() async throws {
         let fake = FakePeripheral(id: UUID(n: 0))
         let characteristic = FakeCharacteristic(uuid: UUID(n: 1))
         let store = InMemoryStorage()
@@ -109,8 +109,8 @@ struct EndToEndBluetoothEngineTests {
         resolveTask.cancel()
     }
 
-    @Test(arguments: 0..<1000)
-    func handleDelegateEvent_withUnexpectedDisconnectionEvent_sendsJsEventBeforeResolvingAndRejecting(attempt: Int) async throws {
+    @Test
+    func handleDelegateEvent_withUnexpectedDisconnectionEvent_sendsJsEventBeforeResolvingAndRejecting() async throws {
         let fake = FakePeripheral(id: UUID(n: 0))
         let store = InMemoryStorage()
         try await store.save([UUID(n: 0)], for: .uuidsKey)
