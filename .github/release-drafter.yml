@@ -6,9 +6,10 @@ categories:
       - 'bug'
   - title: '🧰 Maintenance'
     labels:
+      - 'dependencies'
+      - 'documentation'
       - 'maintenance'
       - 'renovate'
-      - 'documentation'
 change-template: '- $TITLE (#$NUMBER)'
 exclude-labels:
   - 'skip-changelog'
