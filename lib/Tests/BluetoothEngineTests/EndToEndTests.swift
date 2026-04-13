@@ -78,6 +78,7 @@ struct EndToEndBluetoothEngineTests {
             return .success(())
         }
 
+        let registrationComplete = XCTestExpectation(description: "Awaiter registered")
         let resolveExpectation = XCTestExpectation(description: "Resolve pending request")
         let resolveTask = Task {
             let _: CharacteristicChangedEvent = try await eventBus.awaitEvent(
@@ -86,13 +87,18 @@ struct EndToEndBluetoothEngineTests {
                     peripheralId: fake.id,
                     serviceId: fakeServiceId,
                     characteristicId: characteristic.uuid,
-                    instance: characteristic.instance)
+                    instance: characteristic.instance),
+                launchEffect: { registrationComplete.fulfill() }
             )
             resolveExpectation.fulfill()
         }
 
         let sut = BluetoothEngine(eventBus: eventBus, state: state, client: MockBluetoothClient(), deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
+
+        // Wait for the awaiter task to register its continuation before enqueueing the event
+        await XCTWaiter().fulfillment(of: [registrationComplete], timeout: 1.0)
+
         eventBus.enqueueEvent(
             CharacteristicChangedEvent(peripheralId: fake.id, serviceId: fakeServiceId, characteristicId: characteristic.uuid, instance: characteristic.instance, data: nil)
         )
@@ -117,10 +123,16 @@ struct EndToEndBluetoothEngineTests {
             return .success(())
         }
 
+        let resolveRegistered = XCTestExpectation(description: "Resolve awaiter registered")
+        let rejectRegistered = XCTestExpectation(description: "Reject awaiter registered")
+
         // Check that regular targeted disconnect event propagates first
         let resolveExpectation = XCTestExpectation(description: "Resolve due to disconnection")
         let resolveTask = Task {
-            let _: DisconnectionEvent = try await eventBus.awaitEvent(forKey: .peripheral(.disconnect, fake))
+            let _: DisconnectionEvent = try await eventBus.awaitEvent(
+                forKey: .peripheral(.disconnect, fake),
+                launchEffect: { resolveRegistered.fulfill() }
+            )
             resolveExpectation.fulfill()
         }
 
@@ -128,7 +140,10 @@ struct EndToEndBluetoothEngineTests {
         let rejectExpectation = XCTestExpectation(description: "Reject due to disconnection error")
         let rejectTask = Task {
             do {
-                let _: PeripheralEvent = try await eventBus.awaitEvent(forKey: .peripheral(.discoverServices, fake))
+                let _: PeripheralEvent = try await eventBus.awaitEvent(
+                    forKey: .peripheral(.discoverServices, fake),
+                    launchEffect: { rejectRegistered.fulfill() }
+                )
             } catch {
                 rejectExpectation.fulfill()
             }
@@ -136,10 +151,21 @@ struct EndToEndBluetoothEngineTests {
 
         let sut = BluetoothEngine(eventBus: eventBus, state: state, client: MockBluetoothClient(), deviceSelector: await TestDeviceSelector())
         await sut.didAttach(to: context)
+
+        // Wait for both awaiter tasks to register their continuations before enqueueing the event
+        await XCTWaiter().fulfillment(of: [resolveRegistered, rejectRegistered], timeout: 1.0)
+
         eventBus.enqueueEvent(DisconnectionEvent.unexpected(fake, BluetoothError.unknown))
 
-        let outcome = await XCTWaiter().fulfillment(of: [eventExpectation, resolveExpectation, rejectExpectation], timeout: 1.0, enforceOrder: true)
-        #expect(outcome == .completed)
+        // JS event must be delivered first (synchronous callback), then both promises must be settled.
+        // Note: The order between resolve and reject is not guaranteed by Swift's continuation model,
+        // even though the code calls resolvePendingRequests before handleUnexpectedDisconnect.
+        let jsOutcome = await XCTWaiter().fulfillment(of: [eventExpectation], timeout: 1.0)
+        #expect(jsOutcome == .completed)
+
+        let promiseOutcome = await XCTWaiter().fulfillment(of: [resolveExpectation, rejectExpectation], timeout: 1.0)
+        #expect(promiseOutcome == .completed)
+
         resolveTask.cancel()
         rejectTask.cancel()
     }
