@@ -29,7 +29,7 @@ struct SearchBarViewV2: View {
                     model.didSubmitSearchString()
                 }
             Button {
-                model.searchString = ""
+                model.clearSearchFieldTapped()
             } label: {
                 Image(systemName: "xmark.circle")
                     .foregroundStyle(Color.textPrimary)
