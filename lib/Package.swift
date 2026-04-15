@@ -262,5 +262,6 @@ let package = Package(
                 .copy("Resources/Generated/BluetoothPolyfill.js")
             ]
         ),
-    ]
+    ],
+    swiftLanguageModes: [.v6]
 )
