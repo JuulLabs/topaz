@@ -28,9 +28,13 @@ struct SearchBarViewV2: View {
                 .onSubmit {
                     model.didSubmitSearchString()
                 }
-            Image(systemName: "microphone")
-                .foregroundStyle(Color.textPrimary)
-                .font(.system(size: 24).weight(.light))
+            Button {
+                model.searchString = ""
+            } label: {
+                Image(systemName: "xmark.circle")
+                    .foregroundStyle(Color.textPrimary)
+                    .font(.system(size: 24).weight(.light))
+            }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
