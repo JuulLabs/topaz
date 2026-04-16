@@ -115,9 +115,13 @@ public class AppModel {
         }
         navigator.launchNewPage = { [weak self] newUrl in
             guard let self else { return }
+            let prior = self.activePageModel
             let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
-            let webLoadingModel = self.buildPageModel(tabModel: newTab)
-            self.activePageModel = webLoadingModel
+            let newModel = self.buildPageModel(tabModel: newTab)
+            newModel.navBarModel.goBackToPriorPage = { [weak self] in
+                self?.activePageModel = prior
+            }
+            self.activePageModel = newModel
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
             self.lastOpenedTabWasInFullscreenMode = newValue
