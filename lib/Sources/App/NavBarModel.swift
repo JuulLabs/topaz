@@ -18,9 +18,9 @@ public final class NavBarModel {
 
     var fullscreenButtonDisabled: Bool = false
     var isSettingsPresented: Bool = false
-    
+
     var navBarYOffset: CGFloat = 0
-    
+
     @ObservationIgnored
     private var previousKeyboardFrame: CGRect?
 
@@ -79,7 +79,7 @@ public final class NavBarModel {
             previousKeyboardFrame = frame
         }
     }
-    
+
     func backButtonTapped() {
         if navigator.canGoBack {
             navigator.goBack()
