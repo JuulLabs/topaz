@@ -7,8 +7,9 @@ XCODE_COMMAND ?= build
 XCODE_CONFIG ?= Debug
 XCODE_OPTIONS += -skipPackagePluginValidation -skipMacroValidation
 
+# Simulator Debug builds skip signing for speed. Device archives (PLATFORM=GENERIC) must sign.
 ifeq ($(XCODE_CONFIG),Debug)
-ifneq ($(PLATFORM),MACOS)
+ifeq ($(PLATFORM),IOS)
 	override XCODE_EXTRA_PARAMS += CODE_SIGNING_ALLOWED='NO'
 endif
 endif

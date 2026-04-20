@@ -1,0 +1,14 @@
+name: iOS CI signing cleanup
+description: >
+  Restores default login keychain, deletes the ephemeral signing keychain, and removes the API key
+  directory. Use on the job with if always(). Requires job env API_KEY_DIR.
+
+runs:
+  using: composite
+  steps:
+    - name: Delete CI keychain and API key files
+      shell: bash
+      run: |
+        security list-keychains -d user -s login.keychain
+        security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db"
+        rm -rf "$API_KEY_DIR"
