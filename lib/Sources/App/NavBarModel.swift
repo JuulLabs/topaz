@@ -53,8 +53,10 @@ public final class NavBarModel {
         }
     }
 
+    var goBackToPriorPage: (() -> Void)?
+
     var backButtonDisabled: Bool {
-        navigator.canGoBack == false
+        navigator.canGoBack == false && goBackToPriorPage == nil
     }
 
     var forwardButtonDisabled: Bool {
@@ -79,7 +81,11 @@ public final class NavBarModel {
     }
     
     func backButtonTapped() {
-        navigator.goBack()
+        if navigator.canGoBack {
+            navigator.goBack()
+        } else {
+            goBackToPriorPage?()
+        }
     }
 
     func forwardButtonTapped() {
