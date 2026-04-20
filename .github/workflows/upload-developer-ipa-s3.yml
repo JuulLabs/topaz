@@ -7,7 +7,7 @@
 #   CONX_ETHER_AWS_ACCESS_KEY, CONX_ETHER_AWS_SECRET_KEY — org secrets; IAM must allow s3:PutObject on the bucket prefix
 #
 # S3: bucket juul-dev-us-east-1-mobile-app (us-east-1). Each successful run replaces the same object
-# (topaz/topaz.ipa) so consumers always fetch the current Debug developer IPA from main.
+# (topaz/main/topaz.ipa) so consumers always fetch the current Debug developer IPA from main.
 
 name: Upload developer IPA to S3
 
@@ -38,7 +38,7 @@ jobs:
       KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
       AWS_REGION: us-east-1
       DEVELOPER_IPA_S3_BUCKET: juul-dev-us-east-1-mobile-app
-      DEVELOPER_IPA_S3_OBJECT_KEY: topaz/topaz.ipa
+      DEVELOPER_IPA_S3_OBJECT_KEY: topaz/main/topaz.ipa
     steps:
       - uses: actions/checkout@v6
 
