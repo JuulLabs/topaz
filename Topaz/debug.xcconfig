@@ -1,1 +1,5 @@
 #include "version.xcconfig"
+
+CODE_SIGN_IDENTITY = Apple Development
+CODE_SIGN_STYLE = Manual
+PROVISIONING_PROFILE_SPECIFIER = Topaz Development
