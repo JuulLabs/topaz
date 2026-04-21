@@ -19,6 +19,7 @@ runs:
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
         echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
+        security delete-keychain $KEYCHAIN_PATH || echo "Keychain not deleted because it does not already exist"
         security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
         security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
         security list-keychains -d user -s "$KEYCHAIN_PATH"
