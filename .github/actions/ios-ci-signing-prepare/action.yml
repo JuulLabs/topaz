@@ -6,10 +6,10 @@ description: >
   API_KEY_ID, API_KEY_DIR, API_KEY_BASE64_P8, API_ISSUER_ID, DEV_CERT_BASE64_P12,
   DEV_CERT_PASSKEY, KEYCHAIN_PASSWORD.
 
-inputs:
-  apple-intermediate-certificate-base64-cer:
-    description: Apple intermediate CA certificate (.cer), base64-encoded.
-    required: true
+# inputs:
+#   apple-intermediate-certificate-base64-cer:
+#     description: Apple intermediate CA certificate (.cer), base64-encoded.
+#     required: true
 
 runs:
   using: composite
@@ -31,16 +31,16 @@ runs:
         security list-keychains -d user -s "$KEYCHAIN_PATH"
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
-    - name: Install Apple intermediate certificate
-      shell: bash
-      env:
-        APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER: ${{ inputs['apple-intermediate-certificate-base64-cer'] }}
-      run: |
-        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-        INTERMEDIATE_CER_PATH="$RUNNER_TEMP/apple-intermediate.cer"
-        echo -n "$APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER" | base64 -d > "$INTERMEDIATE_CER_PATH"
-        security import "$INTERMEDIATE_CER_PATH" -A -t cert -k "$KEYCHAIN_PATH"
-        rm -f "$INTERMEDIATE_CER_PATH"
+    # - name: Install Apple intermediate certificate
+    #   shell: bash
+    #   env:
+    #     APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER: ${{ inputs['apple-intermediate-certificate-base64-cer'] }}
+    #   run: |
+    #     KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+    #     INTERMEDIATE_CER_PATH="$RUNNER_TEMP/apple-intermediate.cer"
+    #     echo -n "$APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER" | base64 -d > "$INTERMEDIATE_CER_PATH"
+    #     security import "$INTERMEDIATE_CER_PATH" -A -t cert -k "$KEYCHAIN_PATH"
+    #     rm -f "$INTERMEDIATE_CER_PATH"
 
     - name: Install Development Certificate
       shell: bash
