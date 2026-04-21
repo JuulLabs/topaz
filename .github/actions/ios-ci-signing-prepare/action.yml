@@ -30,8 +30,11 @@ runs:
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
         DEV_CERT=private_keys/dev_cert.p12
+        INTERMEDIATE_CERT=private_keys/intermediate.cer
         echo -n "$DEV_CERT_BASE64_P12" | base64 -d > "$DEV_CERT"
         security import "$DEV_CERT" -P "$DEV_CERT_PASSKEY" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+        echo -n "${{ inputs.apple-intermediate-certificate-base64-cer }}" | base64 -d > $INTERMEDIATE_CERT
+        security import $INTERMEDIATE_CERT -A -k $KEYCHAIN_PATH || echo "Intermediate certificate already installed"
 
     - name: Validate Development Certificate
       shell: bash
