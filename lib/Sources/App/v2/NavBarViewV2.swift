@@ -38,6 +38,10 @@ struct NavBarViewV2: View {
         .padding(.bottom, 6)
         .frame(maxWidth: .infinity)
         .embedInNavigationBackground(keyboardPresent: keyboardPresent)
+        .offset(y: model.navBarYOffset)
+        .task {
+            await model.task()
+        }
     }
 }
 
