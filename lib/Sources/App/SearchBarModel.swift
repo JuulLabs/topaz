@@ -114,6 +114,10 @@ public final class SearchBarModel {
         navigator.reload()
     }
 
+    func clearSearchFieldTapped() {
+        searchString.removeAll()
+    }
+
     func infoButtonTapped() {
         presentingInfoSheet = infoIconMode
     }
