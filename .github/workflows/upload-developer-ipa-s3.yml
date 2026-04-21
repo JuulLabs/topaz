@@ -11,8 +11,12 @@
 
 name: Upload developer IPA to S3
 
+# TEMPORARY: open or update a PR targeting main to run this workflow. Restore before merge:
+#   on:
+#     push:
+#       branches: [main]
 on:
-  push:
+  pull_request:
     branches:
       - main
 

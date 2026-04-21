@@ -7,6 +7,9 @@ XCODE_COMMAND ?= build
 XCODE_CONFIG ?= Debug
 XCODE_OPTIONS += -skipPackagePluginValidation -skipMacroValidation
 
+# Default before any parse-time conditionals that reference $(PLATFORM).
+PLATFORM ?= IOS
+
 # Simulator Debug builds skip signing for speed. Device archives (PLATFORM=GENERIC) must sign.
 ifeq ($(XCODE_CONFIG),Debug)
 ifeq ($(PLATFORM),IOS)
@@ -21,8 +24,6 @@ IOS_SIM_UUID := $(shell ./scripts/find_optimal_sim_uuid.sh)
 PLATFORM_IOS := platform=iOS Simulator,id=$(IOS_SIM_UUID)
 PLATFORM_MACOS := platform=macOS,arch=arm64,variant=Designed for iPad
 PLATFORM_GENERIC := generic/platform=iOS
-
-PLATFORM ?= IOS
 
 XCODE_DESTINATION := $(PLATFORM_$(PLATFORM))
 
