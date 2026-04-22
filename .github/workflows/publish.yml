@@ -19,17 +19,19 @@
 # KeyChain app go to "My Certificates" and find the "Apple Development" certificate labeled with your organization
 # (Note the label may be on the private key not on the cert itself). Right click the certificate and "export" to
 # save to a local file (note it may land in ~/Documents folder). It will prompt for a password to encrypt the
-# private key - make one up and store it in the appropriate GitHub secret (APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY).
+# private key - make one up and store it in the appropriate GitHub secret (APPLE_CERTIFICATE_PASSKEY).
 # 
 # 6. Convert the certificate+key file to base64 and store in the appropriate GitHub secret
 # (APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12). 
 # % cat Certificates.p12 | base64 | pbcopy
 #
+# 6b. Export the Apple Distribution certificate + private key the same way as the development certificate.
+# Store the base64 .p12 in APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12. CI unlocks both .p12 files with
+# APPLE_CERTIFICATE_PASSKEY (same secret for development and distribution exports).
+#
 # The API key supposedly never expires, but certificates expire after one year by default so only these last three steps
 # need to be repeated and the GitHub secret updated when that happens. Note: when adding the base64 items to GitHub secrets,
 # be careful not to prepend/append any whitespace.
-#
-# 7. Apple intermediate CA (.cer), base64-encoded, in secret APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER (used by ios-ci-signing-prepare).
 #
 
 name: 'Publish'
@@ -49,15 +51,14 @@ jobs:
       API_KEY_BASE64_P8: ${{ secrets.APPLE_API_KEY_BASE64_P8 }}
       API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
       DEV_CERT_BASE64_P12: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12 }}
-      DEV_CERT_PASSKEY: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY }}
+      DISTRIBUTION_CERT_BASE64_P12: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12 }}
+      APPLE_CERTIFICATE_PASSKEY: ${{ secrets.APPLE_CERTIFICATE_PASSKEY }}
       KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
       TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v6
 
       - uses: ./.github/actions/ios-ci-signing-prepare
-        # with:
-        #   apple-intermediate-certificate-base64-cer: ${{ secrets.APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER }}
 
       - name: Log Version Info
         run: |

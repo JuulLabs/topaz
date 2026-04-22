@@ -2,8 +2,8 @@
 #
 # Required GitHub secrets (same Apple material as publish.yml):
 #   APPLE_API_KEY_ID, APPLE_API_ISSUER_ID, APPLE_API_KEY_BASE64_P8
-#   APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12, APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY
-#   APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER (Apple WWDR or related .cer, base64)
+#   APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12, APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12
+#   APPLE_CERTIFICATE_PASSKEY (shared .p12 unlock password for development and distribution)
 #   ARBITRARY_KEYCHAIN_PASSWORD
 #   CONX_ETHER_AWS_ACCESS_KEY, CONX_ETHER_AWS_SECRET_KEY — org secrets; IAM must allow s3:PutObject on the bucket prefix
 #
@@ -39,7 +39,8 @@ jobs:
       API_KEY_BASE64_P8: ${{ secrets.APPLE_API_KEY_BASE64_P8 }}
       API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
       DEV_CERT_BASE64_P12: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12 }}
-      DEV_CERT_PASSKEY: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_PASSKEY }}
+      DISTRIBUTION_CERT_BASE64_P12: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12 }}
+      APPLE_CERTIFICATE_PASSKEY: ${{ secrets.APPLE_CERTIFICATE_PASSKEY }}
       KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
       AWS_REGION: us-east-1
       DEVELOPER_IPA_S3_BUCKET: juul-dev-us-east-1-mobile-app
@@ -48,8 +49,6 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: ./.github/actions/ios-ci-signing-prepare
-        # with:
-        #   apple-intermediate-certificate-base64-cer: ${{ secrets.APPLE_INTERMEDIATE_CERTIFICATE_BASE64_CER }}
 
       - name: Log build coordinates
         run: |
