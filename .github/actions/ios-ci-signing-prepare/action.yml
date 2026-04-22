@@ -9,13 +9,11 @@ runs:
   using: composite
   steps:
     - name: Install API Key
-      shell: bash
       run: |
         mkdir "$API_KEY_DIR"
         echo -n "$API_KEY_BASE64_P8" | base64 -d > "$API_KEY_DIR/AuthKey_$API_KEY_ID.p8"
 
     - name: Install Keychain
-      shell: bash
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
         echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
@@ -26,15 +24,13 @@ runs:
         security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 
     - name: Install Development Certificate
-      shell: bash
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-        DEV_CERT=private_keys/dev_cert.p12
+        DEV_CERT=$API_KEY_DIR/dev_cert.p12
         echo -n "$DEV_CERT_BASE64_P12" | base64 -d > "$DEV_CERT"
         security import "$DEV_CERT" -P "$APPLE_CERTIFICATE_PASSKEY" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
 
     - name: Validate Development Certificate
-      shell: bash
       run: |
         DEV_CERT=$API_KEY_DIR/dev_cert.p12
         openssl pkcs12 -in "$DEV_CERT" -out client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
@@ -45,15 +41,13 @@ runs:
         test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
 
     - name: Install Distribution Certificate
-      shell: bash
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-        DISTRIBUTION_CERT=private_keys/distribution_cert.p12
+        DISTRIBUTION_CERT=$API_KEY_DIR/distribution_cert.p12
         echo -n "$DISTRIBUTION_CERT_BASE64_P12" | base64 -d > "$DISTRIBUTION_CERT"
         security import "$DISTRIBUTION_CERT" -P "$APPLE_CERTIFICATE_PASSKEY" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
 
     - name: Validate Distribution Certificate
-      shell: bash
       run: |
         DISTRIBUTION_CERT=$API_KEY_DIR/distribution_cert.p12
         openssl pkcs12 -in "$DISTRIBUTION_CERT" -out distribution_client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
@@ -64,14 +58,12 @@ runs:
         test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
 
     - name: Set Keychain Partition List
-      shell: bash
       run: |
         KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
         security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
         security find-certificate -Z "$KEYCHAIN_PATH"
 
     - name: Validate Keychain Codesigning Identity
-      shell: bash
       run: |
         security list-keychains -d user
         security find-identity -v -p codesigning
@@ -79,9 +71,7 @@ runs:
         test "$identity_count" -ge 2
 
     - name: Select Xcode
-      shell: bash
       run: xcodes select
 
     - name: Xcode version
-      shell: bash
       run: xcodebuild -version
