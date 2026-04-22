@@ -7,6 +7,7 @@ runs:
   using: composite
   steps:
     - name: Delete CI keychain and API key files
+      shell: bash
       run: |
         security list-keychains -d user -s login.keychain
         security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db"
