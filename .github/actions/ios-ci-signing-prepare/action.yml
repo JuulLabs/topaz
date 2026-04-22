@@ -1,0 +1,87 @@
+name: iOS CI signing prepare
+description: >
+  App Store Connect API key, ephemeral keychain, Apple Development and Apple Distribution
+  certificates (install + expiry validation), and Xcode toolchain selection. Job env must include
+  API_KEY_ID, API_KEY_DIR, API_KEY_BASE64_P8, API_ISSUER_ID, DEV_CERT_BASE64_P12,
+  DISTRIBUTION_CERT_BASE64_P12, APPLE_CERTIFICATE_PASSKEY, KEYCHAIN_PASSWORD.
+
+runs:
+  using: composite
+  steps:
+    - name: Install API Key
+      shell: bash
+      run: |
+        mkdir "$API_KEY_DIR"
+        echo -n "$API_KEY_BASE64_P8" | base64 -d > "$API_KEY_DIR/AuthKey_$API_KEY_ID.p8"
+
+    - name: Install Keychain
+      shell: bash
+      run: |
+        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+        echo "KEYCHAIN_PATH=$KEYCHAIN_PATH"
+        security delete-keychain $KEYCHAIN_PATH || echo "Keychain not deleted because it does not already exist"
+        security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+        security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+        security list-keychains -d user -s "$KEYCHAIN_PATH"
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+    - name: Install Development Certificate
+      shell: bash
+      run: |
+        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+        DEV_CERT=$API_KEY_DIR/dev_cert.p12
+        echo -n "$DEV_CERT_BASE64_P12" | base64 -d > "$DEV_CERT"
+        security import "$DEV_CERT" -P "$APPLE_CERTIFICATE_PASSKEY" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+    - name: Validate Development Certificate
+      shell: bash
+      run: |
+        DEV_CERT=$API_KEY_DIR/dev_cert.p12
+        openssl pkcs12 -in "$DEV_CERT" -out client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
+        openssl x509 -in client_cert.pem -noout -text
+        CERT_DATE=$(openssl x509 -in client_cert.pem -noout -enddate | cut -d= -f 2)
+        rm client_cert.pem
+        echo "Certificate expiration date: $CERT_DATE"
+        test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
+
+    - name: Install Distribution Certificate
+      shell: bash
+      run: |
+        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+        DISTRIBUTION_CERT=$API_KEY_DIR/distribution_cert.p12
+        echo -n "$DISTRIBUTION_CERT_BASE64_P12" | base64 -d > "$DISTRIBUTION_CERT"
+        security import "$DISTRIBUTION_CERT" -P "$APPLE_CERTIFICATE_PASSKEY" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+
+    - name: Validate Distribution Certificate
+      shell: bash
+      run: |
+        DISTRIBUTION_CERT=$API_KEY_DIR/distribution_cert.p12
+        openssl pkcs12 -in "$DISTRIBUTION_CERT" -out distribution_client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
+        openssl x509 -in distribution_client_cert.pem -noout -text
+        CERT_DATE=$(openssl x509 -in distribution_client_cert.pem -noout -enddate | cut -d= -f 2)
+        rm distribution_client_cert.pem
+        echo "Distribution certificate expiration date: $CERT_DATE"
+        test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
+
+    - name: Set Keychain Partition List
+      shell: bash
+      run: |
+        KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+        security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+        security find-certificate -Z "$KEYCHAIN_PATH"
+
+    - name: Validate Keychain Codesigning Identity
+      shell: bash
+      run: |
+        security list-keychains -d user
+        security find-identity -v -p codesigning
+        identity_count=$(security find-identity -v -p codesigning | grep 'valid identities found' | awk '{print $1}')
+        test "$identity_count" -ge 2
+
+    - name: Select Xcode
+      shell: bash
+      run: xcodes select
+
+    - name: Xcode version
+      shell: bash
+      run: xcodebuild -version

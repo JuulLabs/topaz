@@ -1,0 +1,79 @@
+# Debug / development-signed IPA for physical devices (e.g. Appium). Uploaded to S3 on each push to main.
+#
+# Required GitHub secrets (same Apple material as publish.yml):
+#   APPLE_API_KEY_ID, APPLE_API_ISSUER_ID, APPLE_API_KEY_BASE64_P8
+#   APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12, APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12
+#   APPLE_CERTIFICATE_PASSKEY (shared .p12 unlock password for development and distribution)
+#   ARBITRARY_KEYCHAIN_PASSWORD
+#   CONX_ETHER_AWS_ACCESS_KEY, CONX_ETHER_AWS_SECRET_KEY — org secrets; IAM must allow s3:PutObject on the bucket prefix
+#
+# S3: bucket juul-dev-us-east-1-mobile-app (us-east-1). Each successful run replaces the same object
+# (topaz/main/topaz.ipa) so consumers always fetch the current Debug developer IPA from main.
+
+name: Upload developer IPA to S3
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upload-developer-ipa-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload_developer_ipa:
+    name: Build Debug IPA and upload to S3
+    runs-on: [macOS-15]
+    timeout-minutes: 45
+    env:
+      API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      API_KEY_DIR: private_keys
+      API_KEY_BASE64_P8: ${{ secrets.APPLE_API_KEY_BASE64_P8 }}
+      API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      DEV_CERT_BASE64_P12: ${{ secrets.APPLE_DEVELOPMENT_CERTIFICATE_BASE64_P12 }}
+      DISTRIBUTION_CERT_BASE64_P12: ${{ secrets.APPLE_DISTRIBUTION_CERTIFICATE_BASE64_P12 }}
+      APPLE_CERTIFICATE_PASSKEY: ${{ secrets.APPLE_CERTIFICATE_PASSKEY }}
+      KEYCHAIN_PASSWORD: ${{ secrets.ARBITRARY_KEYCHAIN_PASSWORD }}
+      AWS_REGION: us-east-1
+      DEVELOPER_IPA_S3_BUCKET: juul-dev-us-east-1-mobile-app
+      DEVELOPER_IPA_S3_OBJECT_KEY: topaz/main/topaz.ipa
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/actions/ios-ci-signing-prepare
+
+      - name: Log build coordinates
+        run: |
+          echo "#### Developer IPA (Debug)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Commit: ${{ github.sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run: ${{ github.run_number }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - run: make clean
+      - run: >
+          make
+          XCODE_CONFIG=Debug
+          APP_VERSION="0.0.${{ github.run_number }}"
+          APP_BUILD='${{ github.run_number }}'
+          ipa
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.CONX_ETHER_AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CONX_ETHER_AWS_SECRET_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload IPA to S3
+        run: |
+          test -f "artifacts/topaz.ipa" || { echo "Expected artifacts/topaz.ipa after make ipa"; exit 1; }
+          aws s3 cp "artifacts/topaz.ipa" "s3://${DEVELOPER_IPA_S3_BUCKET}/${DEVELOPER_IPA_S3_OBJECT_KEY}" --no-progress
+          {
+            echo "Uploaded s3://${DEVELOPER_IPA_S3_BUCKET}/${DEVELOPER_IPA_S3_OBJECT_KEY}"
+            echo "Commit: ${{ github.sha }}  Run: ${{ github.run_number }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: ./.github/actions/ios-ci-signing-cleanup
+        if: always()
