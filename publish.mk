@@ -56,7 +56,17 @@ $(IPA_ARTIFACT): $(ARCHIVE_ARTIFACT)
 ipa: $(IPA_ARTIFACT)
 
 validate-ipa: $(IPA_ARTIFACT)
-	xcrun altool --validate-app -f $< -t ios --apiKey $(API_KEY_ID) --apiIssuer $(API_ISSUER_ID)
+	./scripts/error_scan.sh 'error:' xcrun altool \
+		--validate-app \
+		-f $< \
+		-t ios \
+		--apiKey $(API_KEY_ID) \
+		--apiIssuer $(API_ISSUER_ID)
 
 upload-ipa: $(IPA_ARTIFACT)
-	xcrun altool --upload-app -f $< -t ios --apiKey $(API_KEY_ID) --apiIssuer $(API_ISSUER_ID)
+	./scripts/error_scan.sh 'error:' xcrun altool \
+		--upload-app \
+		-f $< \
+		-t ios \
+		--apiKey $(API_KEY_ID) \
+		--apiIssuer $(API_ISSUER_ID)
