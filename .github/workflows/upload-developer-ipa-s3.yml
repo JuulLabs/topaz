@@ -60,7 +60,7 @@ jobs:
           ipa
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.CONX_ETHER_AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.CONX_ETHER_AWS_SECRET_KEY }}
