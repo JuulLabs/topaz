@@ -7,16 +7,19 @@ import WebKit
 final class ScrollObserver: NSObject {
     private var kvoStore: [NSKeyValueObservation] = []
     private let virtualKeyboardModel: VirtualKeyboardModel
+    private let keyboardObserver: KeyboardObserver
     private var task: Task<Void, Never>?
 
     init(virtualKeyboardModel: VirtualKeyboardModel) {
         self.virtualKeyboardModel = virtualKeyboardModel
+        self.keyboardObserver = .init()
         super.init()
     }
 
-    deinit {
+    isolated deinit {
         kvoStore.forEach { $0.invalidate() }
         kvoStore.removeAll()
+        keyboardObserver.endStream()
         task?.cancel()
     }
 
@@ -28,9 +31,9 @@ final class ScrollObserver: NSObject {
         // webView.scrollView.keyboardDismissMode = .none
         // webView.scrollView.contentInsetAdjustmentBehavior = .never
 
-        let offsetObservation = webView.scrollView.observe(\.contentOffset, options: .new) { scrollView, _ in
-            Task { @MainActor [weak scrollView, weak self] in
-                guard let self, let scrollView, scrollView.contentOffset != .zero, self.shouldDisableScrolling() else { return }
+        let offsetObservation = webView.scrollView.observe(\.contentOffset, options: .new) { [weak self] scrollView, _ in
+            Task { @MainActor [weak self] in
+                guard let self, scrollView.contentOffset != .zero, self.shouldDisableScrolling() else { return }
                 scrollView.setContentOffset(.zero, animated: false)
                 if scrollView.isScrollEnabled {
                     scrollView.isScrollEnabled = false
@@ -40,13 +43,10 @@ final class ScrollObserver: NSObject {
         kvoStore.append(offsetObservation)
 
         task?.cancel()
-        task = Task { @MainActor [weak webView, weak self] in
-            let keyboardObserver = KeyboardObserver()
+        keyboardObserver.endStream()
+        task = Task { [weak webView, weak self, keyboardObserver] in
             for await frame in keyboardObserver.stream() {
-                guard let self, let webView, !Task.isCancelled else {
-                    keyboardObserver.endStream()
-                    return
-                }
+                guard let self, let webView, !Task.isCancelled else { break }
                 if frame != nil && shouldDisableScrolling() {
                     webView.scrollView.setContentOffset(.zero, animated: false)
                     webView.scrollView.isScrollEnabled = false
@@ -56,7 +56,7 @@ final class ScrollObserver: NSObject {
     }
 
     private func shouldDisableScrolling() -> Bool {
-        // TODO: only return true of the web page is trying to lock the viewport (will need to inject some Js)
+        // TODO: only return true if the web page is trying to lock the viewport (will need to inject some Js)
         return virtualKeyboardModel.overlaysContent == true
     }
 }

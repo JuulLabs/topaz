@@ -38,7 +38,9 @@ struct WebContainerView: View {
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .background(GeometryReader(content: readNavStackHeight))
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) { height in
+                    navStackHeight = height
+                }
             }
             if webContainerModel.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
@@ -64,13 +66,6 @@ struct WebContainerView: View {
             }
             .presentationDetents([.medium])
         }
-    }
-
-    private func readNavStackHeight(_ geometry: GeometryProxy) -> some View {
-        Task {
-            navStackHeight = geometry.size.height
-        }
-        return Color.clear
     }
 }
 
