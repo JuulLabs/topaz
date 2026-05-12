@@ -82,7 +82,8 @@ private func webModel(url: URL) -> WebContainerModel {
             url: url,
             config: previewWebConfig(),
             messageProcessorFactory: staticMessageProcessorFactory(),
-            navigator: navBarModel.navigator
+            navigator: navBarModel.navigator,
+            virtualKeyboardModel: .shared
         ),
         navBarModel: navBarModel,
         selector: DeviceSelector()

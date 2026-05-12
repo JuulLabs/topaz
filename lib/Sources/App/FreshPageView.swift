@@ -6,25 +6,23 @@ import UIHelpers
 struct FreshPageView: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass
 
-    private let keyboardObserver = KeyboardObserver()
-
     let model: FreshPageModel
 
     var body: some View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea(.all)
-            topAlignedHeaderView
+            VStack(spacing: 0) {
+                topAlignedHeaderView
+                NavBarViewV2(model: model.navBarModel)
+                    .opacity(model.isLoading ? 0 : 1)
+                    .disabled(model.isLoading)
+                    .animation(.spring, value: model.isLoading)
+                    .animation(.spring, value: model.keyboardPresent)
+            }
             if model.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: model.navBarModel.settingsModel)
             }
-        }
-        .safeAreaBarIfAvailable {
-            NavBarViewV2(model: model.navBarModel)
-                .opacity(model.isLoading ? 0 : 1)
-                .disabled(model.isLoading)
-                .animation(.spring, value: model.isLoading)
-                .animation(.spring, value: keyboardPresent)
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard
@@ -39,12 +37,8 @@ struct FreshPageView: View {
         verticalSizeClass == .compact
     }
 
-    private var keyboardPresent: Bool {
-        keyboardObserver.frame != nil
-    }
-
     private var veryLimitedVerticalSpace: Bool {
-        keyboardPresent && isCompact
+        model.keyboardPresent && isCompact
     }
 
     // Pins to the top, tightens up and drops the text when compact
@@ -71,7 +65,7 @@ struct FreshPageView: View {
             Spacer()
         }
         .padding(.top, isCompact ? 6 : 60)
-        .animation(.easeIn, value: keyboardPresent)
+        .animation(.easeIn, value: model.keyboardPresent)
     }
 }
 

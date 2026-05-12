@@ -3,6 +3,7 @@ import BluetoothEngine
 import Foundation
 import JsMessage
 import Navigation
+import VirtualKeyboard
 import WebKit
 
 @MainActor
@@ -52,6 +53,12 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
+        // TODO: fix the race condition problem, temporary fix here we reset the global virtual keyboard status
+        // Problem occurs when a new webview is created and handlers attached, and then sometime after an old webview gets de-initialized.
+        // The de-initialize detaches the handlers, and any global mutation will affect the new webview. VirtualKeyboardModel is a global
+        // which was a mistake in hindsight but is hard to fix because the message factory design doesn't allow for dependency injection.
+        VirtualKeyboardModel.shared.overlaysContent = false
+
         let context = webView.createContext(contextId: contextId, world: world)
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
@@ -88,6 +95,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 
     public func startedDownload(for url: URL) {

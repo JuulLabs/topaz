@@ -4,12 +4,14 @@ import Navigation
 import Observation
 import Permissions
 import SwiftUI
+import VirtualKeyboard
 import WebKit
 
 @MainActor
 @Observable
 public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
+    private let scrollObserver: ScrollObserver
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -43,7 +45,8 @@ public class WebPageModel: Identifiable {
         url: URL,
         config: WKWebViewConfiguration,
         messageProcessorFactory: JsMessageProcessorFactory,
-        navigator: WebNavigator
+        navigator: WebNavigator,
+        virtualKeyboardModel: VirtualKeyboardModel
     ) {
         self.contextId = JsContextIdentifier(tab: tab, url: url)
         self.tab = tab
@@ -51,6 +54,7 @@ public class WebPageModel: Identifiable {
         self.config = config
         self.messageProcessorFactory = messageProcessorFactory
         self.navigator = navigator
+        self.scrollObserver = .init(virtualKeyboardModel: virtualKeyboardModel)
     }
 
     public func loadNewPage(url: URL) {
@@ -59,9 +63,8 @@ public class WebPageModel: Identifiable {
 
     func createWebView() -> WKWebView {
         let webView = WKWebView(frame: .zero, configuration: config)
-        // Ensures that content at the bottom of the webview is scrollable above the nav bar
-        webView.scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 85, right: 0)
         webView.allowsBackForwardNavigationGestures = true
+        scrollObserver.observe(webView: webView)
         return webView
     }
 

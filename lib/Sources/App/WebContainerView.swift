@@ -15,26 +15,33 @@ import WebKit
 
 struct WebContainerView: View {
     @Bindable var webContainerModel: WebContainerModel
+    @State var navStackHeight: CGFloat = 0.0
 
     var body: some View {
         ZStack {
             WebPageView(model: webContainerModel.webPageModel)
-                .safeAreaBarIfAvailable {
-                    VStack(spacing: 16) {
-                        if webContainerModel.shouldShowErrorState {
-                            BluetoothErrorView(
-                                state: webContainerModel.bluetoothSystem.systemState
-                            )
-                        }
-                        if !webContainerModel.navBarModel.isFullscreen {
-                            NavBarViewV2(model: webContainerModel.navBarModel)
-                                .transition(.move(edge: .bottom).combined(with: .opacity))
-                        }
+                .padding(.bottom, navStackHeight)
+                .ignoresSafeArea(
+                    webContainerModel.virtualKeyboard.overlaysContent ? .keyboard : [],
+                    edges: webContainerModel.virtualKeyboard.overlaysContent ? .bottom : []
+                )
+            VStack(spacing: 0) {
+                Spacer()
+                VStack(spacing: 16) {
+                    if webContainerModel.shouldShowErrorState {
+                        BluetoothErrorView(
+                            state: webContainerModel.bluetoothSystem.systemState
+                        )
+                    }
+                    if webContainerModel.shouldShowNavBar {
+                        NavBarViewV2(model: webContainerModel.navBarModel)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .ignoresSafeArea(
-                    webContainerModel.virtualKeyboard.overlaysContent ? .keyboard : [], edges: .bottom
-                )
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) { height in
+                    navStackHeight = height
+                }
+            }
             if webContainerModel.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
             }
@@ -75,18 +82,21 @@ struct WebContainerView: View {
 }
 
 #Preview("VirtualKeyboard") {
+    @Previewable @State var model = previewModel(
+        state: .poweredOn,
+        url: URL(string: "https://googlechrome.github.io/samples/virtualkeyboard/")!
+    )
     VStack {
-        let model = previewModel(state: .poweredOn)
-        Button("Toggle VK OverlaysContent") {
+        Button("overlaysContent = \(model.virtualKeyboard.overlaysContent ? "true" : "false")", action: {
             model.virtualKeyboard.overlaysContent.toggle()
-        }
+        })
         WebContainerView(webContainerModel: model)
     }
 }
 
 @MainActor
-private func previewModel(state: SystemState) -> WebContainerModel {
-    let url = URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
+private func previewModel(state: SystemState, url: URL? = nil) -> WebContainerModel {
+    let url = url ?? URL(string: "https://googlechrome.github.io/samples/web-bluetooth/device-info.html")!
     let selector = DeviceSelector()
     let eventBus = EventBus()
 #if targetEnvironment(simulator)
@@ -104,14 +114,15 @@ private func previewModel(state: SystemState) -> WebContainerModel {
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
     let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
+    let virtualKeyboard = VirtualKeyboardModel()
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
         config: previewWebConfig(),
         messageProcessorFactory: factory,
-        navigator: navBarModel.navigator
+        navigator: navBarModel.navigator,
+        virtualKeyboardModel: virtualKeyboard
     )
-    let virtualKeyboard = VirtualKeyboardModel()
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: navBarModel,
@@ -131,21 +142,26 @@ func previewWebConfig() -> WKWebViewConfiguration {
 }
 
 #if targetEnvironment(simulator)
+@MainActor
+private final class MainActorTaskHolder {
+    var task: Task<Void, Never>?
+}
+
 extension MockBluetoothClient {
     nonisolated static public func clientWithMockAds(selector: DeviceSelector, eventBus: EventBus) -> BluetoothClient {
-        var injectionTask: Task<Void, Never>?
+        let taskHolder = MainActor.assumeIsolated { MainActorTaskHolder() }
         var client = MockBluetoothClient()
         client.onEnable = {
             eventBus.enqueueEvent(SystemStateEvent(.poweredOn))
         }
         client.onStartScanning = { _ in
             Task { @MainActor in
-                injectionTask = selector.injectMockAds()
+                taskHolder.task = selector.injectMockAds()
             }
         }
         client.onStopScanning = {
             Task { @MainActor in
-                injectionTask?.cancel()
+                taskHolder.task?.cancel()
             }
         }
         return client
