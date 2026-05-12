@@ -14,7 +14,6 @@ public final class NavBarModel {
     let pullDrawer: PullDrawerModel
 
     let navigator: WebNavigator
-    let keyboardObserver: KeyboardObserver
 
     var fullscreenButtonDisabled: Bool = false
     var isSettingsPresented: Bool = false
@@ -35,7 +34,6 @@ public final class NavBarModel {
         self.settingsModel = settingsModel
         self.isFullscreen = isFullscreen
         self.onFullscreenChanged = onFullscreenChanged
-        self.keyboardObserver = .init()
         self.settingsModel.dismiss = { [weak self] in
             self?.isSettingsPresented = false
         }

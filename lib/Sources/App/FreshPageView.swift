@@ -14,17 +14,17 @@ struct FreshPageView: View {
         ZStack {
             Color.backgroundPrimary
                 .ignoresSafeArea(.all)
-            topAlignedHeaderView
+            VStack(spacing: 0) {
+                topAlignedHeaderView
+                NavBarViewV2(model: model.navBarModel)
+                    .opacity(model.isLoading ? 0 : 1)
+                    .disabled(model.isLoading)
+                    .animation(.spring, value: model.isLoading)
+                    .animation(.spring, value: keyboardPresent)
+            }
             if model.navBarModel.isSettingsPresented {
                 SettingsViewV2(model: model.navBarModel.settingsModel)
             }
-        }
-        .safeAreaBarIfAvailable {
-            NavBarViewV2(model: model.navBarModel)
-                .opacity(model.isLoading ? 0 : 1)
-                .disabled(model.isLoading)
-                .animation(.spring, value: model.isLoading)
-                .animation(.spring, value: keyboardPresent)
         }
         .onTapGesture {
             // Tap outside to dismiss the keyboard

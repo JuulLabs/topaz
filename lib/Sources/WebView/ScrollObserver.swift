@@ -27,10 +27,6 @@ final class ScrollObserver: NSObject {
         kvoStore.forEach { $0.invalidate() }
         kvoStore.removeAll()
 
-        // TODO: check if need these
-        // webView.scrollView.keyboardDismissMode = .none
-        // webView.scrollView.contentInsetAdjustmentBehavior = .never
-
         let offsetObservation = webView.scrollView.observe(\.contentOffset, options: .new) { [weak self] scrollView, _ in
             Task { @MainActor [weak self] in
                 guard let self, scrollView.contentOffset != .zero, self.shouldDisableScrolling() else { return }
