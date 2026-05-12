@@ -40,8 +40,13 @@ public final class SearchBarModel {
         }
     }
 
+    // TODO: Remove when the v1 UI is removed
     enum StopOrReloadMode {
         case showStopLoading, showReload
+    }
+    
+    enum ClearOrReloadMode {
+        case showClear, showReload
     }
 
     let navigator: WebNavigator
@@ -50,6 +55,10 @@ public final class SearchBarModel {
     var presentingInfoSheet: InfoIconMode?
     var searchString: String = ""
     var onSubmit: (URL) -> Void = { _ in }
+
+    public var isEditingWebUrl: Bool {
+        focusedField == .searchBar
+    }
 
     init(navigator: WebNavigator = WebNavigator()) {
         self.navigator = navigator
@@ -93,12 +102,17 @@ public final class SearchBarModel {
         }
     }
 
+    // TODO: Remove when v1 UI is removed
     var stopOrReloadMode: StopOrReloadMode? {
         switch navigator.loadingState {
         case .inProgress: .showStopLoading
         case .complete: .showReload
         default: nil
         }
+    }
+    
+    var clearOrReloadMode: ClearOrReloadMode? {
+        isEditingWebUrl ? .showClear : .showReload
     }
 
     func stopButtonTapped() {

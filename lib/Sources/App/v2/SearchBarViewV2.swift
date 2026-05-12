@@ -1,5 +1,6 @@
 import SwiftUI
 import Navigation
+import UIHelpers
 
 struct SearchBarViewV2: View {
 
@@ -28,12 +29,25 @@ struct SearchBarViewV2: View {
                 .onSubmit {
                     model.didSubmitSearchString()
                 }
-            Button {
-                model.clearSearchFieldTapped()
-            } label: {
-                Image(systemName: "xmark.circle")
-                    .foregroundStyle(Color.textPrimary)
-                    .font(.system(size: 24).weight(.light))
+            if let clearOrReloadMode = model.clearOrReloadMode {
+                switch clearOrReloadMode {
+                case .showClear:
+                    Button {
+                        model.clearSearchFieldTapped()
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                            .foregroundStyle(Color.textPrimary)
+                            .font(.system(size: 20).weight(.light))
+                    }
+                case .showReload:
+                    Button {
+                        model.reloadButtonTapped()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(Color.textPrimary)
+                            .font(.system(size: 20).weight(.light))
+                    }
+                }
             }
         }
         .padding(.horizontal, 16)
@@ -47,6 +61,7 @@ struct SearchBarViewV2: View {
             RoundedRectangle(cornerRadius: 24)
                 .stroke(Color.white, lineWidth: 0.25)
         )
+        .synchronize($model.focusedField, $focusedField)
     }
 }
 
