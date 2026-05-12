@@ -102,7 +102,8 @@ private func previewModel() -> WebPageModel {
         url: url,
         config: previewWebConfig(),
         messageProcessorFactory: factory,
-        navigator: WebNavigator()
+        navigator: WebNavigator(),
+        virtualKeyboardModel: .shared
     )
 }
 

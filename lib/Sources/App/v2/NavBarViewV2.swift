@@ -35,13 +35,9 @@ struct NavBarViewV2: View {
         }
         .animation(.spring, value: model.navigator.isInSearchMode)
         .padding(.horizontal, 16)
-        .padding(.bottom, 6)
+        .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
         .embedInNavigationBackground(keyboardPresent: keyboardPresent)
-        .offset(y: model.navBarYOffset)
-        .task {
-            await model.task()
-        }
     }
 }
 

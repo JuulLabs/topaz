@@ -20,6 +20,10 @@ public final class WebContainerModel {
         bluetoothSystem.systemState != .unknown && bluetoothSystem.systemState != .poweredOn
     }
 
+    var shouldShowNavBar: Bool {
+        !navBarModel.isFullscreen
+    }
+
     init(
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,

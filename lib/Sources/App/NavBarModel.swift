@@ -19,11 +19,6 @@ public final class NavBarModel {
     var fullscreenButtonDisabled: Bool = false
     var isSettingsPresented: Bool = false
 
-    var navBarYOffset: CGFloat = 0
-
-    @ObservationIgnored
-    private var previousKeyboardFrame: CGRect?
-
     private(set) var isFullscreen: Bool = false
     private let onFullscreenChanged: (Bool) -> Void
 
@@ -61,23 +56,6 @@ public final class NavBarModel {
 
     var forwardButtonDisabled: Bool {
         navigator.canGoForward == false
-    }
-
-    // TODO: This is a hack. It's correcting for a possible bug in SwiftUI that incorrectly adjusts
-    // the height of the safe area after a web view text field loses focus.
-    func task() async {
-        for await frame in keyboardObserver.stream() {
-            guard Task.isCancelled == false else {
-                keyboardObserver.endStream()
-                return
-            }
-            if let frame, let previousKeyboardFrame, previousKeyboardFrame.height > frame.height {
-                navBarYOffset = -(previousKeyboardFrame.height - frame.height)
-            } else {
-                navBarYOffset = 0
-            }
-            previousKeyboardFrame = frame
-        }
     }
 
     func backButtonTapped() {

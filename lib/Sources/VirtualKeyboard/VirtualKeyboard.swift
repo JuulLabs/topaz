@@ -34,7 +34,8 @@ public final actor VirtualKeyboard: JsMessageProcessor {
             let observer = KeyboardObserver()
             for await frame in observer.stream() {
                 guard !Task.isCancelled else { break }
-                let event = GeometryChange(frame: frame).toJs(targetId: "keyboard")
+                let adjustedFrame = adjustedKeyboardBoundingRect(globalFrame: frame)
+                let event = GeometryChange(frame: adjustedFrame).toJs(targetId: "keyboard")
                 _ = await context.sendEvent(event)
                 await logJsEvent(event: event)
             }
@@ -45,10 +46,12 @@ public final actor VirtualKeyboard: JsMessageProcessor {
     public func didDetach(from context: JsContext) async {
         task?.cancel()
         task = nil
-        await MainActor.run {
-            // Important to reset back to the default state
-            viewModel.overlaysContent = false
-        }
+        /* TODO: disabled due to race condition between WebView instances - done in the Coordinator instead
+         await MainActor.run {
+         // Important to reset back to the default state
+         viewModel.overlaysContent = false
+         }
+         */
     }
 
     public func process(request: JsMessageRequest, in context: JsContext) async -> JsMessageResponse {
@@ -119,5 +122,31 @@ public final actor VirtualKeyboard: JsMessageProcessor {
     private func logJsEvent(event: JsEvent) {
         guard enableDebugLogging else { return }
         messageLog.debug("Event: \(event.asDebugString(), privacy: .public)")
+    }
+
+    /**
+     * We assume here that the enclosing webview is respecting the safe area insets in which case we need to
+     * adjust the keyboard frame from global view coordinates to webview coordinate space.
+     * We move the y origin _up_ to account for the top insets. And we _subtract_ the bottom insets from the height
+     * in case the web page is using the height-from-bottom-of-container as its guide.
+     */
+    @MainActor
+    private func adjustedKeyboardBoundingRect(globalFrame: CGRect?) -> CGRect {
+        guard let globalFrame, let window = window() else { return .zero }
+        let localFrame = CGRect(
+            x: globalFrame.origin.x,
+            y: globalFrame.origin.y - window.safeAreaInsets.top,
+            width: globalFrame.width,
+            height: globalFrame.height - window.safeAreaInsets.bottom
+        )
+        return localFrame
+    }
+
+    @MainActor
+    private func window() -> UIWindow? {
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive })
+        return scene?.windows.first
     }
 }
