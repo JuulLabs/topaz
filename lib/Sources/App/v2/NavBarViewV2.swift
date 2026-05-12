@@ -7,12 +7,6 @@ struct NavBarViewV2: View {
 
     let model: NavBarModel
 
-    @State private var keyboardObserver = KeyboardObserver()
-
-    private var keyboardPresent: Bool {
-        keyboardObserver.frame != nil
-    }
-
     var body: some View {
         HStack(spacing: 20) {
             if model.navigator.isInSearchMode {
@@ -37,7 +31,7 @@ struct NavBarViewV2: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
         .frame(maxWidth: .infinity)
-        .embedInNavigationBackground(keyboardPresent: keyboardPresent)
+        .embedInNavigationBackground(keyboardPresent: model.keyboardPresent)
     }
 }
 

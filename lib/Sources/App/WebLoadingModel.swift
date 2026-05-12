@@ -19,6 +19,7 @@ public final class WebLoadingModel: Identifiable, Equatable {
     }
 
     var shouldShowFreshPageOverlay: Bool {
+        print("shouldShowFreshPageOverlay \(webContainerModel == nil ? "no model yet" : "has model") isLoading=\(webContainerModel?.webPageModel.isPerformingInitialContentLoad == true ? "yes" : "no") \(webContainerModel?.webPageModel.url.isAboutBlank() == true ? "is blank" : "not blank")")
         guard let webContainerModel else { return true }
         return webContainerModel.webPageModel.isPerformingInitialContentLoad || webContainerModel.webPageModel.url.isAboutBlank()
     }

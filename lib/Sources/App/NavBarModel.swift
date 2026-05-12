@@ -20,6 +20,7 @@ public final class NavBarModel {
 
     private(set) var isFullscreen: Bool = false
     private let onFullscreenChanged: (Bool) -> Void
+    private var keyboardObserver = KeyboardObserver()
 
     init(
         navigator: WebNavigator = WebNavigator(),
@@ -54,6 +55,10 @@ public final class NavBarModel {
 
     var forwardButtonDisabled: Bool {
         navigator.canGoForward == false
+    }
+
+    var keyboardPresent: Bool {
+        keyboardObserver.frame != nil
     }
 
     func backButtonTapped() {
