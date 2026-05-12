@@ -114,15 +114,15 @@ private func previewModel(state: SystemState, url: URL? = nil) -> WebContainerMo
         [BluetoothEngine.handlerName: bluetoothEngine]
     )
     let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
+    let virtualKeyboard = VirtualKeyboardModel()
     let webPageModel = WebPageModel(
         tab: 0,
         url: url,
         config: previewWebConfig(),
         messageProcessorFactory: factory,
         navigator: navBarModel.navigator,
-        virtualKeyboardModel: .shared
+        virtualKeyboardModel: virtualKeyboard
     )
-    let virtualKeyboard = VirtualKeyboardModel()
     return WebContainerModel(
         webPageModel: webPageModel,
         navBarModel: navBarModel,
