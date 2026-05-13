@@ -10,15 +10,12 @@ public extension View {
         self
             .onAppear {
                 view.wrappedValue = model.wrappedValue
-                print("batman: \(view.wrappedValue)")
             }
             .onChange(of: model.wrappedValue) {
                 view.wrappedValue = model.wrappedValue
-                print("batman: \(view.wrappedValue)")
             }
             .onChange(of: view.wrappedValue) {
                 model.wrappedValue = view.wrappedValue
-                print("batman: \(view.wrappedValue)")
             }
     }
 }
