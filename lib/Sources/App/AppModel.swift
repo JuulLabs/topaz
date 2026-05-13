@@ -13,6 +13,7 @@ import Permissions
 import Settings
 import SwiftUI
 import Tabs
+import VirtualKeyboard
 import WebKit
 import WebView
 
@@ -166,14 +167,17 @@ public class AppModel {
     }
 
     private func buildWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel, config: WKWebViewConfiguration) -> WebContainerModel {
+        // TODO: isolate VirtualKeyboardModel per webview and inject it into the processor factory
+        let virtualKeyboardModel = VirtualKeyboardModel.shared
         let webPageModel = WebPageModel(
             tab: tab,
             url: url,
             config: config,
             messageProcessorFactory: messageProcessorFactory,
-            navigator: navBarModel.navigator
+            navigator: navBarModel.navigator,
+            virtualKeyboardModel: virtualKeyboardModel
         )
-        return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector)
+        return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector, virtualKeyboard: virtualKeyboardModel)
     }
 }
 
