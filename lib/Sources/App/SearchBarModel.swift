@@ -44,7 +44,7 @@ public final class SearchBarModel {
     enum StopOrReloadMode {
         case showStopLoading, showReload
     }
-    
+
     enum ClearOrReloadMode {
         case showClear, showReload
     }
@@ -110,7 +110,7 @@ public final class SearchBarModel {
         default: nil
         }
     }
-    
+
     var clearOrReloadMode: ClearOrReloadMode? {
         isEditingWebUrl ? .showClear : .showReload
     }
