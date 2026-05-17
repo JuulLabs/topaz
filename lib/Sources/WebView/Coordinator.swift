@@ -43,8 +43,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         viewModel = nil
         detachOldHandler(from: webView)
         authorize = { false }
-        webView.configuration.userContentController.removeAllScriptMessageHandlers()
-        webView.configuration.userContentController.removeAllUserScripts()
     }
 
     func update(webView: WKWebView, model: WebPageModel) {
