@@ -1,8 +1,6 @@
 #include "version.xcconfig"
 
-// User-defined: Release plist omits OSLogPreferences (same keys otherwise as Topaz/Info.plist).
-TOPAZ_APP_INFOPLIST = Info-Release.plist
-INFOPLIST_FILE = Topaz/$(TOPAZ_APP_INFOPLIST)
+INFOPLIST_FILE = Topaz/Info-Release.plist
 
 CODE_SIGN_IDENTITY = Apple Distribution
 CODE_SIGN_STYLE = Manual
