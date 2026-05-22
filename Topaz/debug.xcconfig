@@ -1,5 +1,9 @@
 #include "version.xcconfig"
 
+// User-defined: which app Info.plist to merge (Debug keeps OSLogPreferences for subsystem logging).
+TOPAZ_APP_INFOPLIST = Info.plist
+INFOPLIST_FILE = Topaz/$(TOPAZ_APP_INFOPLIST)
+
 CODE_SIGN_IDENTITY = Apple Development
 CODE_SIGN_STYLE = Manual
 PROVISIONING_PROFILE_SPECIFIER = Topaz Development

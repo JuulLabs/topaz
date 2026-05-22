@@ -2,24 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>OSLogPreferences</key>
-	<dict>
-		<key>JsMessage</key>
-		<dict>
-			<key>DEFAULT-OPTIONS</key>
-			<dict>
-				<key>Enable-Private-Data</key>
-				<true/>
-				<key>Level</key>
-				<dict>
-					<key>Enable</key>
-					<string>Debug</string>
-					<key>Persist</key>
-					<string>Debug</string>
-				</dict>
-			</dict>
-		</dict>
-	</dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
