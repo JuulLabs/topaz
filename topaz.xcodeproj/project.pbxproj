@@ -39,6 +39,7 @@
 		0BFDB76A2CCB2668003E0F8D /* Exceptions for "Topaz" folder in "topaz" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Info-Release.plist,
 				Info.plist,
 			);
 			target = 0BB6F08C2CB496C9003C34A1 /* topaz */;
@@ -438,7 +439,6 @@
 				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = topaz/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Topaz;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -469,7 +469,6 @@
 				DONT_GENERATE_INFOPLIST_FILE = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = topaz/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Topaz;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

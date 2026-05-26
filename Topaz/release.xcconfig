@@ -1,5 +1,7 @@
 #include "version.xcconfig"
 
+INFOPLIST_FILE = Topaz/Info-Release.plist
+
 CODE_SIGN_IDENTITY = Apple Distribution
 CODE_SIGN_STYLE = Manual
 PROVISIONING_PROFILE_SPECIFIER = Topaz Distribution
