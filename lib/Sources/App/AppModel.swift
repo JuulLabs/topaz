@@ -17,7 +17,7 @@ import VirtualKeyboard
 import WebKit
 import WebView
 
-private let log = Logger(subsystem: "App", category: "AppModel")
+private let log = Logger(subsystem: "Topaz", category: "AppModel")
 
 @MainActor
 @Observable

@@ -8,7 +8,7 @@ import Foundation
 import JsMessage
 import OSLog
 
-private let messageLog = Logger(subsystem: "BluetoothEngine", category: "Message")
+private let messageLog = Logger(subsystem: "Topaz", category: "BluetoothEngine")
 
 /**
  Main engine - owns state, integrates web API with native API
