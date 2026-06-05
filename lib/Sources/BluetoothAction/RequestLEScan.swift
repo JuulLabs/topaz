@@ -5,6 +5,9 @@ import EventBus
 import Foundation
 import JsMessage
 import SecurityList
+import OSLog
+
+private let log = Logger(subsystem: "Topaz", category: "RequestLEScan")
 
 struct RequestLEScanOptions: JsMessageDecodable {
     private let rawFilters: [JsType]
@@ -97,6 +100,7 @@ struct RequestLEScan: BluetoothAction {
         await eventBus.attachEventListener(forKey: .advertisement) { (result: Result<AdvertisementEvent, any Error>) in
             guard case let .success(event) = result else { return }
             guard options.includeAdvertisementEventInDeviceList(event) else { return }
+            log.debug("Advertisement: \(event.advertisement.debugDump, privacy: .public)")
             // TODO: Potential optimization: keep track of these devices and discard them if never connected after scanning
             await state.putPeripheral(event.peripheral, replace: false)
             // Scanning is unrestricted so clear any access permissions on the device here:
@@ -115,5 +119,11 @@ struct RequestLEScan: BluetoothAction {
         client.stopScanning()
         await eventBus.detachListener(forKey: EventRegistrationKey.advertisement)
         return .stop
+    }
+}
+
+extension Advertisement {
+    var debugDump: String {
+        "peripheralId=\(peripheralId) peripheralName=\(peripheralName) rssi=\(rssi) isConnectable=\(isConnectable) localName=\(localName) manufacturerData=\(manufacturerData?.description) overflowServiceUUIDs=\(overflowServiceUUIDs) serviceData=\(serviceData.description) serviceUUIDs=\(serviceUUIDs) solicitedServiceUUIDs=\(solicitedServiceUUIDs) txPowerLevel=\(txPowerLevel)"
     }
 }
