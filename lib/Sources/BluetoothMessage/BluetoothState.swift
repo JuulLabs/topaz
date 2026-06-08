@@ -4,7 +4,7 @@ import Helpers
 import OSLog
 import SecurityList
 
-private let log = Logger(subsystem: "BluetoothMessage", category: "BluetoothState")
+private let log = Logger(subsystem: "Topaz", category: "BluetoothState")
 
 /**
  Represents the current state of the bluetooth system.

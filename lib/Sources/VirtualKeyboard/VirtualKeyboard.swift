@@ -5,7 +5,7 @@ import OSLog
 import UIHelpers
 import UIKit
 
-private let messageLog = Logger(subsystem: "VirtualKeyboard", category: "Message")
+private let messageLog = Logger(subsystem: "Topaz", category: "VirtualKeyboard")
 
 /**
  * https://www.w3.org/TR/virtual-keyboard/#the-virtualkeyboard-interface

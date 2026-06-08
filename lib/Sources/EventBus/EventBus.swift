@@ -2,7 +2,7 @@ import Bluetooth
 import JsMessage
 import OSLog
 
-private let eventLog = Logger(subsystem: "EventBus", category: "Event")
+private let eventLog = Logger(subsystem: "Topaz", category: "EventBus")
 
 public actor EventBus {
     private enum StaticPromiseKey { case allEvents }

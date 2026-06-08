@@ -2,7 +2,7 @@ import CoreText
 import Foundation
 import OSLog
 
-let fontLogger = Logger(subsystem: "Design", category: "FontRegistry")
+let fontLogger = Logger(subsystem: "Topaz", category: "FontRegistry")
 
 /// Invoke this from main app launch to load the fonts from the SPM bundle
 public func registerFonts() {

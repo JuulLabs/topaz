@@ -39,7 +39,7 @@ private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProces
     JsMessageProcessorFactory(
         builders: [
             BluetoothEngine.handlerName: { _ in
-                let eventBus = EventBus()
+                let eventBus = EventBus(enableDebugLogging: appConfig.enableDebugLogging)
                 return BluetoothEngine(
                     eventBus: eventBus,
                     state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
