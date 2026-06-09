@@ -47,6 +47,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     func update(webView: WKWebView, model: WebPageModel) {
         // TODO: load when observed model url changes only
+        webView.customUserAgent = model.customUserAgent(for: model.url)
         webView.load(URLRequest(url: model.url))
     }
 
@@ -73,6 +74,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     // MARK: - NavigationEngineDelegate
 
     public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
+        if let viewModel {
+            webView.customUserAgent = viewModel.customUserAgent(for: navigation.request.url)
+        }
+
         switch navigation.request.kind {
         case .newWindow:
             // Will trigger load of an entire new tab container so no need for any action

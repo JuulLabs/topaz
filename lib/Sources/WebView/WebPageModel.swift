@@ -34,10 +34,15 @@ public class WebPageModel: Identifiable {
     let messageProcessorFactory: JsMessageProcessorFactory
 
     // TODO: dynamically construct this
-    let customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/3.9.0 Topaz/3.9.0"
+    private let topazCustomUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/3.9.0 Topaz/3.9.0"
+    private let googleCompatibleUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/26.0 Safari/605.1.15"
 
     public var hostname: String {
         url.host(percentEncoded: false) ?? "unknown"
+    }
+
+    var customUserAgent: String {
+        customUserAgent(for: url)
     }
 
     public init(
@@ -59,6 +64,10 @@ public class WebPageModel: Identifiable {
 
     public func loadNewPage(url: URL) {
         self.url = url
+    }
+
+    func customUserAgent(for url: URL) -> String {
+        usesGoogleCompatibleUserAgent(for: url) ? googleCompatibleUserAgent : topazCustomUserAgent
     }
 
     func createWebView() -> WKWebView {
@@ -114,5 +123,39 @@ public class WebPageModel: Identifiable {
     private func closePermissionsRequest(allowed: Bool) {
         permissionsRequest?.resume(returning: allowed)
         permissionsRequest = nil
+    }
+
+    // TODO: This is a workaround for Google SSO whereby Topaz is not currently recognized as a
+    // "secure browser." This will switch the user agent sent in requests to Safari when Topaz
+    // detects the user is trying to sign in to juul.com via Google SSO.
+    private func usesGoogleCompatibleUserAgent(for url: URL) -> Bool {
+        guard let host = url.host?.lowercased() else {
+            return false
+        }
+        let path = url.path.lowercased()
+        let query = url.query?.lowercased() ?? ""
+
+        if (host == "juul.com" || host.hasSuffix(".juul.com")) && path == "/spree_user/auth/google_oauth2" {
+            return true
+        }
+
+        if host == "accounts.google.com" || host.hasSuffix(".accounts.google.com") {
+            return true
+        }
+
+        if host == "accounts.youtube.com" || host.hasSuffix(".accounts.youtube.com") {
+            return true
+        }
+
+        guard host == "google.com" || host.hasSuffix(".google.com") else {
+            return false
+        }
+
+        return path.contains("/o/oauth") ||
+            path.contains("/oauth") ||
+            path.contains("/signin") ||
+            path.contains("/gsi/") ||
+            query.contains("client_id=") ||
+            query.contains("response_type=")
     }
 }
