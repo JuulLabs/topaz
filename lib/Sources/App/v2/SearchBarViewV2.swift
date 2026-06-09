@@ -53,14 +53,7 @@ struct SearchBarViewV2: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
         .frame(maxWidth: .infinity, maxHeight: 48)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color.cellFillPrimary)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.white, lineWidth: 0.25)
-        )
+        .background(Color.clear)
         .synchronize($model.focusedField, $focusedField)
     }
 }
