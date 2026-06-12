@@ -45,8 +45,24 @@ public class WebPageModel: Identifiable {
 
     let messageProcessorFactory: JsMessageProcessorFactory
 
+    enum UserAgentMode: String {
+        case topaz
+        case safari
+    }
+
     // TODO: dynamically construct this
-    let customUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/3.9.0 Topaz/3.9.0"
+    private let topazUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/3.9.0 Topaz/3.9.0"
+    private let safariUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/26.0 Safari/605.1.15"
+    private(set) var userAgentMode: UserAgentMode = .topaz
+
+    var customUserAgent: String {
+        switch userAgentMode {
+        case .topaz:
+            topazUserAgent
+        case .safari:
+            safariUserAgent
+        }
+    }
 
     public var hostname: String {
         url.host(percentEncoded: false) ?? "unknown"
@@ -71,6 +87,10 @@ public class WebPageModel: Identifiable {
 
     public func loadNewPage(url: URL) {
         self.url = url
+    }
+
+    func setUserAgentMode(_ mode: UserAgentMode) {
+        userAgentMode = mode
     }
 
     func createWebView() -> WKWebView {

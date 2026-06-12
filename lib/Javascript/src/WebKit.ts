@@ -5,6 +5,7 @@ declare namespace window.webkit.messageHandlers {
     const bluetooth: Channel<BluetoothMessage>;
     const logging: Channel<LogMessage>;
     const keyboard: Channel<VirtualKeyboardMessage>;
+    const topaz: Channel<TopazMessage>;
 }
 
 interface Channel<Message> {
@@ -57,6 +58,24 @@ export const virtualKeyboardRequest = function <Request, Response>(
     data?: Request,
 ): Promise<Response> {
     return window.webkit.messageHandlers.keyboard.postMessage<Response>({
+        action: action,
+        data: data
+    }).catch(rethrowAsDOMException);
+}
+
+
+// Topaz Channel
+
+type TopazMessage = {
+    action: string;
+    data?: any;
+}
+
+export const topazRequest = function <Request, Response>(
+    action: string,
+    data?: Request,
+): Promise<Response> {
+    return window.webkit.messageHandlers.topaz.postMessage<Response>({
         action: action,
         data: data
     }).catch(rethrowAsDOMException);
