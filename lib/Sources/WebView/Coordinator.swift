@@ -9,11 +9,9 @@ import WebKit
 @MainActor
 public class Coordinator: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
-    private let topazHandlerName = "topaz"
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
-    private var topazScriptHandler: TopazScriptHandler?
     private var viewModel: WebPageModel?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
@@ -31,13 +29,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.uiDelegate = navigationEngine
         webView.customUserAgent = model.customUserAgent
         model.navigator.startObservingNavigationState(of: webView)
-        let topazScriptHandler = TopazScriptHandler(webView: webView, model: model)
-        self.topazScriptHandler = topazScriptHandler
-        webView.configuration.userContentController.addScriptMessageHandler(
-            topazScriptHandler,
-            contentWorld: world,
-            name: topazHandlerName
-        )
 
         authorize = {
             await model.requestAuthorization()
@@ -51,11 +42,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.uiDelegate = nil
         viewModel = nil
         detachOldHandler(from: webView)
-        webView.configuration.userContentController.removeScriptMessageHandler(
-            forName: topazHandlerName,
-            contentWorld: world
-        )
-        topazScriptHandler = nil
         authorize = { false }
     }
 
@@ -117,35 +103,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     public func completedDownload(for url: URL) {
         viewModel?.isDownloadsPresented = true
-    }
-}
-
-@MainActor
-private final class TopazScriptHandler: NSObject, WKScriptMessageHandlerWithReply {
-    private weak var webView: WKWebView?
-    private weak var model: WebPageModel?
-
-    init(webView: WKWebView, model: WebPageModel) {
-        self.webView = webView
-        self.model = model
-    }
-
-    func userContentController(
-        _ userContentController: WKUserContentController,
-        didReceive message: WKScriptMessage
-    ) async -> (Any?, String?) {
-        guard
-            let request = message.toRequest(),
-            request.body["action"]?.string == "setUserAgentMode",
-            let requestedMode = request.body["data"]?.dictionary?["mode"]?.string,
-            let mode = WebPageModel.UserAgentMode(rawValue: requestedMode),
-            let model
-        else {
-            return (nil, "Unable to parse request")
-        }
-        model.setUserAgentMode(mode)
-        webView?.customUserAgent = model.customUserAgent
-        return ([String: any JsConvertable]().jsValue, nil)
     }
 }
 

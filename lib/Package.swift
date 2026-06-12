@@ -20,6 +20,7 @@ let package = Package(
         .target(
             name: "App",
             dependencies: [
+                "AppMessage",
                 "Design",
                 "Downloader",
                 "Navigation",
@@ -34,6 +35,13 @@ let package = Package(
         .testTarget(
             name: "AppTests",
             dependencies: ["App", "TestHelpers"]
+        ),
+
+        .target(
+            name: "AppMessage",
+            dependencies: [
+                "JsMessage",
+            ]
         ),
 
         .target(
