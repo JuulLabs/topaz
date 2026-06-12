@@ -71,6 +71,7 @@ private func previewModel() -> AppModel {
     )
     return AppModel(
         messageProcessorFactory: factory,
+        appMessageProcessor: .init(),
         deviceSelector: selector,
         storage: InMemoryStorage()
     )

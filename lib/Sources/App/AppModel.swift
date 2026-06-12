@@ -1,3 +1,4 @@
+import AppMessage
 import Bluetooth
 import BluetoothClient
 import BluetoothEngine
@@ -26,6 +27,7 @@ public class AppModel {
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     let deviceSelector: DeviceSelector
     let messageProcessorFactory: JsMessageProcessorFactory
+    let appMessageProcessor: AppMessageProcessor
     let tabsModel: TabGridModel
 
     var activePageModel: WebLoadingModel?
@@ -47,10 +49,12 @@ public class AppModel {
 
     public init(
         messageProcessorFactory: JsMessageProcessorFactory,
+        appMessageProcessor: AppMessageProcessor,
         deviceSelector: DeviceSelector,
         storage: CodableStorage
     ) {
         self.messageProcessorFactory = messageProcessorFactory
+        self.appMessageProcessor = appMessageProcessor
         self.storage = storage
         self.deviceSelector = deviceSelector
         let tabsModel = TabGridModel(store: storage)
@@ -158,7 +162,11 @@ public class AppModel {
     private func loadWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel) async -> WebContainerModel? {
         do {
             let config = try await webConfigLoader.loadConfig()
-            return buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
+            let model = buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
+            await appMessageProcessor.setOnUserAgentModeChange { [weak webPageModel = model.webPageModel] mode in
+                await webPageModel?.setUserAgentMode(mode) ?? false
+            }
+            return model
         } catch {
             // TODO: navigate away due to failure and try again
             log.error("Unable to load \(error.localizedDescription, privacy: .public)")

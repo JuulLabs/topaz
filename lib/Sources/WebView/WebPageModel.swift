@@ -25,6 +25,9 @@ public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
+    @ObservationIgnored
+    private weak var webView: WKWebView?
+
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
     public let tab: Int
@@ -89,12 +92,18 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
-    func setUserAgentMode(_ mode: UserAgentMode) {
+    public func setUserAgentMode(_ mode: String) -> Bool {
+        guard let mode = UserAgentMode(rawValue: mode) else {
+            return false
+        }
         userAgentMode = mode
+        webView?.customUserAgent = customUserAgent
+        return true
     }
 
     func createWebView() -> WKWebView {
         let webView = NoKeyboardToolbarWebView(frame: .zero, configuration: config)
+        self.webView = webView
         webView.allowsBackForwardNavigationGestures = true
         scrollObserver.observe(webView: webView)
         return webView

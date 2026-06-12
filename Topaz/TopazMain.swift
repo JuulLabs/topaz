@@ -1,4 +1,5 @@
 import App
+import AppMessage
 import BluetoothClient
 import BluetoothEngine
 import BluetoothMessage
@@ -16,9 +17,11 @@ struct TopazMain: App {
     @State var appModel: AppModel
 
     init() {
+        let appMessageProcessor = AppMessageProcessor(enableDebugLogging: appConfig.enableDebugLogging)
         let deviceSelector = DeviceSelector()
         self.appModel = AppModel(
-            messageProcessorFactory: processorFactory(deviceSelector: deviceSelector),
+            messageProcessorFactory: processorFactory(appMessageProcessor: appMessageProcessor, deviceSelector: deviceSelector),
+            appMessageProcessor: appMessageProcessor,
             deviceSelector: deviceSelector,
             storage: debouncedJsonFileStorage()
         )
@@ -35,9 +38,15 @@ private func debouncedJsonFileStorage() -> CodableStorage {
     DebouncedCodableStorage(JsonDataStorage(FileDataStorage()), debounceInterval: .seconds(1))
 }
 
-private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProcessorFactory {
+private func processorFactory(
+    appMessageProcessor: AppMessageProcessor,
+    deviceSelector: DeviceSelector
+) -> JsMessageProcessorFactory {
     JsMessageProcessorFactory(
         builders: [
+            AppMessageProcessor.handlerName: { _ in
+                appMessageProcessor
+            },
             BluetoothEngine.handlerName: { _ in
                 let eventBus = EventBus(enableDebugLogging: appConfig.enableDebugLogging)
                 return BluetoothEngine(
