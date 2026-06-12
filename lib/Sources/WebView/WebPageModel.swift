@@ -13,7 +13,7 @@ import WebKit
 // shows up for WebView TextFields. This isn't ideal--especially for websites that are expecting
 // a toolbar for ease of UI use--but hopefully the issue will be fixed in an upcoming SwiftUI update.
 private class NoKeyboardToolbarWebView: WKWebView {
-    
+
     override var inputAccessoryView: UIView? {
         return nil // Hides the default accessory toolbar
     }
