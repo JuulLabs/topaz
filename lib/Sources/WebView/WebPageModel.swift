@@ -7,6 +7,18 @@ import SwiftUI
 import VirtualKeyboard
 import WebKit
 
+// This is a workaround for an iOS issue that occurs with the view layout not being properly
+// redrawn when keyboard focus on a WebView TextField that has a tool bar shifts to a
+// native app TextField with no toolbar. This workaround removes the default toolbar that
+// shows up for WebView TextFields. This isn't ideal--especially for websites that are expecting
+// a toolbar for ease of UI use--but hopefully the issue will be fixed in an upcoming SwiftUI update.
+private class NoKeyboardToolbarWebView: WKWebView {
+    
+    override var inputAccessoryView: UIView? {
+        return nil // Hides the default accessory toolbar
+    }
+}
+
 @MainActor
 @Observable
 public class WebPageModel: Identifiable {
@@ -62,7 +74,7 @@ public class WebPageModel: Identifiable {
     }
 
     func createWebView() -> WKWebView {
-        let webView = WKWebView(frame: .zero, configuration: config)
+        let webView = NoKeyboardToolbarWebView(frame: .zero, configuration: config)
         webView.allowsBackForwardNavigationGestures = true
         scrollObserver.observe(webView: webView)
         return webView
