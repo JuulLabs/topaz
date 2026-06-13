@@ -46,8 +46,6 @@ public class WebPageModel: Identifiable {
 
     public var isDownloadsPresented: Bool = false
 
-    /// Assigned by the composition root after the model exists, so page-coupled processor
-    /// builders can capture this page. Survives cross-origin navigation (factory is per-tab).
     var messageProcessorFactory: JsMessageProcessorFactory
 
     enum UserAgentMode: String {
@@ -94,8 +92,6 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
-    /// Attaches this tab's processor factory. Called by the composition root after the model
-    /// exists, so page-coupled processor builders can capture this page.
     public func attach(messageProcessorFactory: JsMessageProcessorFactory) {
         self.messageProcessorFactory = messageProcessorFactory
     }

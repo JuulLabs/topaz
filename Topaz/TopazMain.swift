@@ -9,7 +9,6 @@ import Helpers
 import JsMessage
 import SecurityList
 import SwiftUI
-import VirtualKeyboard
 
 @main
 struct TopazMain: App {
@@ -20,7 +19,8 @@ struct TopazMain: App {
         self.appModel = AppModel(
             appDomainProcessors: appDomainProcessors(deviceSelector: deviceSelector),
             deviceSelector: deviceSelector,
-            storage: debouncedJsonFileStorage()
+            storage: debouncedJsonFileStorage(),
+            enableDebugLogging: appConfig.enableDebugLogging
         )
     }
 
@@ -51,12 +51,6 @@ private func appDomainProcessors(deviceSelector: DeviceSelector) -> JsMessagePro
         },
         JsLogger.handlerName: { _ in
             JsLogger()
-        },
-        VirtualKeyboard.handlerName: { _ in
-            VirtualKeyboard(
-                viewModel: .shared,
-                enableDebugLogging: appConfig.enableDebugLogging
-            )
         },
     ]
 }

@@ -5,6 +5,7 @@ import JsMessage
 import Observation
 import Settings
 import SwiftUI
+import VirtualKeyboard
 import WebView
 import WebKit
 
@@ -75,6 +76,7 @@ private func previewModel() -> WebLoadingModel {
 
 @MainActor
 private func webModel(url: URL) -> WebContainerModel {
+    let virtualKeyboardModel = VirtualKeyboardModel()
     let navBarModel = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
     return WebContainerModel(
         webPageModel: WebPageModel(
@@ -83,9 +85,10 @@ private func webModel(url: URL) -> WebContainerModel {
             config: previewWebConfig(),
             messageProcessorFactory: staticMessageProcessorFactory(),
             navigator: navBarModel.navigator,
-            virtualKeyboardModel: .shared
+            virtualKeyboardModel: virtualKeyboardModel
         ),
         navBarModel: navBarModel,
-        selector: DeviceSelector()
+        selector: DeviceSelector(),
+        virtualKeyboard: virtualKeyboardModel
     )
 }

@@ -46,12 +46,9 @@ public final actor VirtualKeyboard: JsMessageProcessor {
     public func didDetach(from context: JsContext) async {
         task?.cancel()
         task = nil
-        /* TODO: disabled due to race condition between WebView instances - done in the Coordinator instead
-         await MainActor.run {
-         // Important to reset back to the default state
-         viewModel.overlaysContent = false
-         }
-         */
+        await MainActor.run {
+            viewModel.overlaysContent = false
+        }
     }
 
     public func process(request: JsMessageRequest, in context: JsContext) async -> JsMessageResponse {

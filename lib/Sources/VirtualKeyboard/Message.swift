@@ -1,7 +1,7 @@
 import JsMessage
 
 struct Message {
-    enum Action: String, CaseIterable {
+    enum Action: String {
         case setOverlaysContent
         case show
     }
@@ -24,15 +24,9 @@ extension JsMessageRequest {
         guard let actionString = body["action"]?.string else {
             return .failure(VirtualKeyboardError.badRequest)
         }
-        guard let action = Message.Action.from(string: actionString) else {
+        guard let action = Message.Action(rawValue: actionString) else {
             return .failure(VirtualKeyboardError.actionNotFound(actionString))
         }
         return .success(Message(action: action, requestBody: body))
-    }
-}
-
-fileprivate extension Message.Action {
-    static func from(string: String) -> Message.Action? {
-        allCases.first(where: { $0.rawValue == string })
     }
 }

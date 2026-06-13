@@ -28,7 +28,7 @@ public final class WebContainerModel {
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
         selector: DeviceSelector,
-        virtualKeyboard: VirtualKeyboardModel = .shared,
+        virtualKeyboard: VirtualKeyboardModel,
         bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.webPageModel = webPageModel
