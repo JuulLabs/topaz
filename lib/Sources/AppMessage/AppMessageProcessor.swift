@@ -9,16 +9,14 @@ public final actor AppMessageProcessor: JsMessageProcessor {
     public static let handlerName = "topaz"
     public let enableDebugLogging: Bool
 
-    private var onUserAgentModeChange: (@Sendable (_ mode: String) async -> Bool)?
+    private let host: AppMessageHost
 
     public init(
+        host: AppMessageHost,
         enableDebugLogging: Bool = false
     ) {
+        self.host = host
         self.enableDebugLogging = enableDebugLogging
-    }
-
-    public func setOnUserAgentModeChange(onChange: (@Sendable (_ mode: String) async -> Bool)?) {
-        self.onUserAgentModeChange = onChange
     }
 
     public func didAttach(to context: JsContext) async {
@@ -54,8 +52,7 @@ public final actor AppMessageProcessor: JsMessageProcessor {
         guard let userAgentMode = messageData?["mode"]?.string else {
             return .error(AppMessageError.badRequest.toDomError())
         }
-        let success = await onUserAgentModeChange?(userAgentMode)
-        if success == false {
+        guard await host.setUserAgentMode(userAgentMode) else {
             return .error(AppMessageError.userAgentModeChangeFailed.toDomError())
         }
         return .body([:])

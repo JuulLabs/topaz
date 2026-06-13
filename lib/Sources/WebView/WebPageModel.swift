@@ -46,7 +46,9 @@ public class WebPageModel: Identifiable {
 
     public var isDownloadsPresented: Bool = false
 
-    let messageProcessorFactory: JsMessageProcessorFactory
+    /// Assigned by the composition root after the model exists, so page-coupled processor
+    /// builders can capture this page. Survives cross-origin navigation (factory is per-tab).
+    var messageProcessorFactory: JsMessageProcessorFactory
 
     enum UserAgentMode: String {
         case topaz
@@ -75,7 +77,7 @@ public class WebPageModel: Identifiable {
         tab: Int,
         url: URL,
         config: WKWebViewConfiguration,
-        messageProcessorFactory: JsMessageProcessorFactory,
+        messageProcessorFactory: JsMessageProcessorFactory = .init(),
         navigator: WebNavigator,
         virtualKeyboardModel: VirtualKeyboardModel
     ) {
@@ -90,6 +92,12 @@ public class WebPageModel: Identifiable {
 
     public func loadNewPage(url: URL) {
         self.url = url
+    }
+
+    /// Attaches this tab's processor factory. Called by the composition root after the model
+    /// exists, so page-coupled processor builders can capture this page.
+    public func attach(messageProcessorFactory: JsMessageProcessorFactory) {
+        self.messageProcessorFactory = messageProcessorFactory
     }
 
     public func setUserAgentMode(_ mode: String) -> Bool {

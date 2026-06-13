@@ -26,8 +26,9 @@ public class AppModel {
     let storage: CodableStorage
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     let deviceSelector: DeviceSelector
-    let messageProcessorFactory: JsMessageProcessorFactory
-    let appMessageProcessor: AppMessageProcessor
+    /// App-domain processor builders (Bluetooth, logging, etc.) supplied by the composition root.
+    /// Page-coupled processors are merged in per page by `makeProcessorFactory(for:)`.
+    let appDomainProcessors: JsMessageProcessorBuilders
     let tabsModel: TabGridModel
 
     var activePageModel: WebLoadingModel?
@@ -48,13 +49,11 @@ public class AppModel {
     private var lastOpenedTabWasInFullscreenMode: Bool?
 
     public init(
-        messageProcessorFactory: JsMessageProcessorFactory,
-        appMessageProcessor: AppMessageProcessor,
+        appDomainProcessors: JsMessageProcessorBuilders,
         deviceSelector: DeviceSelector,
         storage: CodableStorage
     ) {
-        self.messageProcessorFactory = messageProcessorFactory
-        self.appMessageProcessor = appMessageProcessor
+        self.appDomainProcessors = appDomainProcessors
         self.storage = storage
         self.deviceSelector = deviceSelector
         let tabsModel = TabGridModel(store: storage)
@@ -162,11 +161,7 @@ public class AppModel {
     private func loadWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel) async -> WebContainerModel? {
         do {
             let config = try await webConfigLoader.loadConfig()
-            let model = buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
-            await appMessageProcessor.setOnUserAgentModeChange { [weak webPageModel = model.webPageModel] mode in
-                await webPageModel?.setUserAgentMode(mode) ?? false
-            }
-            return model
+            return buildWebContainerModel(tab: tab, url: url, navBarModel: navBarModel, config: config)
         } catch {
             // TODO: navigate away due to failure and try again
             log.error("Unable to load \(error.localizedDescription, privacy: .public)")
@@ -181,11 +176,22 @@ public class AppModel {
             tab: tab,
             url: url,
             config: config,
-            messageProcessorFactory: messageProcessorFactory,
             navigator: navBarModel.navigator,
             virtualKeyboardModel: virtualKeyboardModel
         )
+        webPageModel.attach(messageProcessorFactory: makeProcessorFactory(for: webPageModel))
         return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector, virtualKeyboard: virtualKeyboardModel)
+    }
+
+    /// Builds this tab's processor factory by merging the app-domain builders with page-coupled
+    /// builders that capture the freshly-created page. Each builder still constructs a fresh
+    /// processor per JS context, so cross-origin teardown semantics are preserved.
+    private func makeProcessorFactory(for page: WebPageModel) -> JsMessageProcessorFactory {
+        var builders = appDomainProcessors
+        builders[AppMessageProcessor.handlerName] = { [weak page] _ in
+            AppMessageProcessor(host: WebPageAppMessageHost(page: page))
+        }
+        return JsMessageProcessorFactory(builders: builders)
     }
 }
 

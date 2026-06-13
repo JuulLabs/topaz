@@ -66,12 +66,10 @@ private func previewModel() -> AppModel {
         client: mockClient,
         deviceSelector: selector
     )
-    let factory = staticMessageProcessorFactory(
-        [BluetoothEngine.handlerName: bluetoothEngine]
-    )
     return AppModel(
-        messageProcessorFactory: factory,
-        appMessageProcessor: .init(),
+        appDomainProcessors: [
+            BluetoothEngine.handlerName: { _ in bluetoothEngine },
+        ],
         deviceSelector: selector,
         storage: InMemoryStorage()
     )
