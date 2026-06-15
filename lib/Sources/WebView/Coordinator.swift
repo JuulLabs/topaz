@@ -64,6 +64,13 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         self.scriptHandler = nil
     }
 
+    private func detachOldHandlerAndWait(from webView: WKWebView) async {
+        guard let scriptHandler else { return }
+        await scriptHandler.detachProcessorsAndWait()
+        webView.detachScriptHandler(scriptHandler, in: world)
+        self.scriptHandler = nil
+    }
+
     // MARK: - NavigationEngineDelegate
 
     public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
@@ -76,9 +83,12 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
             break
         case .crossOrigin:
             // Tear down and spin up a new Js context for this new web page
-            detachOldHandler(from: webView)
-            self.contextId = contextId.withUrl(navigation.request.url)
-            attachNewHandler(to: webView)
+            let newContextId = contextId.withUrl(navigation.request.url)
+            Task { @MainActor in
+                await self.detachOldHandlerAndWait(from: webView)
+                self.contextId = newContextId
+                self.attachNewHandler(to: webView)
+            }
         }
     }
 
