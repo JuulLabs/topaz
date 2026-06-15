@@ -15,6 +15,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
+    /// Serializes cross-origin context swaps. Each swap chains off the previous one so that
+    /// detach/attach pairs cannot interleave or finish out of order across rapid navigations.
+    private var pendingContextSwap: Task<Void, Never>?
+
     override init() {}
 
     func initialize(webView: WKWebView, model: WebPageModel) {
@@ -35,6 +39,8 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     func deinitialize(webView: WKWebView) {
+        pendingContextSwap?.cancel()
+        pendingContextSwap = nil
         viewModel?.navigator.stopObservingNavigationState()
         navigationEngine = nil
         webView.navigationDelegate = nil
@@ -82,10 +88,18 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
             // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            // Tear down and spin up a new Js context for this new web page
+            // Tear down and spin up a new Js context for this new web page.
+            // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
+            // so a stale navigation can't attach a context after a newer one has started.
+            // TODO: move this to be synchronous work on decidePolicyFor:navigationAction instead
             let newContextId = contextId.withUrl(navigation.request.url)
-            Task { @MainActor in
+            let previousSwap = pendingContextSwap
+            previousSwap?.cancel()
+            pendingContextSwap = Task { @MainActor [weak self] in
+                _ = await previousSwap?.value
+                guard let self, !Task.isCancelled else { return }
                 await self.detachOldHandlerAndWait(from: webView)
+                guard !Task.isCancelled, self.viewModel != nil else { return }
                 self.contextId = newContextId
                 self.attachNewHandler(to: webView)
             }
