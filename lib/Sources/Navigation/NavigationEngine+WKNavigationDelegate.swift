@@ -28,8 +28,12 @@ extension NavigationEngine: WKNavigationDelegate {
         log.debug("Request allowed url=\(navigationAction.request.url?.absoluteString ?? "nil") isDownload=\(newRequest.isDownload) action=\(navigationAction)")
         if newRequest.isDownload {
             rememberRecentDownload(newRequest.url)
+            return .download
         }
-        return newRequest.isDownload ? .download : .allow
+        // Prepare the JS context while WebKit awaits this decision so handlers are registered
+        // before the page begins loading.
+        await delegate?.prepareContext(for: newRequest, in: webView)
+        return .allow
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
@@ -65,7 +69,6 @@ extension NavigationEngine: WKNavigationDelegate {
             let navigationItem = NavigationItem(navigation: navigation, request: request)
             navigations[navigation] = navigationItem
             navigator.startObservingLoadingProgress(of: webView)
-            delegate?.didInitiateNavigation(navigationItem, in: webView)
         } else {
             log.warning("Unexpected provisional navigation ignored navigation=\(navigation)")
         }

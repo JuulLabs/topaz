@@ -11,12 +11,14 @@ public struct NavigationRequest {
     public let kind: NavigationKind
     public let actionType: WKNavigationType
     public let isDownload: Bool
+    public let isMainFrame: Bool
 
-    init(url: URL, kind: NavigationKind, actionType: WKNavigationType, isDownload: Bool) {
+    init(url: URL, kind: NavigationKind, actionType: WKNavigationType, isDownload: Bool, isMainFrame: Bool) {
         self.url = url
         self.kind = kind
         self.actionType = actionType
         self.isDownload = isDownload
+        self.isMainFrame = isMainFrame
     }
 
     public init?(action: WKNavigationAction) {
@@ -33,9 +35,11 @@ public struct NavigationRequest {
                 // Here we deny opening a new window unless requested from the main frame
                 return nil
             }
+            self.isMainFrame = false
             self.kind = .newWindow
             return
         }
+        self.isMainFrame = targetFrame.isMainFrame
         guard let host = url.host(percentEncoded: false), host == targetFrame.securityOrigin.host else {
             self.kind = .crossOrigin
             return
@@ -49,7 +53,7 @@ public struct NavigationRequest {
 
     func updated(with navigationResponse: WKNavigationResponse) -> Self {
         if !isDownload && navigationResponse.shouldDownload() {
-            return Self(url: url, kind: kind, actionType: actionType, isDownload: true)
+            return Self(url: url, kind: kind, actionType: actionType, isDownload: true, isMainFrame: isMainFrame)
         }
         return self
     }

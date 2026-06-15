@@ -15,10 +15,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
-    /// Serializes cross-origin context swaps. Each swap chains off the previous one so that
-    /// detach/attach pairs cannot interleave or finish out of order across rapid navigations.
-    private var pendingContextSwap: Task<Void, Never>?
-
     override init() {}
 
     func initialize(webView: WKWebView, model: WebPageModel) {
@@ -39,8 +35,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     func deinitialize(webView: WKWebView) {
-        pendingContextSwap?.cancel()
-        pendingContextSwap = nil
         viewModel?.navigator.stopObservingNavigationState()
         navigationEngine = nil
         webView.navigationDelegate = nil
@@ -79,8 +73,8 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     // MARK: - NavigationEngineDelegate
 
-    public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
-        switch navigation.request.kind {
+    public func prepareContext(for request: NavigationRequest, in webView: WKWebView) async {
+        switch request.kind {
         case .newWindow:
             // Will trigger load of an entire new tab container so no need for any action
             break
@@ -88,21 +82,23 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
             // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            // Tear down and spin up a new Js context for this new web page.
-            // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
-            // so a stale navigation can't attach a context after a newer one has started.
-            // TODO: move this to be synchronous work on decidePolicyFor:navigationAction instead
-            let newContextId = contextId.withUrl(navigation.request.url)
-            let previousSwap = pendingContextSwap
-            previousSwap?.cancel()
-            pendingContextSwap = Task { @MainActor [weak self] in
-                _ = await previousSwap?.value
-                guard let self, !Task.isCancelled else { return }
-                await self.detachOldHandlerAndWait(from: webView)
-                guard !Task.isCancelled, self.viewModel != nil else { return }
-                self.contextId = newContextId
-                self.attachNewHandler(to: webView)
+            // Tear down the old Js context and spin up a new one for this page. WebKit awaits this
+            // call within the navigation policy decision, so the new handlers are guaranteed to be
+            // registered before the page begins loading.
+            guard request.isMainFrame else {
+                // A cross-origin sub-frame (e.g. ad/widget iframe) must not tear down the main page.
+                return
             }
+            guard request.url.host(percentEncoded: false) != contextId.url.host(percentEncoded: false) else {
+                // Redirect chains can fire this decision repeatedly; only swap when the origin
+                // actually changes to avoid thrashing the BLE teardown/attach cycle.
+                return
+            }
+            await detachOldHandlerAndWait(from: webView)
+            // The page (and this Coordinator) may have been torn down while awaiting teardown.
+            guard viewModel != nil else { return }
+            contextId = contextId.withUrl(request.url)
+            attachNewHandler(to: webView)
         }
     }
 

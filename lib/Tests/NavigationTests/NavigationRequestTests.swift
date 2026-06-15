@@ -113,6 +113,40 @@ struct NavigationRequestTests {
     }
 
     @Test
+    func initFromAction_withCrossOriginMainFrame_marksMainFrame() {
+        let origin = createSecurityOrigin(protocol: "http", host: "foo.com", port: 80)
+        let targetFrame = MockFrameInfo(
+            isMainFrame: { true },
+            request: { testRequest },
+            securityOrigin: { origin }
+        ).immortalize(in: &Self.retainBucket)
+        let action = MockAction(
+            request: { testRequest },
+            targetFrame: { targetFrame }
+        )
+        let sut = NavigationRequest(action: action)
+        #expect(sut?.kind == .crossOrigin)
+        #expect(sut?.isMainFrame == true)
+    }
+
+    @Test
+    func initFromAction_withCrossOriginSubFrame_marksNotMainFrame() {
+        let origin = createSecurityOrigin(protocol: "http", host: "foo.com", port: 80)
+        let targetFrame = MockFrameInfo(
+            isMainFrame: { false },
+            request: { testRequest },
+            securityOrigin: { origin }
+        ).immortalize(in: &Self.retainBucket)
+        let action = MockAction(
+            request: { testRequest },
+            targetFrame: { targetFrame }
+        )
+        let sut = NavigationRequest(action: action)
+        #expect(sut?.kind == .crossOrigin)
+        #expect(sut?.isMainFrame == false)
+    }
+
+    @Test
     func initFromAction_withRequestAndTargetOriginMatch_navigatesToSameOrigin() throws {
         let origin = createSecurityOrigin(protocol: "http", host: "test.com", port: 80)
         let targetFrame = MockFrameInfo(
