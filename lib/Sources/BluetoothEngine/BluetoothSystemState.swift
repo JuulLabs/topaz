@@ -19,6 +19,8 @@ public final class BluetoothSystemState {
         guard newValue != .unknown else { return }
         self.systemState = newValue
     }
+
+    public var requestPowerOn: () -> Void = { }
 }
 
 public extension BluetoothSystemState {

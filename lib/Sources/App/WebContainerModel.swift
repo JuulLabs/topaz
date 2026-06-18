@@ -44,4 +44,8 @@ public final class WebContainerModel {
         self.virtualKeyboard = virtualKeyboard
         self.bluetoothSystem = bluetoothSystem
     }
+
+    func requestPowerOn() {
+        bluetoothSystem.requestPowerOn()
+    }
 }
