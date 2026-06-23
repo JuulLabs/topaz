@@ -59,9 +59,10 @@ public struct NavigationRequest {
 
     /// A request whose original URL can be safely re-fetched over the network on reload.
     /// Excludes downloads, non-GET methods (e.g. form POSTs we cannot replay), and
-    /// non-network schemes (`about:`, `data:`, `blob:`).
+    /// non-network schemes (`about:`, `data:`, `blob:`). A nil method is treated as GET,
+    /// matching HTTP/Foundation semantics, since WebKit often leaves it unset on plain navigations.
     var isNativelyRetryable: Bool {
-        httpMethod == "GET" && !isDownload && url.hasHttpScheme
+        (httpMethod == nil || httpMethod == "GET") && !isDownload && url.hasHttpScheme
     }
 }
 

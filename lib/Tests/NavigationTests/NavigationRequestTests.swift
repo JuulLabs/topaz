@@ -158,6 +158,9 @@ struct NavigationRequestTests {
         (url: "about:blank", method: "GET", isDownload: false, expected: false),
         (url: "data:text/html,hi", method: "GET", isDownload: false, expected: false),
         (url: "blob:https://test.com/abc", method: "GET", isDownload: false, expected: false),
+        (url: "https://test.com", method: nil, isDownload: false, expected: true),
+        (url: "https://test.com", method: nil, isDownload: true, expected: false),
+        (url: "about:blank", method: nil, isDownload: false, expected: false),
     ])
     func isNativelyRetryable(url: String, method: String?, isDownload: Bool, expected: Bool) throws {
         let sut = NavigationRequest(
@@ -171,7 +174,8 @@ struct NavigationRequestTests {
     }
 
     @Test
-    func isNativelyRetryable_withNilHttpMethod_isFalse() throws {
+    func isNativelyRetryable_withNilHttpMethod_isTrue() throws {
+        // WebKit often leaves httpMethod unset on plain navigations; nil is treated as GET.
         let sut = NavigationRequest(
             url: try #require(URL(string: "https://test.com")),
             kind: .sameOrigin,
@@ -179,7 +183,7 @@ struct NavigationRequestTests {
             isDownload: false,
             httpMethod: nil
         )
-        #expect(sut.isNativelyRetryable == false)
+        #expect(sut.isNativelyRetryable == true)
     }
 }
 
