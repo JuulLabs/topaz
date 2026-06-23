@@ -50,17 +50,30 @@ public class WebPageModel: Identifiable {
         case safari
     }
 
-    // TODO: dynamically construct this
-    private let topazUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/3.9.0 Topaz/3.9.0"
-    private let safariUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/26.0 Safari/605.1.15"
     private(set) var userAgentMode: UserAgentMode = .topaz
+
+    /// The default WebKit user-agent for this process. It is constant for the process lifetime,
+    /// so we read it once via KVC and cache it rather than instantiating a `WKWebView` repeatedly.
+    private static let baseUserAgent: String? = WKWebView().value(forKey: "userAgent") as? String
+
+    /// Builds the device-truthful user-agent string for the current mode. Inputs are harvested
+    /// from the running device and handed to ``UserAgentBuilder``, which produces the final string.
+    private var userAgentBuilder: UserAgentBuilder {
+        let osVersion = ProcessInfo.processInfo.operatingSystemVersion
+        return UserAgentBuilder(
+            base: Self.baseUserAgent,
+            osVersionMajor: osVersion.majorVersion,
+            osVersionMinor: osVersion.minorVersion,
+            appVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        )
+    }
 
     var customUserAgent: String {
         switch userAgentMode {
         case .topaz:
-            topazUserAgent
+            userAgentBuilder.topazUserAgent
         case .safari:
-            safariUserAgent
+            userAgentBuilder.safariUserAgent
         }
     }
 
