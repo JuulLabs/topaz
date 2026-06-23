@@ -11,12 +11,14 @@ public struct NavigationRequest {
     public let kind: NavigationKind
     public let actionType: WKNavigationType
     public let isDownload: Bool
+    public let httpMethod: String?
 
-    init(url: URL, kind: NavigationKind, actionType: WKNavigationType, isDownload: Bool) {
+    init(url: URL, kind: NavigationKind, actionType: WKNavigationType, isDownload: Bool, httpMethod: String?) {
         self.url = url
         self.kind = kind
         self.actionType = actionType
         self.isDownload = isDownload
+        self.httpMethod = httpMethod
     }
 
     public init?(action: WKNavigationAction) {
@@ -26,6 +28,7 @@ public struct NavigationRequest {
         self.url = url
         self.actionType = action.navigationType
         self.isDownload = action.shouldPerformDownload || url.hasDownloadScheme
+        self.httpMethod = action.request.httpMethod
         guard let targetFrame = action.targetFrame else {
             // WARNING: non-nullable navigationAction.sourceFrame property may actually be nil http://www.openradar.appspot.com/FB9877215
             let sourceFrame: WKFrameInfo? = action.sourceFrame
@@ -49,14 +52,22 @@ public struct NavigationRequest {
 
     func updated(with navigationResponse: WKNavigationResponse) -> Self {
         if !isDownload && navigationResponse.shouldDownload() {
-            return Self(url: url, kind: kind, actionType: actionType, isDownload: true)
+            return Self(url: url, kind: kind, actionType: actionType, isDownload: true, httpMethod: httpMethod)
         }
         return self
+    }
+
+    /// A request whose original URL can be safely re-fetched over the network on reload.
+    /// Excludes downloads, non-GET methods (e.g. form POSTs we cannot replay), and
+    /// non-network schemes (`about:`, `data:`, `blob:`).
+    var isNativelyRetryable: Bool {
+        httpMethod == "GET" && !isDownload && url.hasHttpScheme
     }
 }
 
 private let downloadSchemes: Set<String> = ["blob"]
-private let acceptedSchemes: Set<String> = downloadSchemes.union(["about", "https", "http", "data"])
+private let httpSchemes: Set<String> = ["https", "http"]
+private let acceptedSchemes: Set<String> = downloadSchemes.union(httpSchemes).union(["about", "data"])
 
 private extension URL {
     var isSchemeSupported: Bool {
@@ -67,6 +78,11 @@ private extension URL {
     var hasDownloadScheme: Bool {
         guard let scheme = scheme?.lowercased() else { return false }
         return downloadSchemes.contains(scheme)
+    }
+
+    var hasHttpScheme: Bool {
+        guard let scheme = scheme?.lowercased() else { return false }
+        return httpSchemes.contains(scheme)
     }
 }
 
