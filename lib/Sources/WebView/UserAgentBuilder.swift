@@ -2,29 +2,14 @@ import Foundation
 
 /// Builds the user-agent strings used by the web view in both Topaz and Safari modes.
 ///
-/// This is a pure value type: it takes every input it needs as a parameter — the base UA
-/// string, the OS version, and the app version — and performs no `WKWebView`, `Bundle`, or
-/// `ProcessInfo` access. That makes it fully unit-testable in isolation and free of any
-/// `@MainActor` binding.
-///
-/// The final string shapes are:
-///
 /// | Mode   | Result                                                |
 /// |--------|-------------------------------------------------------|
 /// | Topaz  | `<base> Version/<major>.<minor> Topaz/<appVersion>`   |
 /// | Safari | `<base> Version/<major>.<minor> Safari/<webkit>`      |
-///
-/// The `Version/<major>.<minor>` token is shared by both modes. Fallbacks are applied
-/// internally when an input is `nil` or unparseable, so a malformed UA is never emitted.
 struct UserAgentBuilder {
-    /// Well-formed iOS 18.x base used when the supplied base string is missing or unusable.
     static let fallbackBase = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148"
-
-    /// WebKit version used when one cannot be parsed from the base string.
     static let fallbackWebKitVersion = "605.1.15"
-
-    /// App version used when no app version is supplied.
-    static let fallbackAppVersion = "3.9.0"
+    static let fallbackAppVersion = "1.9.9"
 
     private let base: String
     private let osVersionMajor: Int
@@ -38,22 +23,18 @@ struct UserAgentBuilder {
         self.appVersion = appVersion ?? Self.fallbackAppVersion
     }
 
-    /// `<base> Version/<major>.<minor> Topaz/<appVersion>`
     var topazUserAgent: String {
         "\(base) \(versionToken) Topaz/\(appVersion)"
     }
 
-    /// `<base> Version/<major>.<minor> Safari/<webkit>`
     var safariUserAgent: String {
         "\(base) \(versionToken) Safari/\(webKitVersion)"
     }
 
-    /// The `Version/<major>.<minor>` token shared by both modes.
     private var versionToken: String {
         "Version/\(osVersionMajor).\(osVersionMinor)"
     }
 
-    /// The WebKit version parsed from the base string, or the fallback when it cannot be parsed.
     private var webKitVersion: String {
         Self.parseWebKitVersion(from: base) ?? Self.fallbackWebKitVersion
     }

@@ -56,8 +56,6 @@ public class WebPageModel: Identifiable {
     /// so we read it once via KVC and cache it rather than instantiating a `WKWebView` repeatedly.
     private static let baseUserAgent: String? = WKWebView().value(forKey: "userAgent") as? String
 
-    /// Builds the device-truthful user-agent string for the current mode. Inputs are harvested
-    /// from the running device and handed to ``UserAgentBuilder``, which produces the final string.
     private var userAgentBuilder: UserAgentBuilder {
         let osVersion = ProcessInfo.processInfo.operatingSystemVersion
         return UserAgentBuilder(
