@@ -32,7 +32,13 @@ public final class NavigationEngine: NSObject {
         } else {
             genericErrorDocument(error: error, url: url, reason: rejectionReason)
         }
-        loadDocument(document, in: webView)
+        if item.request.isNativelyRetryable {
+            // Present the error content as the response for the original URL so the web view's current
+            // history entry is that URL. Tapping reload then re-fetches the original page natively.
+            webView.loadSimulatedRequest(URLRequest(url: item.request.url), responseHTML: document.render())
+        } else {
+            loadDocument(document, in: webView)
+        }
     }
 
     // We prefer using `load` via a data URI here as `loadHTMLString` bypasses navigation and so does not populate history
