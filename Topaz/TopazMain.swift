@@ -15,6 +15,7 @@ struct TopazMain: App {
     @State var appModel: AppModel
 
     init() {
+        BluetoothSystemState.shared.requestPowerOn = liveBluetoothPowerRequest
         let deviceSelector = DeviceSelector()
         self.appModel = AppModel(
             appDomainProcessors: appDomainProcessors(deviceSelector: deviceSelector),
