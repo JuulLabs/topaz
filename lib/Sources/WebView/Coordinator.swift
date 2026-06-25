@@ -3,20 +3,21 @@ import BluetoothEngine
 import Foundation
 import JsMessage
 import Navigation
-import VirtualKeyboard
 import WebKit
 
 @MainActor
 public class Coordinator: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
-    private let topazHandlerName = "topaz"
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
-    private var topazScriptHandler: TopazScriptHandler?
     private var viewModel: WebPageModel?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
+
+    /// Serializes cross-origin context swaps. Each swap chains off the previous one so that
+    /// detach/attach pairs cannot interleave or finish out of order across rapid navigations.
+    private var pendingContextSwap: Task<Void, Never>?
 
     override init() {}
 
@@ -31,13 +32,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.uiDelegate = navigationEngine
         webView.customUserAgent = model.customUserAgent
         model.navigator.startObservingNavigationState(of: webView)
-        let topazScriptHandler = TopazScriptHandler(webView: webView, model: model)
-        self.topazScriptHandler = topazScriptHandler
-        webView.configuration.userContentController.addScriptMessageHandler(
-            topazScriptHandler,
-            contentWorld: world,
-            name: topazHandlerName
-        )
 
         authorize = {
             await model.requestAuthorization()
@@ -45,17 +39,14 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     func deinitialize(webView: WKWebView) {
+        pendingContextSwap?.cancel()
+        pendingContextSwap = nil
         viewModel?.navigator.stopObservingNavigationState()
         navigationEngine = nil
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
         viewModel = nil
         detachOldHandler(from: webView)
-        webView.configuration.userContentController.removeScriptMessageHandler(
-            forName: topazHandlerName,
-            contentWorld: world
-        )
-        topazScriptHandler = nil
         authorize = { false }
     }
 
@@ -66,12 +57,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
-        // TODO: fix the race condition problem, temporary fix here we reset the global virtual keyboard status
-        // Problem occurs when a new webview is created and handlers attached, and then sometime after an old webview gets de-initialized.
-        // The de-initialize detaches the handlers, and any global mutation will affect the new webview. VirtualKeyboardModel is a global
-        // which was a mistake in hindsight but is hard to fix because the message factory design doesn't allow for dependency injection.
-        VirtualKeyboardModel.shared.overlaysContent = false
-
         let context = webView.createContext(contextId: contextId, world: world)
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
@@ -81,6 +66,13 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private func detachOldHandler(from webView: WKWebView) {
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
+        webView.detachScriptHandler(scriptHandler, in: world)
+        self.scriptHandler = nil
+    }
+
+    private func detachOldHandlerAndWait(from webView: WKWebView) async {
+        guard let scriptHandler else { return }
+        await scriptHandler.detachProcessorsAndWait()
         webView.detachScriptHandler(scriptHandler, in: world)
         self.scriptHandler = nil
     }
@@ -96,10 +88,21 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
             // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            // Tear down and spin up a new Js context for this new web page
-            detachOldHandler(from: webView)
-            self.contextId = contextId.withUrl(navigation.request.url)
-            attachNewHandler(to: webView)
+            // Tear down and spin up a new Js context for this new web page.
+            // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
+            // so a stale navigation can't attach a context after a newer one has started.
+            // TODO: move this to be synchronous work on decidePolicyFor:navigationAction instead
+            let newContextId = contextId.withUrl(navigation.request.url)
+            let previousSwap = pendingContextSwap
+            previousSwap?.cancel()
+            pendingContextSwap = Task { @MainActor [weak self] in
+                _ = await previousSwap?.value
+                guard let self, !Task.isCancelled else { return }
+                await self.detachOldHandlerAndWait(from: webView)
+                guard !Task.isCancelled, self.viewModel != nil else { return }
+                self.contextId = newContextId
+                self.attachNewHandler(to: webView)
+            }
         }
     }
 
@@ -117,35 +120,6 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 
     public func completedDownload(for url: URL) {
         viewModel?.isDownloadsPresented = true
-    }
-}
-
-@MainActor
-private final class TopazScriptHandler: NSObject, WKScriptMessageHandlerWithReply {
-    private weak var webView: WKWebView?
-    private weak var model: WebPageModel?
-
-    init(webView: WKWebView, model: WebPageModel) {
-        self.webView = webView
-        self.model = model
-    }
-
-    func userContentController(
-        _ userContentController: WKUserContentController,
-        didReceive message: WKScriptMessage
-    ) async -> (Any?, String?) {
-        guard
-            let request = message.toRequest(),
-            request.body["action"]?.string == "setUserAgentMode",
-            let requestedMode = request.body["data"]?.dictionary?["mode"]?.string,
-            let mode = WebPageModel.UserAgentMode(rawValue: requestedMode),
-            let model
-        else {
-            return (nil, "Unable to parse request")
-        }
-        model.setUserAgentMode(mode)
-        webView?.customUserAgent = model.customUserAgent
-        return ([String: any JsConvertable]().jsValue, nil)
     }
 }
 

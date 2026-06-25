@@ -1,14 +1,14 @@
 import Foundation
-import JsMessage
 
-enum VirtualKeyboardError {
+/// Errors common to JS message decoding/dispatch, shared across processors.
+public enum JsMessageError: Error {
     case actionNotFound(String)
     case badRequest
     case notImplemented
 }
 
-extension VirtualKeyboardError: DomErrorConvertable {
-    var domErrorName: DomErrorName {
+extension JsMessageError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
         switch self {
         case .actionNotFound: .encoding
         case .badRequest: .encoding
@@ -17,7 +17,7 @@ extension VirtualKeyboardError: DomErrorConvertable {
     }
 }
 
-extension VirtualKeyboardError: LocalizedError {
+extension JsMessageError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case let .actionNotFound(action):
