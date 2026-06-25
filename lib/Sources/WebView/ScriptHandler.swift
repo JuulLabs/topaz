@@ -37,13 +37,24 @@ class ScriptHandler: NSObject {
     }
 
     func detachProcessors() {
-        let processors = cache.values
-        cache.removeAll()
+        let processors = takeCachedProcessors()
         Task.detached { [context] in
             for processor in processors {
                 await processor.didDetach(from: context)
             }
         }
+    }
+
+    func detachProcessorsAndWait() async {
+        for processor in takeCachedProcessors() {
+            await processor.didDetach(from: context)
+        }
+    }
+
+    private func takeCachedProcessors() -> [JsMessageProcessor] {
+        let processors = Array(cache.values)
+        cache.removeAll()
+        return processors
     }
 
     func userDidAuthorize(handlerName: String) async -> Bool {

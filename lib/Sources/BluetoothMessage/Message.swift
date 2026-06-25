@@ -9,7 +9,7 @@ import JsMessage
  the API and replace parameterized objects with serializable references (e.g. UUIDs mostly).
  */
 public struct Message {
-    public enum Action: String, CaseIterable {
+    public enum Action: String {
         // General
         case getAvailability
         case getDevices
@@ -69,15 +69,9 @@ extension JsMessageRequest {
         guard let actionString = body["action"]?.string else {
             return .failure(MessageDecodeError.badRequest)
         }
-        guard let action = Message.Action.from(string: actionString) else {
+        guard let action = Message.Action(rawValue: actionString) else {
             return .failure(MessageDecodeError.actionNotFound(actionString))
         }
         return .success(Message(action: action, requestBody: body))
-    }
-}
-
-fileprivate extension Message.Action {
-    static func from(string: String) -> Message.Action? {
-        allCases.first(where: { $0.rawValue == string })
     }
 }

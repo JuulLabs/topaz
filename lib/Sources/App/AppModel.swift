@@ -1,3 +1,4 @@
+import AppMessage
 import Bluetooth
 import BluetoothClient
 import BluetoothEngine
@@ -25,7 +26,8 @@ public class AppModel {
     let storage: CodableStorage
     var webConfigLoader: WebConfigLoader = .init(scriptResourceNames: .topazScripts)
     let deviceSelector: DeviceSelector
-    let messageProcessorFactory: JsMessageProcessorFactory
+    let appDomainProcessors: JsMessageProcessorBuilders
+    let enableDebugLogging: Bool
     let tabsModel: TabGridModel
 
     var activePageModel: WebLoadingModel?
@@ -46,11 +48,13 @@ public class AppModel {
     private var lastOpenedTabWasInFullscreenMode: Bool?
 
     public init(
-        messageProcessorFactory: JsMessageProcessorFactory,
+        appDomainProcessors: JsMessageProcessorBuilders,
         deviceSelector: DeviceSelector,
-        storage: CodableStorage
+        storage: CodableStorage,
+        enableDebugLogging: Bool = false
     ) {
-        self.messageProcessorFactory = messageProcessorFactory
+        self.appDomainProcessors = appDomainProcessors
+        self.enableDebugLogging = enableDebugLogging
         self.storage = storage
         self.deviceSelector = deviceSelector
         let tabsModel = TabGridModel(store: storage)
@@ -167,17 +171,31 @@ public class AppModel {
     }
 
     private func buildWebContainerModel(tab: Int, url: URL, navBarModel: NavBarModel, config: WKWebViewConfiguration) -> WebContainerModel {
-        // TODO: isolate VirtualKeyboardModel per webview and inject it into the processor factory
-        let virtualKeyboardModel = VirtualKeyboardModel.shared
+        let virtualKeyboardModel = VirtualKeyboardModel()
         let webPageModel = WebPageModel(
             tab: tab,
             url: url,
             config: config,
-            messageProcessorFactory: messageProcessorFactory,
             navigator: navBarModel.navigator,
             virtualKeyboardModel: virtualKeyboardModel
         )
+        webPageModel.attach(messageProcessorFactory: makeProcessorFactory(for: webPageModel, virtualKeyboard: virtualKeyboardModel))
         return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector, virtualKeyboard: virtualKeyboardModel)
+    }
+
+    /// Builds this tab's processor factory by merging the app-domain builders with page-coupled
+    /// builders that capture this page's collaborators. Each builder still constructs a fresh
+    /// processor per JS context, so cross-origin teardown semantics are preserved.
+    private func makeProcessorFactory(for page: WebPageModel, virtualKeyboard: VirtualKeyboardModel) -> JsMessageProcessorFactory {
+        let debugLogging = enableDebugLogging
+        var builders = appDomainProcessors
+        builders[AppMessageProcessor.handlerName] = { [weak page, debugLogging] _ in
+            AppMessageProcessor(host: WebPageAppMessageHost(page: page), enableDebugLogging: debugLogging)
+        }
+        builders[VirtualKeyboard.handlerName] = { [virtualKeyboard, debugLogging] _ in
+            VirtualKeyboard(viewModel: virtualKeyboard, enableDebugLogging: debugLogging)
+        }
+        return JsMessageProcessorFactory(builders: builders)
     }
 }
 

@@ -5,8 +5,17 @@ import UIHelpers
 struct BluetoothErrorView: View {
 
     let state: SystemState
+    let onPowerUp: () -> Void
 
     @Environment(\.openURL) private var openURL
+
+    init(
+        state: SystemState,
+        onPowerUp: @escaping () -> Void = { }
+    ) {
+        self.state = state
+        self.onPowerUp = onPowerUp
+    }
 
     var body: some View {
         HStack(spacing: 16) {
@@ -27,6 +36,17 @@ struct BluetoothErrorView: View {
                         .foregroundStyle(Color.textPrimaryInverse)
                 }
                 .frame(maxWidth: 88, minHeight: 40)
+                .background(Color.buttonDefault)
+                .cornerRadius(24)
+            } else if state == .poweredOff {
+                Button {
+                    onPowerUp()
+                } label: {
+                    Image(systemName: "power")
+                        .foregroundStyle(Color.textPrimaryInverse)
+                        .font(.headline)
+                }
+                .frame(maxWidth: 68, minHeight: 40)
                 .background(Color.buttonDefault)
                 .cornerRadius(24)
             }

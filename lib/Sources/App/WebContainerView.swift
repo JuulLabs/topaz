@@ -30,7 +30,8 @@ struct WebContainerView: View {
                 VStack(spacing: 16) {
                     if webContainerModel.shouldShowErrorState {
                         BluetoothErrorView(
-                            state: webContainerModel.bluetoothSystem.systemState
+                            state: webContainerModel.bluetoothSystem.systemState,
+                            onPowerUp: webContainerModel.requestPowerOn
                         )
                     }
                     if webContainerModel.shouldShowNavBar {

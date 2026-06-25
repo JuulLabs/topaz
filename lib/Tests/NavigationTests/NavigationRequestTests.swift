@@ -11,6 +11,12 @@ private let testUrl: URL! = URL(string: "http://test.com")
 
 private let testRequest = URLRequest(url: testUrl)
 
+private let postRequest: URLRequest = {
+    var request = URLRequest(url: testUrl)
+    request.httpMethod = "POST"
+    return request
+}()
+
 private let nilUrlRequest: URLRequest = {
     // There is no public initializer with a nil URL so do a little dance
     var emptyRequest = URLRequest(url: testUrl)
@@ -126,6 +132,58 @@ struct NavigationRequestTests {
         )
         let sut = NavigationRequest(action: action)
         #expect(sut?.kind == .sameOrigin)
+    }
+
+    @Test
+    func initFromAction_capturesHttpMethodFromRequest() {
+        let origin = createSecurityOrigin(protocol: "http", host: "test.com", port: 80)
+        let targetFrame = MockFrameInfo(
+            isMainFrame: { true },
+            request: { testRequest },
+            securityOrigin: { origin }
+        ).immortalize(in: &Self.retainBucket)
+        let action = MockAction(
+            request: { postRequest },
+            targetFrame: { targetFrame }
+        )
+        let sut = NavigationRequest(action: action)
+        #expect(sut?.httpMethod == "POST")
+    }
+
+    @Test(arguments: [
+        (url: "https://test.com", method: "GET", isDownload: false, expected: true),
+        (url: "http://test.com", method: "GET", isDownload: false, expected: true),
+        (url: "https://test.com", method: "POST", isDownload: false, expected: false),
+        (url: "https://test.com", method: "GET", isDownload: true, expected: false),
+        (url: "about:blank", method: "GET", isDownload: false, expected: false),
+        (url: "data:text/html,hi", method: "GET", isDownload: false, expected: false),
+        (url: "blob:https://test.com/abc", method: "GET", isDownload: false, expected: false),
+        (url: "https://test.com", method: nil, isDownload: false, expected: true),
+        (url: "https://test.com", method: nil, isDownload: true, expected: false),
+        (url: "about:blank", method: nil, isDownload: false, expected: false),
+    ])
+    func isNativelyRetryable(url: String, method: String?, isDownload: Bool, expected: Bool) throws {
+        let sut = NavigationRequest(
+            url: try #require(URL(string: url)),
+            kind: .sameOrigin,
+            actionType: .linkActivated,
+            isDownload: isDownload,
+            httpMethod: method
+        )
+        #expect(sut.isNativelyRetryable == expected)
+    }
+
+    @Test
+    func isNativelyRetryable_withNilHttpMethod_isTrue() throws {
+        // WebKit often leaves httpMethod unset on plain navigations; nil is treated as GET.
+        let sut = NavigationRequest(
+            url: try #require(URL(string: "https://test.com")),
+            kind: .sameOrigin,
+            actionType: .linkActivated,
+            isDownload: false,
+            httpMethod: nil
+        )
+        #expect(sut.isNativelyRetryable == true)
     }
 }
 

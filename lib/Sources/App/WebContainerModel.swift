@@ -28,7 +28,7 @@ public final class WebContainerModel {
         webPageModel: WebPageModel,
         navBarModel: NavBarModel,
         selector: DeviceSelector,
-        virtualKeyboard: VirtualKeyboardModel = .shared,
+        virtualKeyboard: VirtualKeyboardModel,
         bluetoothSystem: BluetoothSystemState = .shared
     ) {
         self.webPageModel = webPageModel
@@ -43,5 +43,9 @@ public final class WebContainerModel {
         )
         self.virtualKeyboard = virtualKeyboard
         self.bluetoothSystem = bluetoothSystem
+    }
+
+    func requestPowerOn() {
+        bluetoothSystem.requestPowerOn()
     }
 }

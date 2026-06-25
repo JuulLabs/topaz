@@ -41,7 +41,7 @@ jobs:
       DEVELOPER_IPA_S3_BUCKET: juul-dev-us-east-1-mobile-app
       DEVELOPER_IPA_S3_OBJECT_KEY: topaz/main/topaz.ipa
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/ios-ci-signing-prepare
 
