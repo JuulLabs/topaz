@@ -59,7 +59,11 @@ extension NavigationEngine: WKNavigationDelegate {
     // MARK: - Navigation logic
 
     // Request has been sent to the web server and we are ready to start receiving a response
-    public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation?) {
+        guard let navigation else {
+            log.debug("Unexpected null provisional navigation ignored")
+            return
+        }
         if let request = latestRequest {
             log.debug("Provisional navigation started url=\(request.url.absoluteString) isDownload=\(request.isDownload) navigation=\(navigation)")
             let navigationItem = NavigationItem(navigation: navigation, request: request)
@@ -72,7 +76,11 @@ extension NavigationEngine: WKNavigationDelegate {
     }
 
     // Started receiving a response and will attempt to begin parsing the HTML
-    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didCommit navigation: WKNavigation?) {
+        guard let navigation else {
+            log.debug("Unexpected null committed navigation ignored")
+            return
+        }
         guard let navigationItem = navigations[navigation] else {
             // Ignore untracked navigation - it is probably a request that was rejected in the decidePolicyFor method
             log.debug("Untracked navigation commit ignored navigation=\(navigation)")
@@ -84,7 +92,11 @@ extension NavigationEngine: WKNavigationDelegate {
     }
 
     // All data received and if DOM is not already complete it will be very soon
-    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+    public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
+        guard let navigation else {
+            log.debug("Unexpected null final navigation ignored")
+            return
+        }
         guard let navigationItem = navigations.removeValue(forKey: navigation) else {
             // Ignore untracked navigation - it is probably a request that was rejected in the decidePolicyFor method
             log.debug("Untracked navigation finalization ignored navigation=\(navigation)")
@@ -114,20 +126,34 @@ extension NavigationEngine: WKNavigationDelegate {
 
     // MARK: - Error handling
 
-    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
+    public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation?, withError error: any Error) {
         if (error as NSError).code == FrameLoadInterruptedErrorCode, let url = latestRequest?.url, isRecentDownload(url) {
             log.debug("Benign provisional navigation failure ignored due to download conversion for \(url)")
             latestRequest = nil
             return
         }
         log.debug("Provisional navigation failed navigation=\(navigation) error=\(error)")
+        let url = latestRequest?.url
         latestRequest = nil
-        handleError(error, for: navigation, in: webView)
+        if let navigation {
+            handleError(error, for: navigation, in: webView)
+        } else {
+            handleError(error, url: url, in: webView)
+        }
+        rejectionReason = nil
+        rejectionStatusCode = nil
     }
 
-    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
+    public func webView(_ webView: WKWebView, didFail navigation: WKNavigation?, withError error: any Error) {
         log.debug("Navigation failed navigation=\(navigation) error=\(error)")
+        let url = latestRequest?.url
         latestRequest = nil
-        handleError(error, for: navigation, in: webView)
+        if let navigation {
+            handleError(error, for: navigation, in: webView)
+        } else {
+            handleError(error, url: url, in: webView)
+        }
+        rejectionReason = nil
+        rejectionStatusCode = nil
     }
 }
