@@ -270,6 +270,10 @@ let package = Package(
                 .copy("Resources/Generated/BluetoothPolyfill.js")
             ]
         ),
+        .testTarget(
+            name: "WebViewTests",
+            dependencies: ["WebView", "TestHelpers"]
+        ),
     ],
     swiftLanguageModes: [.v6]
 )
