@@ -8,7 +8,7 @@ import Foundation
 import JsMessage
 import OSLog
 
-private let messageLog = Logger(subsystem: "Topaz", category: "BluetoothEngine")
+private let logger = Logger(subsystem: "Topaz", category: "BluetoothEngine")
 
 /**
  Main engine - owns state, integrates web API with native API
@@ -25,6 +25,7 @@ public actor BluetoothEngine: JsMessageProcessor {
     private let deviceSelector: InteractiveDeviceSelector
     private var zombieDetector: ZombieDetector
     private let listenerKey: EventBusListenerKey
+    private let messageLog: JsMessageLog
 
     public init(
         eventBus: EventBus,
@@ -40,6 +41,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         self.enableDebugLogging = enableDebugLogging
         self.zombieDetector = ZombieDetector(state: state)
         self.listenerKey = .init(listenerId: "engine", filter: .unfiltered)
+        self.messageLog = JsMessageLog(logger: logger, enabled: enableDebugLogging)
     }
 
     // MARK: - Bluetooth Events
@@ -57,7 +59,7 @@ public actor BluetoothEngine: JsMessageProcessor {
         zombieDetector.trackZombies(for: event)
         for zombie in await zombieDetector.checkForZombies(for: event) {
             // Propagate a synthetic disconnection event back through the entire system
-            messageLog.warning("Cleaning out zombie peripheral \(zombie.id.uuidString, privacy: .public)")
+            logger.warning("Cleaning out zombie peripheral \(zombie.id.uuidString, privacy: .public)")
             await handleDelegateEvent(DisconnectionEvent.unexpected(zombie, BluetoothError.turnedOff))
         }
     }
@@ -133,13 +135,13 @@ public actor BluetoothEngine: JsMessageProcessor {
         do {
             let message = try request.extractMessage().get()
             actionForFailureLogging = message.action
-            logRequest(message: message)
+            messageLog.logRequest(action: message.action.rawValue, body: message.rawRequestData)
             let response = try await processAction(message: message).toJsMessage()
-            logResponse(action: message.action, response: response)
+            messageLog.logResponse(action: message.action.rawValue, response)
             return response
         } catch {
             let errorResponse = JsMessageResponse.error(error.toDomError())
-            logResponse(action: actionForFailureLogging, response: errorResponse)
+            messageLog.logResponse(action: actionForFailureLogging?.rawValue, errorResponse)
             return errorResponse
         }
     }
@@ -179,22 +181,6 @@ public actor BluetoothEngine: JsMessageProcessor {
         guard try predicate(currentState) == false else { return }
         try await eventBus.awaitEvent(forKey: .systemState) { (event: SystemStateEvent) in
             try predicate(event.systemState)
-        }
-    }
-
-    private func logRequest(message: Message) {
-        guard enableDebugLogging else { return }
-        messageLog.debug("Request \(message.action.rawValue, privacy: .public): \(JsType.dictionaryAsString(message.rawRequestData), privacy: .public)")
-    }
-
-    private func logResponse(action: Message.Action?, response: JsMessageResponse) {
-        guard enableDebugLogging else { return }
-        let actionString = action?.rawValue ?? "?"
-        switch response {
-        case let .body(body):
-            messageLog.debug("Response \(actionString, privacy: .public): \(body.asDebugString(), privacy: .public)")
-        case let .error(error):
-            messageLog.error("Response \(actionString, privacy: .public): \(error.jsRepresentation, privacy: .public)")
         }
     }
 }
