@@ -9,7 +9,6 @@ import Helpers
 import JsMessage
 import SecurityList
 import SwiftUI
-import VirtualKeyboard
 
 @main
 struct TopazMain: App {
@@ -19,9 +18,10 @@ struct TopazMain: App {
         BluetoothSystemState.shared.requestPowerOn = liveBluetoothPowerRequest
         let deviceSelector = DeviceSelector()
         self.appModel = AppModel(
-            messageProcessorFactory: processorFactory(deviceSelector: deviceSelector),
+            appDomainProcessors: appDomainProcessors(deviceSelector: deviceSelector),
             deviceSelector: deviceSelector,
-            storage: debouncedJsonFileStorage()
+            storage: debouncedJsonFileStorage(),
+            enableDebugLogging: appConfig.enableDebugLogging
         )
     }
 
@@ -36,28 +36,22 @@ private func debouncedJsonFileStorage() -> CodableStorage {
     DebouncedCodableStorage(JsonDataStorage(FileDataStorage()), debounceInterval: .seconds(1))
 }
 
-private func processorFactory(deviceSelector: DeviceSelector) -> JsMessageProcessorFactory {
-    JsMessageProcessorFactory(
-        builders: [
-            BluetoothEngine.handlerName: { _ in
-                let eventBus = EventBus(enableDebugLogging: appConfig.enableDebugLogging)
-                return BluetoothEngine(
-                    eventBus: eventBus,
-                    state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
-                    client: liveBluetoothClient(eventBus: eventBus),
-                    deviceSelector: deviceSelector,
-                    enableDebugLogging: appConfig.enableDebugLogging
-                )
-            },
-            JsLogger.handlerName: { _ in
-                JsLogger()
-            },
-            VirtualKeyboard.handlerName: { _ in
-                VirtualKeyboard(
-                    viewModel: .shared,
-                    enableDebugLogging: appConfig.enableDebugLogging
-                )
-            },
-        ]
-    )
+/// App-domain processor builders: standalone systems that only need app-wide dependencies.
+/// Page-coupled processors (e.g. AppMessage) are merged in per page by `AppModel`.
+private func appDomainProcessors(deviceSelector: DeviceSelector) -> JsMessageProcessorBuilders {
+    [
+        BluetoothEngine.handlerName: { _ in
+            let eventBus = EventBus(enableDebugLogging: appConfig.enableDebugLogging)
+            return BluetoothEngine(
+                eventBus: eventBus,
+                state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
+                client: liveBluetoothClient(eventBus: eventBus),
+                deviceSelector: deviceSelector,
+                enableDebugLogging: appConfig.enableDebugLogging
+            )
+        },
+        JsLogger.handlerName: { _ in
+            JsLogger()
+        },
+    ]
 }
