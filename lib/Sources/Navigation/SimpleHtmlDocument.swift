@@ -27,14 +27,14 @@ public struct SimpleHtmlDocument {
         element(tag: "html") {
             element(tag: "head") {
                 element(tag: "title") {
-                    [title]
+                    [title.htmlEscaped()]
                 }
             }
             +
             element(tag: "body") {
                 elements.flatMap { (tag, inner) in
                     element(tag: tag.rawValue) {
-                        [inner]
+                        [inner.htmlEscaped()]
                     }
                 }
             }
@@ -50,5 +50,23 @@ extension SimpleHtmlDocument {
     public func asDataUriRequest() -> URLRequest? {
         let data = Data(render().utf8).base64EncodedString()
         return URL(string: "data:text/html;base64," + data).map { URLRequest(url: $0) }
+    }
+}
+
+extension StringProtocol {
+    fileprivate func htmlEscaped() -> String {
+        var result = ""
+        result.reserveCapacity(count)
+        for character in self {
+            switch character {
+            case "&": result += "&amp;"
+            case "<": result += "&lt;"
+            case ">": result += "&gt;"
+            case "\"": result += "&quot;"
+            case "'": result += "&#39;"
+            default: result.append(character)
+            }
+        }
+        return result
     }
 }

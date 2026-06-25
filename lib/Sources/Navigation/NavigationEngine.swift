@@ -22,10 +22,15 @@ public final class NavigationEngine: NSObject {
     func handleError(_ error: any Error, for navigation: WKNavigation, in webView: WKWebView) {
         guard shouldPresentErrorDocument(for: error) else { return }
         guard let item = navigations.removeValue(forKey: navigation) else { return }
+        handleError(error, url: item.request.url, in: webView)
+    }
+
+    func handleError(_ error: any Error, url: URL?, in webView: WKWebView) {
+        guard shouldPresentErrorDocument(for: error) else { return }
         let document = if let rejectionStatusCode {
-            statusCodeErrorDocument(statusCode: rejectionStatusCode, url: item.request.url, reason: rejectionReason)
+            statusCodeErrorDocument(statusCode: rejectionStatusCode, url: url, reason: rejectionReason)
         } else {
-            genericErrorDocument(error: error, url: item.request.url, reason: rejectionReason)
+            genericErrorDocument(error: error, url: url, reason: rejectionReason)
         }
         loadDocument(document, in: webView)
     }
