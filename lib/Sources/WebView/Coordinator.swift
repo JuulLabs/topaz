@@ -12,6 +12,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
+    private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
@@ -46,13 +47,15 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
         viewModel = nil
+        lastLoadedURL = nil
         detachOldHandler(from: webView)
         authorize = { false }
     }
 
     func update(webView: WKWebView, model: WebPageModel) {
         webView.customUserAgent = model.customUserAgent
-        // TODO: load when observed model url changes only
+        guard model.url != lastLoadedURL else { return }
+        lastLoadedURL = model.url
         webView.load(URLRequest(url: model.url))
     }
 
@@ -111,6 +114,9 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        guard let currentURL = webView.url else { return }
+        lastLoadedURL = currentURL
+        viewModel?.didFinishLoading(url: currentURL)
         // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 

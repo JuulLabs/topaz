@@ -132,6 +132,10 @@ public class WebPageModel: Identifiable {
         }
     }
 
+    func didFinishLoading(url: URL) {
+        self.url = url
+    }
+
     func requestAuthorization() async -> Bool {
         guard let webOrigin else {
             return false
