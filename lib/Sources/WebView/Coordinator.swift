@@ -114,6 +114,9 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {
+        guard let currentURL = webView.url else { return }
+        lastLoadedURL = currentURL
+        viewModel?.didFinishLoading(url: currentURL)
         // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 
