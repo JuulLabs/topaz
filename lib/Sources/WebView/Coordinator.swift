@@ -12,6 +12,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
     private var viewModel: WebPageModel?
+    private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
@@ -46,13 +47,15 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.navigationDelegate = nil
         webView.uiDelegate = nil
         viewModel = nil
+        lastLoadedURL = nil
         detachOldHandler(from: webView)
         authorize = { false }
     }
 
     func update(webView: WKWebView, model: WebPageModel) {
         webView.customUserAgent = model.customUserAgent
-        // TODO: load when observed model url changes only
+        guard model.url != lastLoadedURL else { return }
+        lastLoadedURL = model.url
         webView.load(URLRequest(url: model.url))
     }
 
