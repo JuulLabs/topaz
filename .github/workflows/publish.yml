@@ -36,9 +36,12 @@
 
 name: 'Publish'
 on:
+  # push:
+  #   tags:
+  #     - 'release/**'
   push:
-    tags:
-      - 'release/**'
+    branches:
+      - isdayo/CA-6350-saucelabs-uploads
 
 jobs:
   publish:
