@@ -33,15 +33,11 @@ jobs:
       - run: xcodebuild -version
       - run: make test
   js:
-    name: JavaScript Build
+    name: Javascript Build Sanity Check
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # Force a clean rebuild so the compile actually runs. Bare `make js` is a
-      # no-op when the committed artifact is already present, so it would never
-      # catch rot. This is a pass/fail check only; the compiled artifact is not
-      # committed here and must still be regenerated and pushed by a human.
       - run: make js-clean js
