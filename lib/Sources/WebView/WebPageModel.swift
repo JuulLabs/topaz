@@ -168,17 +168,17 @@ public class WebPageModel: Identifiable {
         return true
     }
 
-    var permissionsDialogMessage: String {
+    public var permissionsDialogMessage: String {
         "This will allow this website to find and connect to your Bluetooth® devices."
     }
 
-    func denyPermissionsButtonTapped() {
+    public func denyPermissionsButtonTapped() {
         // TODO: give the user the option to remember the decision and cache the result for some period of time
         // so that we stop prompting them on every attempted bluetooth operation
         closePermissionsRequest(allowed: false)
     }
 
-    func allowPermissionsButtonTapped() {
+    public func allowPermissionsButtonTapped() {
         closePermissionsRequest(allowed: true)
     }
 

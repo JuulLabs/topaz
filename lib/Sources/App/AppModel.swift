@@ -30,7 +30,20 @@ public class AppModel {
     let enableDebugLogging: Bool
     let tabsModel: TabGridModel
 
-    var activePageModel: WebLoadingModel?
+    /// Live (page-loaded) sessions retained across tab switches, bounded by an LRU cap.
+    let sessions = TabSessionCache<TabSession>()
+
+    /// The session currently displayed. Fresh tabs (no page load yet) live only here;
+    /// they enter the session cache once their first page load begins. Nil shows the
+    /// tab grid - cached sessions stay alive underneath it.
+    var activeSession: TabSession?
+
+    /// Sessions kept alive but not currently displayed. Their web views stay parented
+    /// in the view hierarchy (invisible) so WebKit keeps their content processes - and
+    /// therefore their Js contexts and BLE data processing - running.
+    var backgroundSessions: [TabSession] {
+        sessions.allSessions.filter { $0.tabIndex != activeSession?.tabIndex && $0.hasStartedPageLoad }
+    }
 
     @ObservationIgnored
     @AppStorage("userHasBeenPromptedToPasteUrl")
@@ -63,13 +76,12 @@ public class AppModel {
         tabsModel.openNewTab = { [weak self] tabIndex in
             guard let self else { return }
             lastOpenedTabIndex = tabIndex
-            self.activePageModel = buildPageModel(tabIndex: tabIndex)
+            self.activeSession = buildSession(tabIndex: tabIndex)
         }
 
         tabsModel.openTab = { [weak self] tabModel in
             guard let self else { return }
-            lastOpenedTabIndex = tabModel.index
-            self.activePageModel = buildPageModel(tabModel: tabModel)
+            self.activate(tabIndex: tabModel.index, url: tabModel.url)
         }
 
         Task {
@@ -82,15 +94,57 @@ public class AppModel {
                     userHasBeenPromptedToPasteUrl = true
                 }
                 self.lastOpenedTabIndex = 1
-                self.activePageModel = buildPageModel(tabIndex: 1, initialUrl: urlFromClipboard)
+                self.activeSession = buildSession(tabIndex: 1, initialUrl: urlFromClipboard)
             } else if let lastOpenedTabIndex, let tabModel = tabsModel.findTab(for: lastOpenedTabIndex) {
-                self.activePageModel = buildPageModel(tabModel: tabModel)
+                self.activate(tabIndex: tabModel.index, url: tabModel.url)
             }
         }
     }
 
-    private func buildPageModel(tabModel: TabModel) -> WebLoadingModel {
-        buildPageModel(tabIndex: tabModel.index, initialUrl: tabModel.url)
+    /// Makes the given tab the displayed one, reusing its live session when cached
+    /// (no reload - the point of multi-tab support) and building one otherwise.
+    private func activate(tabIndex: Int, url: URL?) {
+        lastOpenedTabIndex = tabIndex
+        if let existing = sessions.session(for: tabIndex) {
+            sessions.markActive(tabIndex)
+            activeSession = existing
+        } else {
+            activeSession = buildSession(tabIndex: tabIndex, initialUrl: url)
+        }
+    }
+
+    /// Builds a session for a tab. Sessions destined to load a page are cached (and
+    /// count against the live-session cap) immediately; fresh tabs stay uncached until
+    /// their first submit.
+    private func buildSession(tabIndex: Int, initialUrl: URL? = nil) -> TabSession {
+        let loadingModel = buildPageModel(tabIndex: tabIndex, initialUrl: initialUrl)
+        let session = TabSession(tabIndex: tabIndex, loadingModel: loadingModel)
+        if let url = initialUrl, url.isAboutBlank() == false {
+            cache(session)
+        }
+        return session
+    }
+
+    private func cache(_ session: TabSession) {
+        sessions.insert(session)
+        sessions.markActive(session.tabIndex)
+    }
+
+    /// Invoked when the displayed tab begins its first page load; a fresh tab becomes
+    /// a live session worth retaining at this point.
+    private func activeSessionDidStartLoad() {
+        guard let activeSession else { return }
+        cache(activeSession)
+    }
+
+    /// Returns to the tab that opened the current one (new-window navigation), showing
+    /// the grid if that tab has since been closed.
+    private func goBack(toTabIndex tabIndex: Int) {
+        if let tabModel = tabsModel.findTab(for: tabIndex) {
+            activate(tabIndex: tabModel.index, url: tabModel.url)
+        } else {
+            activeSession = nil
+        }
     }
 
     private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel {
@@ -106,8 +160,10 @@ public class AppModel {
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
         let settingsModel = SettingsModel { [weak self] in
+            // Show the tab grid; live sessions stay alive (and keep processing BLE
+            // data) underneath it. A fresh tab with no page load is simply dropped.
             self?.lastOpenedTabIndex = nil
-            self?.activePageModel = nil
+            self?.activeSession = nil
         }
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)
@@ -120,13 +176,14 @@ public class AppModel {
         }
         navigator.launchNewPage = { [weak self] newUrl in
             guard let self else { return }
-            let prior = self.activePageModel
+            let openerTabIndex = self.activeSession?.tabIndex
             let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
-            let newModel = self.buildPageModel(tabModel: newTab)
-            newModel.navBarModel.goBackToPriorPage = { [weak self] in
-                self?.activePageModel = prior
+            self.activate(tabIndex: newTab.index, url: newTab.url)
+            if let openerTabIndex, openerTabIndex != newTab.index {
+                self.activeSession?.loadingModel.navBarModel.goBackToPriorPage = { [weak self] in
+                    self?.goBack(toTabIndex: openerTabIndex)
+                }
             }
-            self.activePageModel = newModel
         }
         return NavBarModel(navigator: navigator, settingsModel: settingsModel, searchBarModel: searchBarModel, isFullscreen: lastOpenedTabWasInFullscreenMode ?? false) { newValue in
             self.lastOpenedTabWasInFullscreenMode = newValue
@@ -153,6 +210,11 @@ public class AppModel {
                     if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel) {
                         loadingModel.webContainerModel = webContainer
                         tabsModel.update(url: url, at: tabIndex)
+                        if self.activeSession?.loadingModel === loadingModel {
+                            // A fresh tab just started its first page load: it now
+                            // holds a web view worth retaining, so cache the session
+                            self.activeSessionDidStartLoad()
+                        }
                     }
                 }
             }

@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// A live per-tab web session that can be explicitly torn down.
 ///
@@ -28,13 +29,15 @@ enum TabSessionLimits {
 /// Lookup via `session(for:)` does not affect recency; only `insert(_:)` and
 /// `markActive(_:)` refresh a session's LRU position.
 @MainActor
+@Observable
 final class TabSessionCache<Session: LiveTabSession> {
+    @ObservationIgnored
     private let maxLiveSessions: Int
     private var sessions: [Int: Session] = [:]
     /// Tab indexes ordered least-recently-activated first.
     private var lruOrder: [Int] = []
     /// The pinned tab: most recently activated, exempt from LRU eviction.
-    private(set) var activeTabIndex: Int?
+    private(set) var pinnedTabIndex: Int?
 
     init(maxLiveSessions: Int = TabSessionLimits.maxLiveSessions) {
         self.maxLiveSessions = maxLiveSessions
@@ -46,6 +49,11 @@ final class TabSessionCache<Session: LiveTabSession> {
 
     var liveTabIndexes: [Int] {
         lruOrder
+    }
+
+    /// All live sessions, least-recently-activated first.
+    var allSessions: [Session] {
+        lruOrder.compactMap { sessions[$0] }
     }
 
     func session(for tabIndex: Int) -> Session? {
@@ -69,7 +77,7 @@ final class TabSessionCache<Session: LiveTabSession> {
     /// so the last-viewed tab stays protected while e.g. the tab grid is showing.
     func markActive(_ tabIndex: Int) {
         guard sessions[tabIndex] != nil else { return }
-        activeTabIndex = tabIndex
+        pinnedTabIndex = tabIndex
         refreshRecency(of: tabIndex)
     }
 
@@ -77,15 +85,15 @@ final class TabSessionCache<Session: LiveTabSession> {
     func evict(_ tabIndex: Int) {
         guard let session = sessions.removeValue(forKey: tabIndex) else { return }
         lruOrder.removeAll { $0 == tabIndex }
-        if activeTabIndex == tabIndex {
-            activeTabIndex = nil
+        if pinnedTabIndex == tabIndex {
+            pinnedTabIndex = nil
         }
         session.teardown()
     }
 
     /// Tears down every session except the pinned one (e.g. on memory warning).
     func evictAllExceptActive() {
-        for tabIndex in lruOrder where tabIndex != activeTabIndex {
+        for tabIndex in lruOrder where tabIndex != pinnedTabIndex {
             evict(tabIndex)
         }
     }
@@ -104,7 +112,7 @@ final class TabSessionCache<Session: LiveTabSession> {
 
     private func evictOverCap(protecting protectedTabIndex: Int) {
         while sessions.count > maxLiveSessions {
-            let candidate = lruOrder.first { $0 != activeTabIndex && $0 != protectedTabIndex }
+            let candidate = lruOrder.first { $0 != pinnedTabIndex && $0 != protectedTabIndex }
             guard let candidate else { return }
             evict(candidate)
         }

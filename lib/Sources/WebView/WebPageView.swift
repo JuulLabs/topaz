@@ -8,10 +8,16 @@ import Navigation
 import SwiftUI
 import WebKit
 
+/// Bare host for a model-owned web view.
+///
+/// The web view, its delegates, and its script handlers are owned by the model layer
+/// and survive this view unmounting; mounting simply (re)parents the web view. Multiple
+/// instances may exist over a session's lifetime (e.g. moving between the visible tab
+/// and the keep-alive underlay) but never simultaneously for the same model.
 public struct WebPageView: View {
     @State private var scrollView: UIScrollView?
 
-    @Bindable var model: WebPageModel
+    let model: WebPageModel
 
     public init(model: WebPageModel) {
         self.model = model
@@ -21,20 +27,6 @@ public struct WebPageView: View {
         _WebPageView(model: model, scrollView: $scrollView)
             .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
-            .alert("This website would like to use Bluetooth®", isPresented: $model.presentPermissionsDialog, actions: {
-                Button {
-                    model.allowPermissionsButtonTapped()
-                } label: {
-                    Text("Allow")
-                }
-                Button(role: .cancel) {
-                    model.denyPermissionsButtonTapped()
-                } label: {
-                    Text("Deny")
-                }
-            }, message: {
-                Text(model.permissionsDialogMessage)
-            })
     }
 
     private struct _WebPageView: UIViewRepresentable {
@@ -47,35 +39,38 @@ public struct WebPageView: View {
             self._scrollView = scrollView
         }
 
-        func makeUIView(context: Context) -> WKWebView {
+        // Each representable gets its own container and the shared, model-owned web
+        // view is re-parented between containers. SwiftUI only ever owns the container,
+        // so host teardown ordering during a tab switch can never rip the web view out
+        // of its new host.
+        func makeUIView(context: Context) -> WebPageHostUIView {
+            let container = WebPageHostUIView()
             let webView = model.webView()
-            // Defensive: a model-owned web view could still be parented elsewhere
-            webView.removeFromSuperview()
-            context.coordinator.model = model
+            container.host(webView)
             Task { @MainActor in
                 scrollView = webView.scrollView
             }
-            return webView
+            return container
         }
 
-        func updateUIView(_ uiView: WKWebView, context: Context) {
-            model.sessionController.update(webView: uiView, model: model)
+        func updateUIView(_ container: WebPageHostUIView, context: Context) {
+            let webView = model.webView()
+            // Re-claim the web view in case another (now dismantled) host held it
+            container.host(webView)
+            model.sessionController.update(webView: webView, model: model)
         }
+    }
+}
 
-        static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
-            // The session (web view, script handler, BLE) is owned by the model; leaving
-            // the view still ends the session for now to preserve existing behavior.
-            coordinator.model?.teardown()
-        }
-
-        func makeCoordinator() -> Coordinator {
-            Coordinator()
-        }
-
-        @MainActor
-        final class Coordinator {
-            weak var model: WebPageModel?
-        }
+/// Plain container that hosts a (potentially shared) web view as a subview.
+@MainActor
+final class WebPageHostUIView: UIView {
+    func host(_ webView: WKWebView) {
+        guard webView.superview !== self else { return }
+        webView.removeFromSuperview()
+        webView.frame = bounds
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(webView)
     }
 }
 

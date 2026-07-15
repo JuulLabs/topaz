@@ -78,7 +78,7 @@ struct TabSessionCacheTests {
     @Test func markActiveForUnknownTabIsIgnored() {
         let (cache, _) = cacheWithSessions(cap: 3, tabs: [1])
         cache.markActive(99)
-        #expect(cache.activeTabIndex == nil)
+        #expect(cache.pinnedTabIndex == nil)
     }
 
     @Test func evictTearsDownExactlyOnce() {
@@ -99,7 +99,7 @@ struct TabSessionCacheTests {
         let (cache, _) = cacheWithSessions(cap: 4, tabs: [1, 2])
         cache.markActive(1)
         cache.evict(1)
-        #expect(cache.activeTabIndex == nil)
+        #expect(cache.pinnedTabIndex == nil)
     }
 
     @Test func evictAllExceptActiveKeepsOnlyPinnedSession() {
@@ -124,7 +124,7 @@ struct TabSessionCacheTests {
         cache.markActive(2)
         cache.evictAll()
         #expect(cache.count == 0)
-        #expect(cache.activeTabIndex == nil)
+        #expect(cache.pinnedTabIndex == nil)
         #expect(sessions.values.allSatisfy { $0.teardownCount == 1 })
     }
 
