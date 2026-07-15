@@ -42,6 +42,12 @@ public class AppModel {
     /// tab grid - cached sessions stay alive underneath it.
     var activeSession: TabSession? {
         didSet {
+            if oldValue !== activeSession {
+                // The outgoing page must not keep the keyboard: its web view is moving
+                // to the invisible underlay (or away entirely) where a lingering first
+                // responder would float a stale keyboard over the incoming view
+                oldValue?.resignFocus()
+            }
             activeTabState.setActiveTab(activeSession?.tabIndex)
         }
     }

@@ -190,6 +190,13 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
+    /// Relinquishes keyboard focus held by the web view's content. A web view moving
+    /// to the keep-alive underlay may otherwise remain first responder, leaving a
+    /// stale keyboard floating over whatever replaced it on screen.
+    public func resignFocus() {
+        ownedWebView?.endEditing(true)
+    }
+
     func webContentProcessDidTerminate() {
         onWebContentProcessTerminated?()
     }

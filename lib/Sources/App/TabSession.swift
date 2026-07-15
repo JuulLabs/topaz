@@ -24,6 +24,12 @@ final class TabSession: Identifiable, LiveTabSession {
         loadingModel.webContainerModel != nil
     }
 
+    /// Relinquishes any keyboard focus held by the tab's web content; invoked when the
+    /// tab stops being the displayed one so its keyboard cannot linger over the next.
+    func resignFocus() {
+        loadingModel.webContainerModel?.webPageModel.resignFocus()
+    }
+
     /// Ends the web session: detaches the script handler (shutting down the tab's
     /// Bluetooth engine and disconnecting its peripherals) and releases the web view.
     /// Idempotent. The tab's URL remains in the grid; reopening reloads from scratch.
