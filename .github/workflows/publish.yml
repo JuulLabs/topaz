@@ -83,7 +83,7 @@ jobs:
           SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
           SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
         run: |
-          curl -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY" \
+          curl -fS -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY" \
             -X POST \
             -F "payload=@artifacts/topaz.ipa" \
             -F "name=topaz-${TAG##*/}-${{ github.run_number }}.ipa" \
