@@ -256,8 +256,21 @@ public class AppModel {
         loadingModel.freshPageModel.searchBarFocusOnLoad = false
         loadingModel.navBarModel.searchBarModel.searchString = url.absoluteString
         Task {
-            loadingModel.webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel)
+            let webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel)
+            // The session may have been evicted (or replaced) while the config loaded;
+            // don't populate an orphaned session with a container graph nobody owns
+            guard self.isCurrentSessionModel(loadingModel, tabIndex: tabIndex) else { return }
+            loadingModel.webContainerModel = webContainerModel
         }
+    }
+
+    /// True while the given loading model still belongs to a session the app is
+    /// accounting for: the displayed session or a cached (live) one.
+    private func isCurrentSessionModel(_ loadingModel: WebLoadingModel, tabIndex: Int) -> Bool {
+        if activeSession?.loadingModel === loadingModel {
+            return true
+        }
+        return sessions.session(for: tabIndex)?.loadingModel === loadingModel
     }
 
     private func configureSubmitAction(on loadingModel: WebLoadingModel, tabIndex: Int) {
