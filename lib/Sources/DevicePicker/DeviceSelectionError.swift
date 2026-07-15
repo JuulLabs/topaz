@@ -1,6 +1,7 @@
 import Foundation
 
 public enum DeviceSelectionError: Error, Equatable {
+    case busy
     case cancelled(presentedItems: [String])
     case invalidSelection
     // TODO: timeout
@@ -9,6 +10,8 @@ public enum DeviceSelectionError: Error, Equatable {
 extension DeviceSelectionError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .busy:
+            return "Another device selection is already in progress"
         case let .cancelled(items):
             return "Cancelled by user presentedItems=[\(items.joined(separator: ","))]"
         case .invalidSelection:
