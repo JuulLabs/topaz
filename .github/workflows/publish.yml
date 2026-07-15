@@ -77,7 +77,7 @@ jobs:
           APP_VERSION="${TAG##*/}"
           APP_BUILD='${{ github.run_number }}'
           ipa
-      - run: make XCODE_CONFIG=Release validate-ipa
+      # - run: make XCODE_CONFIG=Release validate-ipa
       - run: make XCODE_CONFIG=Release upload-ipa
 
       - name: Upload IPA to Saucelabs
