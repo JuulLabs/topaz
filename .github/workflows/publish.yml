@@ -82,9 +82,9 @@ jobs:
 
       - name: Upload IPA to Saucelabs
         env:
-          SAUCELABS_USERNAME: ${{ secrets.CONX_SAUCELABS_USERNAME }}
-          SAUCELABS_ACCESS_KEY: ${{ secrets.CONX_SAUCELABS_ACCESS_KEY }}
-          SAUCELABS_ORG_ID: ${{ secrets.CONX_SAUCELABS_ORG_ID }}
+          SAUCELABS_USERNAME: ${{ secrets.SAUCELABS_USERNAME }}
+          SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
+          SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
         run: |
           curl -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY" \
             -X POST \
