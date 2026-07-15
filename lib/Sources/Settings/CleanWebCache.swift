@@ -1,12 +1,12 @@
 import WebKit
 
+/// Wipes all persisted web data. Returns only once the removal has completed so
+/// callers can sequence dependent work (e.g. reloading pages) after the wipe.
 @MainActor
-func cleanWebCache() {
+func cleanWebCache() async {
     HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
-
-    WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
-        records.forEach { record in
-            WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
-        }
-    }
+    await WKWebsiteDataStore.default().removeData(
+        ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+        modifiedSince: Date.distantPast
+    )
 }
