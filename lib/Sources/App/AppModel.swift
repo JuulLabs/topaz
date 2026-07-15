@@ -33,10 +33,18 @@ public class AppModel {
     /// Live (page-loaded) sessions retained across tab switches, bounded by an LRU cap.
     let sessions = TabSessionCache<TabSession>()
 
+    /// Shared with per-tab collaborators (e.g. the device selector gate) so they can
+    /// distinguish the displayed tab from background tabs.
+    let activeTabState: ActiveTabState
+
     /// The session currently displayed. Fresh tabs (no page load yet) live only here;
     /// they enter the session cache once their first page load begins. Nil shows the
     /// tab grid - cached sessions stay alive underneath it.
-    var activeSession: TabSession?
+    var activeSession: TabSession? {
+        didSet {
+            activeTabState.setActiveTab(activeSession?.tabIndex)
+        }
+    }
 
     /// Sessions kept alive but not currently displayed. Their web views stay parented
     /// in the view hierarchy (invisible) so WebKit keeps their content processes - and
@@ -64,12 +72,14 @@ public class AppModel {
         appDomainProcessors: JsMessageProcessorBuilders,
         deviceSelector: DeviceSelector,
         storage: CodableStorage,
+        activeTabState: ActiveTabState = ActiveTabState(),
         enableDebugLogging: Bool = false
     ) {
         self.appDomainProcessors = appDomainProcessors
         self.enableDebugLogging = enableDebugLogging
         self.storage = storage
         self.deviceSelector = deviceSelector
+        self.activeTabState = activeTabState
         let tabsModel = TabGridModel(store: storage)
         self.tabsModel = tabsModel
 
