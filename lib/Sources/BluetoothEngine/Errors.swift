@@ -1,5 +1,6 @@
 import Bluetooth
 import BluetoothClient
+import DevicePicker
 import EventBus
 import JsMessage
 
@@ -21,6 +22,20 @@ extension BluetoothError: DomErrorConvertable {
         case .unauthorized: .notAllowed
         case .unavailable: .operation
         case .unknown: .unknown
+        }
+    }
+}
+
+extension DeviceSelectionError: DomErrorConvertable {
+    public var domErrorName: DomErrorName {
+        switch self {
+        // Web Bluetooth: overlapping requestDevice calls are not permitted
+        case .busy: .notAllowed
+        // Web Bluetooth: no chooser selection resolves to NotFoundError
+        case .cancelled: .notFound
+        case .invalidSelection: .notFound
+        // Web Bluetooth: requestDevice requires a visible document + user activation
+        case .pageNotVisible: .security
         }
     }
 }

@@ -25,8 +25,13 @@ public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
+    /// Session-scoped machinery (navigation delegates, script handler lifecycle) owned by
+    /// the model so the web view's lifetime is not bound to SwiftUI view mount/unmount.
+    let sessionController = WebPageSessionController()
+
+    /// The web view is owned (strongly) by the model and survives until `teardown()`.
     @ObservationIgnored
-    private weak var webView: WKWebView?
+    private var ownedWebView: WKWebView?
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -40,7 +45,17 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
-    public var launchNewPage: ((URL) -> Void)?
+    /// Invoked when the system kills this page's web content process. The page's Js
+    /// heap (and polyfill object graph) is gone while native state survives; the owner
+    /// is expected to tear this session down and rebuild it (converge-to-empty).
+    @ObservationIgnored
+    public var onWebContentProcessTerminated: (() -> Void)?
+
+    /// Invoked when the page stopped consuming events for long enough that its bounded
+    /// delivery buffer overflowed. The page is effectively wedged and has already missed
+    /// data; the owner is expected to tear this session down (converge-to-empty).
+    @ObservationIgnored
+    public var onEventDeliveryOverflow: (() -> Void)?
 
     public var presentPermissionsDialog: Bool = false
 
@@ -112,16 +127,33 @@ public class WebPageModel: Identifiable {
             return false
         }
         userAgentMode = mode
-        webView?.customUserAgent = customUserAgent
+        ownedWebView?.customUserAgent = customUserAgent
         return true
     }
 
-    func createWebView() -> WKWebView {
+    /// Returns the model-owned web view, creating and initializing it on first access.
+    func webView() -> WKWebView {
+        if let ownedWebView {
+            return ownedWebView
+        }
         let webView = NoKeyboardToolbarWebView(frame: .zero, configuration: config)
-        self.webView = webView
+#if DEBUG
+        webView.isInspectable = true
+#endif
+        self.ownedWebView = webView
         webView.allowsBackForwardNavigationGestures = true
         scrollObserver.observe(webView: webView)
+        sessionController.initialize(webView: webView, model: self)
         return webView
+    }
+
+    /// Explicitly tears down the web session: detaches the script handler (shutting down its
+    /// message processors and any BLE connections they hold), clears delegates, and releases
+    /// the web view. Idempotent. A subsequent `webView()` call starts a fresh session.
+    public func teardown() {
+        guard let webView = ownedWebView else { return }
+        sessionController.deinitialize(webView: webView)
+        ownedWebView = nil
     }
 
     func didBeginLoading(url: URL) {
@@ -136,6 +168,14 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
+    func webContentProcessDidTerminate() {
+        onWebContentProcessTerminated?()
+    }
+
+    func eventDeliveryDidOverflow() {
+        onEventDeliveryOverflow?()
+    }
+
     func requestAuthorization() async -> Bool {
         guard let webOrigin else {
             return false
@@ -146,17 +186,17 @@ public class WebPageModel: Identifiable {
         return true
     }
 
-    var permissionsDialogMessage: String {
+    public var permissionsDialogMessage: String {
         "This will allow this website to find and connect to your Bluetooth® devices."
     }
 
-    func denyPermissionsButtonTapped() {
+    public func denyPermissionsButtonTapped() {
         // TODO: give the user the option to remember the decision and cache the result for some period of time
         // so that we stop prompting them on every attempted bluetooth operation
         closePermissionsRequest(allowed: false)
     }
 
-    func allowPermissionsButtonTapped() {
+    public func allowPermissionsButtonTapped() {
         closePermissionsRequest(allowed: true)
     }
 
