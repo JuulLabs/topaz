@@ -51,6 +51,12 @@ public class WebPageModel: Identifiable {
     @ObservationIgnored
     public var onWebContentProcessTerminated: (() -> Void)?
 
+    /// Invoked when the page stopped consuming events for long enough that its bounded
+    /// delivery buffer overflowed. The page is effectively wedged and has already missed
+    /// data; the owner is expected to tear this session down (converge-to-empty).
+    @ObservationIgnored
+    public var onEventDeliveryOverflow: (() -> Void)?
+
     public var presentPermissionsDialog: Bool = false
 
     public var isDownloadsPresented: Bool = false
@@ -164,6 +170,10 @@ public class WebPageModel: Identifiable {
 
     func webContentProcessDidTerminate() {
         onWebContentProcessTerminated?()
+    }
+
+    func eventDeliveryDidOverflow() {
+        onEventDeliveryOverflow?()
     }
 
     func requestAuthorization() async -> Bool {

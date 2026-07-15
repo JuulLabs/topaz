@@ -19,6 +19,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
+    private var deliveryQueue: JsEventDeliveryQueue?
     private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
@@ -68,13 +69,35 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
-        let context = webView.createContext(contextId: contextId, world: world)
+        // Deliveries into the page go through a bounded, order-preserving queue so a
+        // slow or suspended page can never stall the tab's engine event loop. Overflow
+        // means the page has been unresponsive under sustained traffic: report it so
+        // the owner can tear the session down rather than lose data silently.
+        let queue = JsEventDeliveryQueue(
+            deliver: { [weak webView, world] event in
+                guard let webView else {
+                    return .failure(JsEventDeliveryError.cancelled)
+                }
+                return await webView.sendTopazEvent(event, in: world)
+            },
+            onOverflow: { [weak self] in
+                self?.viewModel?.eventDeliveryDidOverflow()
+            }
+        )
+        self.deliveryQueue = queue
+        let context = webView.createContext(contextId: contextId, deliveryQueue: queue)
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
 
+    private func cancelDeliveryQueue() {
+        deliveryQueue?.cancel()
+        deliveryQueue = nil
+    }
+
     private func detachOldHandler(from webView: WKWebView) {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -82,6 +105,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     private func detachOldHandlerAndWait(from webView: WKWebView) async {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         await scriptHandler.detachProcessorsAndWait()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -142,17 +166,22 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
 }
 
 extension WKWebView {
-    func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
-        return JsContext(id: contextId) { [weak self] event in
-            return await withCheckedContinuation { continuation in
-                self?.callAsyncJavaScript(
-                    "topaz.sendEvent(event)",
-                    arguments: [ "event": event.jsValue ],
-                    in: nil,
-                    in: world) { result in
-                        continuation.resume(returning: result.map { _ in () })
-                    }
-            }
+    func createContext(contextId: JsContextIdentifier, deliveryQueue: JsEventDeliveryQueue) -> JsContext {
+        return JsContext(id: contextId) { event in
+            deliveryQueue.enqueue(event)
+        }
+    }
+
+    /// Executes the polyfill's event dispatch inside the page.
+    func sendTopazEvent(_ event: JsEvent, in world: WKContentWorld) async -> Result<Void, any Error> {
+        return await withCheckedContinuation { continuation in
+            callAsyncJavaScript(
+                "topaz.sendEvent(event)",
+                arguments: [ "event": event.jsValue ],
+                in: nil,
+                in: world) { result in
+                    continuation.resume(returning: result.map { _ in () })
+                }
         }
     }
 

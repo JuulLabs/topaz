@@ -165,11 +165,13 @@ public class AppModel {
         sessions.evictAllExceptActive()
     }
 
-    /// The system killed a tab's web content process: its Js object graph is gone while
-    /// native BLE state survives - a split brain we resolve by converging both sides to
-    /// empty (teardown). The displayed tab rebuilds and reloads in place instead of
-    /// showing a dead web view; background tabs quietly revert to reload-on-revisit.
-    private func handleWebContentProcessTermination(tabIndex: Int) {
+    /// Recovery path for a tab whose page state is unrecoverable - the web content
+    /// process was killed (Js object graph gone while native BLE state survives) or the
+    /// page wedged long enough to overflow its event delivery buffer. Resolve the split
+    /// brain by converging both sides to empty (teardown). The displayed tab rebuilds
+    /// and reloads in place instead of showing a dead web view; background tabs quietly
+    /// revert to reload-on-revisit.
+    private func discardAndRebuildSession(tabIndex: Int) {
         let wasDisplayed = activeSession?.tabIndex == tabIndex
         sessions.evict(tabIndex)
         guard wasDisplayed else { return }
@@ -292,7 +294,10 @@ public class AppModel {
         )
         webPageModel.attach(messageProcessorFactory: makeProcessorFactory(for: webPageModel, virtualKeyboard: virtualKeyboardModel))
         webPageModel.onWebContentProcessTerminated = { [weak self] in
-            self?.handleWebContentProcessTermination(tabIndex: tab)
+            self?.discardAndRebuildSession(tabIndex: tab)
+        }
+        webPageModel.onEventDeliveryOverflow = { [weak self] in
+            self?.discardAndRebuildSession(tabIndex: tab)
         }
         return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector, virtualKeyboard: virtualKeyboardModel)
     }
