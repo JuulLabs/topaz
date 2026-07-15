@@ -1,5 +1,6 @@
 import Foundation
 import JsMessage
+import TestHelpers
 import Testing
 @testable import WebView
 
@@ -10,9 +11,10 @@ private final class DeliverySpy {
     var gate: CheckedContinuation<Void, Never>?
     var blockDeliveries = false
 
-    func makeQueue(capacity: Int = 4) -> JsEventDeliveryQueue {
+    func makeQueue(capacity: Int = 4, deliveryTimeout: Duration = .seconds(30)) -> JsEventDeliveryQueue {
         JsEventDeliveryQueue(
             capacity: capacity,
+            deliveryTimeout: deliveryTimeout,
             deliver: { [weak self] event in
                 guard let self else { return .success(()) }
                 if self.blockDeliveries {
@@ -126,6 +128,38 @@ struct JsEventDeliveryQueueTests {
         await Task.yield()
         // The event that was mid-delivery may complete, but buffered ones are dropped
         #expect(!spy.delivered.contains("two"))
+    }
+
+    @Test func delivery_thatNeverCompletesTimesOutAndAbandonsThePage() async throws {
+        let spy = DeliverySpy()
+        let queue = spy.makeQueue(deliveryTimeout: .milliseconds(50))
+        spy.blockDeliveries = true
+        queue.enqueue(event("one"))
+        // WebKit's delivery callback is not cancellable; the queue must not park its
+        // drain task forever behind it - the timeout converges like an overflow
+        while spy.overflowCount == 0 {
+            await Task.yield()
+        }
+        #expect(queue.isCancelled)
+        #expect(spy.delivered.isEmpty)
+        // Releasing the parked delivery afterwards is harmless
+        spy.blockDeliveries = false
+        spy.openGate()
+        await Task.bigYield()
+        #expect(spy.overflowCount == 1)
+    }
+
+    @Test func delivery_thatCompletesInTimeDoesNotTrip() async throws {
+        let spy = DeliverySpy()
+        let queue = spy.makeQueue(deliveryTimeout: .seconds(30))
+        queue.enqueue(event("one"))
+        queue.enqueue(event("two"))
+        while spy.delivered.count < 2 {
+            await Task.yield()
+        }
+        #expect(spy.delivered == ["one", "two"])
+        #expect(spy.overflowCount == 0)
+        #expect(!queue.isCancelled)
     }
 
     @Test func drainResumesAfterBacklogClears() async throws {
