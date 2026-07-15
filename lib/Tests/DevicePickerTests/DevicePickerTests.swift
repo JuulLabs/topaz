@@ -97,6 +97,55 @@ struct DevicePickerTests {
     }
 
     @Test
+    func awaitSelection_whileAnotherSelectionIsPending_returnsBusyImmediately() async throws {
+        let sut = DeviceSelector()
+        async let firstResult = await sut.awaitSelection()
+        await Task.bigYield()
+        let secondResult = await sut.awaitSelection()
+        switch secondResult {
+        case let .success(success):
+            Issue.record("Unexpected result: \(success)")
+        case let .failure(error):
+            #expect(error == .busy)
+        }
+        // The original selection is unaffected: still presenting and still resolvable
+        #expect(sut.isSelecting == true)
+        let fake = FakePeripheral(id: zeroUuid, name: "bob")
+        sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAdvertisement(rssi: 0))
+        await Task.bigYield()
+        sut.makeSelection(fake.id)
+        let result = await firstResult
+        switch result {
+        case let .success(success):
+            #expect(success.name == "bob")
+        case let .failure(error):
+            Issue.record("Unexpected result: \(error)")
+        }
+    }
+
+    @Test
+    func awaitSelection_afterRejectedConcurrentRequest_worksNormally() async throws {
+        let sut = DeviceSelector()
+        async let firstResult = await sut.awaitSelection()
+        await Task.bigYield()
+        _ = await sut.awaitSelection()
+        sut.cancel()
+        await _ = firstResult
+        // A fresh selection after the busy rejection proceeds as usual
+        async let thirdResult = await sut.awaitSelection()
+        await Task.bigYield()
+        #expect(sut.isSelecting == true)
+        sut.cancel()
+        let result = await thirdResult
+        switch result {
+        case let .success(success):
+            Issue.record("Unexpected result: \(success)")
+        case let .failure(error):
+            #expect(error == .cancelled(presentedItems: []))
+        }
+    }
+
+    @Test
     func cancel_whileShowingAdvertisement_returnsDeviceNamesInErrorDetail() async throws {
         let sut = DeviceSelector()
         async let pendingResult = await sut.awaitSelection()

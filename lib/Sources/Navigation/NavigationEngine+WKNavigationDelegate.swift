@@ -124,6 +124,15 @@ extension NavigationEngine: WKNavigationDelegate {
         }
     }
 
+    // MARK: - Process lifecycle
+
+    public func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        log.warning("Web content process terminated url=\(webView.url?.absoluteString ?? "nil")")
+        latestRequest = nil
+        navigations.removeAll()
+        delegate?.didTerminateWebContentProcess(in: webView)
+    }
+
     // MARK: - Error handling
 
     public func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation?, withError error: any Error) {

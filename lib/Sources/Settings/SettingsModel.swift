@@ -16,6 +16,13 @@ public final class SettingsModel {
 
     public var dismiss: () -> Void  = {}
     public var shareItem: SharingUrl = .init()
+    /// Invoked after the user removes all browsing data so live web sessions can be
+    /// torn down; no page should keep in-memory state whose backing storage was wiped.
+    public var onRemoveAllData: () -> Void = {}
+
+    /// Performs the actual web data wipe; injectable for tests. Must complete only
+    /// once the removal has finished so dependent work can be sequenced after it.
+    var removeAllWebData: @MainActor () async -> Void = { await cleanWebCache() }
 
     public var presentClearCacheDialogue: Bool = false
     public var presentDownloadsView: Bool = false
@@ -50,8 +57,13 @@ public final class SettingsModel {
     }
 
     func removeAllDataButtonTapped() {
-        cleanWebCache()
         presentClearCacheDialogue = false
+        Task {
+            // Reset sessions only after the wipe completes: a page reloaded while the
+            // removal is still in flight could read - and re-persist - "removed" data
+            await removeAllWebData()
+            onRemoveAllData()
+        }
     }
 
     func privacyPolicyButtonTapped() {

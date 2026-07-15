@@ -5,13 +5,22 @@ import JsMessage
 import Navigation
 import WebKit
 
+/**
+ Owns the session-scoped machinery for a single web page: navigation delegates,
+ script handler attach/detach, and Js context swaps.
+
+ Created and retained by `WebPageModel` so that the web view's lifecycle is bound
+ to the model layer rather than to SwiftUI view mount/unmount. Teardown happens
+ via an explicit `deinitialize(webView:)` call and is safe to invoke repeatedly.
+ */
 @MainActor
-public class Coordinator: NSObject, NavigationEngineDelegate {
+class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
-    private var viewModel: WebPageModel?
+    private var deliveryQueue: JsEventDeliveryQueue?
+    private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
@@ -34,8 +43,8 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.customUserAgent = model.customUserAgent
         model.navigator.startObservingNavigationState(of: webView)
 
-        authorize = {
-            await model.requestAuthorization()
+        authorize = { [weak model] in
+            await model?.requestAuthorization() ?? false
         }
     }
 
@@ -60,13 +69,35 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
-        let context = webView.createContext(contextId: contextId, world: world)
+        // Deliveries into the page go through a bounded, order-preserving queue so a
+        // slow or suspended page can never stall the tab's engine event loop. Overflow
+        // means the page has been unresponsive under sustained traffic: report it so
+        // the owner can tear the session down rather than lose data silently.
+        let queue = JsEventDeliveryQueue(
+            deliver: { [weak webView, world] event in
+                guard let webView else {
+                    return .failure(JsEventDeliveryError.cancelled)
+                }
+                return await webView.sendTopazEvent(event, in: world)
+            },
+            onOverflow: { [weak self] in
+                self?.viewModel?.eventDeliveryDidOverflow()
+            }
+        )
+        self.deliveryQueue = queue
+        let context = webView.createContext(contextId: contextId, deliveryQueue: queue)
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
 
+    private func cancelDeliveryQueue() {
+        deliveryQueue?.cancel()
+        deliveryQueue = nil
+    }
+
     private func detachOldHandler(from webView: WKWebView) {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -74,6 +105,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func detachOldHandlerAndWait(from webView: WKWebView) async {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         await scriptHandler.detachProcessorsAndWait()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -120,6 +152,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 
+    public func didTerminateWebContentProcess(in webView: WKWebView) {
+        viewModel?.webContentProcessDidTerminate()
+    }
+
     public func startedDownload(for url: URL) {
         viewModel?.isDownloadsPresented = true
     }
@@ -130,17 +166,22 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 }
 
 extension WKWebView {
-    func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
-        return JsContext(id: contextId) { [weak self] event in
-            return await withCheckedContinuation { continuation in
-                self?.callAsyncJavaScript(
-                    "topaz.sendEvent(event)",
-                    arguments: [ "event": event.jsValue ],
-                    in: nil,
-                    in: world) { result in
-                        continuation.resume(returning: result.map { _ in () })
-                    }
-            }
+    func createContext(contextId: JsContextIdentifier, deliveryQueue: JsEventDeliveryQueue) -> JsContext {
+        return JsContext(id: contextId) { event in
+            deliveryQueue.enqueue(event)
+        }
+    }
+
+    /// Executes the polyfill's event dispatch inside the page.
+    func sendTopazEvent(_ event: JsEvent, in world: WKContentWorld) async -> Result<Void, any Error> {
+        return await withCheckedContinuation { continuation in
+            callAsyncJavaScript(
+                "topaz.sendEvent(event)",
+                arguments: [ "event": event.jsValue ],
+                in: nil,
+                in: world) { result in
+                    continuation.resume(returning: result.map { _ in () })
+                }
         }
     }
 
