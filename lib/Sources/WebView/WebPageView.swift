@@ -45,7 +45,9 @@ public struct WebPageView: View {
         // of its new host.
         func makeUIView(context: Context) -> WebPageHostUIView {
             let container = WebPageHostUIView()
-            let webView = model.webView()
+            // A torn-down model yields no web view; the empty container is a
+            // placeholder until SwiftUI removes this (already stale) host
+            guard let webView = model.webView() else { return container }
             container.host(webView)
             Task { @MainActor in
                 scrollView = webView.scrollView
@@ -54,7 +56,7 @@ public struct WebPageView: View {
         }
 
         func updateUIView(_ container: WebPageHostUIView, context: Context) {
-            let webView = model.webView()
+            guard let webView = model.webView() else { return }
             // Re-claim the web view in case another (now dismantled) host held it
             container.host(webView)
             model.sessionController.update(webView: webView, model: model)

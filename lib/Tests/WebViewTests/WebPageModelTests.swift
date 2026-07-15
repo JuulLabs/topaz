@@ -44,4 +44,33 @@ struct WebPageModelTests {
         model.teardown()
         #expect(model.presentPermissionsDialog == false)
     }
+
+    @Test
+    func webView_beforeTeardownReturnsAStableInstance() async throws {
+        let model = makeModel()
+        let first = model.webView()
+        let second = model.webView()
+        #expect(first != nil)
+        #expect(first === second)
+    }
+
+    @Test
+    func webView_afterTeardownRefusesToResurrectTheSession() async throws {
+        let model = makeModel()
+        let original = model.webView()
+        #expect(original != nil)
+        model.teardown()
+        #expect(model.isTornDown)
+        // A stray view update after eviction must not conjure a replacement web view:
+        // it would live outside the session cache's accounting and never be torn down
+        #expect(model.webView() == nil)
+    }
+
+    @Test
+    func teardown_beforeAnyWebViewExistsIsStillTerminal() async throws {
+        let model = makeModel()
+        model.teardown()
+        #expect(model.isTornDown)
+        #expect(model.webView() == nil)
+    }
 }
