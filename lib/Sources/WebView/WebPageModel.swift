@@ -2,10 +2,13 @@ import Foundation
 import JsMessage
 import Navigation
 import Observation
+import OSLog
 import Permissions
 import SwiftUI
 import VirtualKeyboard
 import WebKit
+
+private let log = Logger(subsystem: "Topaz", category: "WebPageModel")
 
 // This is a workaround for an iOS issue that occurs with the view layout not being properly
 // redrawn when keyboard focus on a WebView TextField that has a tool bar shifts to a
@@ -32,6 +35,11 @@ public class WebPageModel: Identifiable {
     /// The web view is owned (strongly) by the model and survives until `teardown()`.
     @ObservationIgnored
     private var ownedWebView: WKWebView?
+
+    /// True once `teardown()` has run. Teardown is terminal: the session's owner has
+    /// stopped accounting for it, so `webView()` refuses to create a replacement.
+    @ObservationIgnored
+    private(set) var isTornDown = false
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -132,7 +140,14 @@ public class WebPageModel: Identifiable {
     }
 
     /// Returns the model-owned web view, creating and initializing it on first access.
-    func webView() -> WKWebView {
+    /// Returns nil once the session has been torn down: a torn-down model must never be
+    /// resurrected by a stray view update, because the replacement web view would live
+    /// outside the session cache's accounting and so would never be torn down again.
+    func webView() -> WKWebView? {
+        if isTornDown {
+            log.error("webView() requested after teardown for tab \(self.tab); refusing to resurrect the session")
+            return nil
+        }
         if let ownedWebView {
             return ownedWebView
         }
@@ -150,8 +165,10 @@ public class WebPageModel: Identifiable {
     /// Explicitly tears down the web session: denies any pending permissions request
     /// (so its continuation - and the script message reply awaiting it - cannot leak),
     /// detaches the script handler (shutting down its message processors and any BLE
-    /// connections they hold), clears delegates, and releases the web view. Idempotent.
+    /// connections they hold), clears delegates, and releases the web view. Idempotent
+    /// and terminal: `webView()` returns nil afterwards.
     public func teardown() {
+        isTornDown = true
         // Resolve before the web-view guard: a request can be parked while the
         // permissions alert chrome is unmounted (e.g. raised by a background tab)
         closePermissionsRequest(allowed: false)
