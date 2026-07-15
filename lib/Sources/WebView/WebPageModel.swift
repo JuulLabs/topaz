@@ -25,8 +25,13 @@ public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
+    /// Session-scoped machinery (navigation delegates, script handler lifecycle) owned by
+    /// the model so the web view's lifetime is not bound to SwiftUI view mount/unmount.
+    let sessionController = WebPageSessionController()
+
+    /// The web view is owned (strongly) by the model and survives until `teardown()`.
     @ObservationIgnored
-    private weak var webView: WKWebView?
+    private var ownedWebView: WKWebView?
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -112,16 +117,33 @@ public class WebPageModel: Identifiable {
             return false
         }
         userAgentMode = mode
-        webView?.customUserAgent = customUserAgent
+        ownedWebView?.customUserAgent = customUserAgent
         return true
     }
 
-    func createWebView() -> WKWebView {
+    /// Returns the model-owned web view, creating and initializing it on first access.
+    func webView() -> WKWebView {
+        if let ownedWebView {
+            return ownedWebView
+        }
         let webView = NoKeyboardToolbarWebView(frame: .zero, configuration: config)
-        self.webView = webView
+#if DEBUG
+        webView.isInspectable = true
+#endif
+        self.ownedWebView = webView
         webView.allowsBackForwardNavigationGestures = true
         scrollObserver.observe(webView: webView)
+        sessionController.initialize(webView: webView, model: self)
         return webView
+    }
+
+    /// Explicitly tears down the web session: detaches the script handler (shutting down its
+    /// message processors and any BLE connections they hold), clears delegates, and releases
+    /// the web view. Idempotent. A subsequent `webView()` call starts a fresh session.
+    public func teardown() {
+        guard let webView = ownedWebView else { return }
+        sessionController.deinitialize(webView: webView)
+        ownedWebView = nil
     }
 
     func didBeginLoading(url: URL) {

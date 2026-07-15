@@ -5,13 +5,21 @@ import JsMessage
 import Navigation
 import WebKit
 
+/**
+ Owns the session-scoped machinery for a single web page: navigation delegates,
+ script handler attach/detach, and Js context swaps.
+
+ Created and retained by `WebPageModel` so that the web view's lifecycle is bound
+ to the model layer rather than to SwiftUI view mount/unmount. Teardown happens
+ via an explicit `deinitialize(webView:)` call and is safe to invoke repeatedly.
+ */
 @MainActor
-public class Coordinator: NSObject, NavigationEngineDelegate {
+class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
-    private var viewModel: WebPageModel?
+    private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
@@ -34,8 +42,8 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.customUserAgent = model.customUserAgent
         model.navigator.startObservingNavigationState(of: webView)
 
-        authorize = {
-            await model.requestAuthorization()
+        authorize = { [weak model] in
+            await model?.requestAuthorization() ?? false
         }
     }
 

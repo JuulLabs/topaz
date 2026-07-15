@@ -48,11 +48,10 @@ public struct WebPageView: View {
         }
 
         func makeUIView(context: Context) -> WKWebView {
-            let webView = model.createWebView()
-#if DEBUG
-            webView.isInspectable = true
-#endif
-            context.coordinator.initialize(webView: webView, model: model)
+            let webView = model.webView()
+            // Defensive: a model-owned web view could still be parented elsewhere
+            webView.removeFromSuperview()
+            context.coordinator.model = model
             Task { @MainActor in
                 scrollView = webView.scrollView
             }
@@ -60,15 +59,22 @@ public struct WebPageView: View {
         }
 
         func updateUIView(_ uiView: WKWebView, context: Context) {
-            context.coordinator.update(webView: uiView, model: model)
+            model.sessionController.update(webView: uiView, model: model)
         }
 
         static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
-            coordinator.deinitialize(webView: uiView)
+            // The session (web view, script handler, BLE) is owned by the model; leaving
+            // the view still ends the session for now to preserve existing behavior.
+            coordinator.model?.teardown()
         }
 
         func makeCoordinator() -> Coordinator {
             Coordinator()
+        }
+
+        @MainActor
+        final class Coordinator {
+            weak var model: WebPageModel?
         }
     }
 }
