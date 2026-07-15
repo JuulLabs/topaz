@@ -165,6 +165,21 @@ public class AppModel {
         sessions.evictAllExceptActive()
     }
 
+    /// The system killed a tab's web content process: its Js object graph is gone while
+    /// native BLE state survives - a split brain we resolve by converging both sides to
+    /// empty (teardown). The displayed tab rebuilds and reloads in place instead of
+    /// showing a dead web view; background tabs quietly revert to reload-on-revisit.
+    private func handleWebContentProcessTermination(tabIndex: Int) {
+        let wasDisplayed = activeSession?.tabIndex == tabIndex
+        sessions.evict(tabIndex)
+        guard wasDisplayed else { return }
+        if let tabModel = tabsModel.findTab(for: tabIndex) {
+            activeSession = buildSession(tabIndex: tabModel.index, initialUrl: tabModel.url)
+        } else {
+            activeSession = nil
+        }
+    }
+
     /// "Remove all data": tear down every live session so no page keeps in-memory
     /// state (logged-in DOM, Js heap) whose backing storage was just wiped, then
     /// rebuild and reload the displayed tab from scratch.
@@ -276,6 +291,9 @@ public class AppModel {
             virtualKeyboardModel: virtualKeyboardModel
         )
         webPageModel.attach(messageProcessorFactory: makeProcessorFactory(for: webPageModel, virtualKeyboard: virtualKeyboardModel))
+        webPageModel.onWebContentProcessTerminated = { [weak self] in
+            self?.handleWebContentProcessTermination(tabIndex: tab)
+        }
         return WebContainerModel(webPageModel: webPageModel, navBarModel: navBarModel, selector: deviceSelector, virtualKeyboard: virtualKeyboardModel)
     }
 

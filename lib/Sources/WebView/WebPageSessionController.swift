@@ -128,6 +128,10 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
         // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 
+    public func didTerminateWebContentProcess(in webView: WKWebView) {
+        viewModel?.webContentProcessDidTerminate()
+    }
+
     public func startedDownload(for url: URL) {
         viewModel?.isDownloadsPresented = true
     }

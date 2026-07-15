@@ -45,6 +45,12 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
+    /// Invoked when the system kills this page's web content process. The page's Js
+    /// heap (and polyfill object graph) is gone while native state survives; the owner
+    /// is expected to tear this session down and rebuild it (converge-to-empty).
+    @ObservationIgnored
+    public var onWebContentProcessTerminated: (() -> Void)?
+
     public var presentPermissionsDialog: Bool = false
 
     public var isDownloadsPresented: Bool = false
@@ -154,6 +160,10 @@ public class WebPageModel: Identifiable {
 
     func didFinishLoading(url: URL) {
         self.url = url
+    }
+
+    func webContentProcessDidTerminate() {
+        onWebContentProcessTerminated?()
     }
 
     func requestAuthorization() async -> Bool {
