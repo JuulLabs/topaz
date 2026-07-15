@@ -127,6 +127,11 @@ public class AppModel {
     private func activate(tabIndex: Int, url: URL?) {
         lastOpenedTabIndex = tabIndex
         if let existing = sessions.session(for: tabIndex) {
+            // Opener-back is scoped to the window.open flow that installs it (right
+            // after this activation returns); any other route into a live session -
+            // the grid, restore-on-launch, opener-back itself - must not resurrect a
+            // stale closure pointing at a long-departed opener
+            existing.loadingModel.navBarModel.goBackToPriorPage = nil
             sessions.markActive(tabIndex)
             activeSession = existing
         } else {
