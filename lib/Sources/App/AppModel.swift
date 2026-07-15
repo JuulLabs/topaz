@@ -169,10 +169,16 @@ public class AppModel {
     }
 
     /// System memory pressure: shed every background session (they revert to
-    /// reload-on-revisit) while leaving the pinned session untouched, so the app
-    /// degrades gracefully instead of being jetsammed wholesale.
+    /// reload-on-revisit) while leaving the displayed session untouched, so the app
+    /// degrades gracefully instead of being jetsammed wholesale. With the tab grid
+    /// showing, nothing is displayed - every session (including the still-pinned
+    /// last-viewed tab) is background and gets shed.
     func didReceiveMemoryWarning() {
-        sessions.evictAllExceptActive()
+        if activeSession == nil {
+            sessions.evictAll()
+        } else {
+            sessions.evictAllExceptActive()
+        }
     }
 
     /// Recovery path for a tab whose page state is unrecoverable - the web content
