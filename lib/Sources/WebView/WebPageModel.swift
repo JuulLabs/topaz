@@ -147,10 +147,15 @@ public class WebPageModel: Identifiable {
         return webView
     }
 
-    /// Explicitly tears down the web session: detaches the script handler (shutting down its
-    /// message processors and any BLE connections they hold), clears delegates, and releases
-    /// the web view. Idempotent. A subsequent `webView()` call starts a fresh session.
+    /// Explicitly tears down the web session: denies any pending permissions request
+    /// (so its continuation - and the script message reply awaiting it - cannot leak),
+    /// detaches the script handler (shutting down its message processors and any BLE
+    /// connections they hold), clears delegates, and releases the web view. Idempotent.
     public func teardown() {
+        // Resolve before the web-view guard: a request can be parked while the
+        // permissions alert chrome is unmounted (e.g. raised by a background tab)
+        closePermissionsRequest(allowed: false)
+        presentPermissionsDialog = false
         guard let webView = ownedWebView else { return }
         sessionController.deinitialize(webView: webView)
         ownedWebView = nil
