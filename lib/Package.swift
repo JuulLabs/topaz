@@ -232,6 +232,10 @@ let package = Package(
                 "UIHelpers",
             ]
         ),
+        .testTarget(
+            name: "TabsTests",
+            dependencies: ["Tabs", "TestHelpers"]
+        ),
 
         .target(
             name: "TestHelpers",

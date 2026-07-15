@@ -84,6 +84,17 @@ public class AppModel {
             self.activate(tabIndex: tabModel.index, url: tabModel.url)
         }
 
+        tabsModel.onTabDeleted = { [weak self] tabIndex in
+            guard let self else { return }
+            // Deleting a tab is an explicit "I'm done with this page": tear down its
+            // live session immediately (disconnecting BLE) rather than leaving a
+            // zombie session for an unreachable tab
+            sessions.evict(tabIndex)
+            if lastOpenedTabIndex == tabIndex {
+                lastOpenedTabIndex = nil
+            }
+        }
+
         Task {
             await PermissionsModel.shared.attachToStorage(self.storage)
             await tabsModel.performInitialLoad()
@@ -147,6 +158,26 @@ public class AppModel {
         }
     }
 
+    /// System memory pressure: shed every background session (they revert to
+    /// reload-on-revisit) while leaving the pinned session untouched, so the app
+    /// degrades gracefully instead of being jetsammed wholesale.
+    func didReceiveMemoryWarning() {
+        sessions.evictAllExceptActive()
+    }
+
+    /// "Remove all data": tear down every live session so no page keeps in-memory
+    /// state (logged-in DOM, Js heap) whose backing storage was just wiped, then
+    /// rebuild and reload the displayed tab from scratch.
+    private func resetAllSessionsAfterDataRemoval() {
+        let activeTabIndex = activeSession?.tabIndex
+        sessions.evictAll()
+        guard let activeTabIndex else { return }
+        if let tabModel = tabsModel.findTab(for: activeTabIndex) {
+            activeSession = buildSession(tabIndex: tabModel.index, initialUrl: tabModel.url)
+        }
+        // A fresh tab (no page load yet) has no state to reset and stays as-is
+    }
+
     private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel {
         let navBarModel = buildNavModel(tabIndex: tabIndex)
         let freshPageModel = FreshPageModel(navBarModel: navBarModel)
@@ -164,6 +195,9 @@ public class AppModel {
             // data) underneath it. A fresh tab with no page load is simply dropped.
             self?.lastOpenedTabIndex = nil
             self?.activeSession = nil
+        }
+        settingsModel.onRemoveAllData = { [weak self] in
+            self?.resetAllSessionsAfterDataRemoval()
         }
         let navigator = WebNavigator()
         let searchBarModel = SearchBarModel(navigator: navigator)

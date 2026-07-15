@@ -44,6 +44,9 @@ public struct AppContentView: View {
         }
         // TODO: This locks the app to light mode. Remove this when we want to support dark mode.
         .preferredColorScheme(.light)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+            model.didReceiveMemoryWarning()
+        }
     }
 }
 

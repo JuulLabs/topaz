@@ -16,6 +16,9 @@ public final class SettingsModel {
 
     public var dismiss: () -> Void  = {}
     public var shareItem: SharingUrl = .init()
+    /// Invoked after the user removes all browsing data so live web sessions can be
+    /// torn down; no page should keep in-memory state whose backing storage was wiped.
+    public var onRemoveAllData: () -> Void = {}
 
     public var presentClearCacheDialogue: Bool = false
     public var presentDownloadsView: Bool = false
@@ -52,6 +55,7 @@ public final class SettingsModel {
     func removeAllDataButtonTapped() {
         cleanWebCache()
         presentClearCacheDialogue = false
+        onRemoveAllData()
     }
 
     func privacyPolicyButtonTapped() {
