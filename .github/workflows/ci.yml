@@ -32,3 +32,12 @@ jobs:
       - run: xcodes select
       - run: xcodebuild -version
       - run: make test
+  js:
+    name: Javascript Build Sanity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: make js-clean js
