@@ -45,8 +45,6 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
-    public var launchNewPage: ((URL) -> Void)?
-
     public var presentPermissionsDialog: Bool = false
 
     public var isDownloadsPresented: Bool = false
