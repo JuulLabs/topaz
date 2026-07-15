@@ -66,6 +66,33 @@ struct TabGatedDeviceSelectorTests {
     }
 
     @Test
+    func showAdvertisement_fromABackgroundTab_neverReachesThePicker() async throws {
+        let inner = DeviceSelector()
+        let activeTabState = ActiveTabState()
+        activeTabState.setActiveTab(1)
+        let activeTab = TabGatedDeviceSelector(tab: 1, activeTabState: activeTabState, wrapping: inner)
+        let backgroundTab = TabGatedDeviceSelector(tab: 2, activeTabState: activeTabState, wrapping: inner)
+
+        async let pendingResult = await activeTab.awaitSelection()
+        await Task.bigYield()
+        #expect(inner.isSelecting == true)
+        // A background tab's transient scan (before its own awaitSelection is
+        // rejected) must not inject its advertisements into the active picker
+        let intruder = FakePeripheral(id: zeroUuid, name: "intruder")
+        await backgroundTab.showAdvertisement(peripheral: intruder, advertisement: intruder.fakeAdvertisement(rssi: 0))
+        await Task.bigYield()
+        await activeTab.cancel()
+        let result = await pendingResult
+        switch result {
+        case let .success(success):
+            Issue.record("Unexpected result: \(success)")
+        case let .failure(error):
+            // presentedItems is empty: the intruder's advertisement was dropped
+            #expect(error == .cancelled(presentedItems: []))
+        }
+    }
+
+    @Test
     func awaitSelection_fromABackgroundTab_doesNotDisturbTheActiveTabsSelection() async throws {
         let inner = DeviceSelector()
         let activeTabState = ActiveTabState()

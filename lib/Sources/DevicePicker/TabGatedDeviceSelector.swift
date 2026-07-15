@@ -31,6 +31,10 @@ public final class TabGatedDeviceSelector: InteractiveDeviceSelector {
     }
 
     public func showAdvertisement(peripheral: Peripheral, advertisement: Advertisement) async {
+        // A background tab's requestDevice briefly scans before its awaitSelection is
+        // rejected; never let those advertisements leak into the picker that the
+        // active tab may be presenting on the shared underlying selector
+        guard activeTabState.isActive(tab: tab) else { return }
         await wrapped.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
     }
 
