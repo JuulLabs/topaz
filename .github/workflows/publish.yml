@@ -82,12 +82,12 @@ jobs:
           SAUCELABS_USERNAME: ${{ secrets.SAUCELABS_USERNAME }}
           SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
           SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
-        run: |
-          curl -fS -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY" \
-            -X POST \
-            -F "payload=@artifacts/topaz.ipa" \
-            -F "name=topaz-${TAG##*/}-${{ github.run_number }}.ipa" \
-            "https://api.us-west-1.saucelabs.com/v1/storage/upload?teamId=$SAUCELABS_ORG_ID"
+        run: >
+          curl --fail-with-body -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY"
+          -X POST
+          -F "payload=@artifacts/topaz.ipa"
+          -F "name=topaz-${TAG##*/}-${{ github.run_number }}.ipa"
+          "https://api.us-west-1.saucelabs.com/v1/storage/upload?teamId=$SAUCELABS_ORG_ID"
 
       - uses: ./.github/actions/ios-ci-signing-cleanup
         if: always()
