@@ -1,0 +1,71 @@
+# TEMPORARY discriminating-experiment workflow: builds release/2.2.1 with the
+# exact same Debug/simulator make target and CI runner as the main build, then
+# uploads it under a DISTINCT storage name so it can be tested side-by-side
+# against the main build without clobbering topaz-simulator.zip.
+#
+# Required GitHub secrets: SAUCELABS_USERNAME, SAUCELABS_ACCESS_KEY, SAUCELABS_ORG_ID
+
+name: Upload simulator build to Sauce Labs (2.2.1 discriminator)
+
+on:
+  push:
+    branches:
+      - test-2.2.1-sim-discriminator
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upload-simulator-saucelabs-221-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload_simulator_build:
+    name: Build Simulator App (2.2.1) and upload to Sauce Labs
+    runs-on: [macOS-15]
+    timeout-minutes: 45
+    env:
+      SAUCELABS_USERNAME: ${{ secrets.SAUCELABS_USERNAME }}
+      SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
+      SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
+      SAUCELABS_REGION: us-west-1
+      SAUCE_STORAGE_FILENAME: topaz-simulator-2.2.1.zip
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: xcodes select
+      - run: xcodebuild -version
+
+      - run: make clean
+      - run: make build
+
+      - name: Zip Simulator .app
+        run: |
+          product_dir=".derivedData/Debug/Build/Products/Debug-iphonesimulator"
+          app_path="$(find "$product_dir" -maxdepth 1 -name '*.app' -print -quit)"
+          if [[ -z "$app_path" ]]; then
+            echo "No .app bundle found in $product_dir after make build"
+            exit 1
+          fi
+          mkdir -p artifacts
+          (cd "$(dirname "$app_path")" && zip -qr "$GITHUB_WORKSPACE/artifacts/${SAUCE_STORAGE_FILENAME}" "$(basename "$app_path")")
+
+      - name: Upload to Sauce Labs storage
+        run: |
+          curl --fail-with-body \
+            -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY" \
+            -X POST \
+            -F "payload=@artifacts/${SAUCE_STORAGE_FILENAME}" \
+            -F "name=${SAUCE_STORAGE_FILENAME}" \
+            "https://api.${SAUCELABS_REGION}.saucelabs.com/v1/storage/upload?teamId=${SAUCELABS_ORG_ID}"
+
+      - name: Log build coordinates
+        if: always()
+        run: |
+          {
+            echo "#### Sauce Labs simulator build (release/2.2.1 discriminator)"
+            echo "Storage filename: ${SAUCE_STORAGE_FILENAME}"
+            echo "Commit: ${{ github.sha }}"
+            echo "Run: ${{ github.run_number }}"
+          } >> "$GITHUB_STEP_SUMMARY"
