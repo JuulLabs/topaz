@@ -1,6 +1,12 @@
 import Foundation
 import WebKit
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 @MainActor
 public final class NavigationEngine: NSObject {
     private var recentDownloads: [URL] = []
@@ -63,5 +69,19 @@ public final class NavigationEngine: NSObject {
 
     func isRecentDownload(_ url: URL) -> Bool {
         recentDownloads.contains(url)
+    }
+
+    func delegateURLToSystem(_ url: URL, onDenied: @escaping () -> Void = {}) {
+        #if canImport(UIKit)
+        UIApplication.shared.open(url, options: [:]) { success in
+            if !success {
+                onDenied()
+            }
+        }
+        #elseif canImport(AppKit)
+        if !NSWorkspace.shared.open(url) {
+            onDenied()
+        }
+        #endif
     }
 }

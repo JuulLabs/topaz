@@ -70,10 +70,21 @@ private let downloadSchemes: Set<String> = ["blob"]
 private let httpSchemes: Set<String> = ["https", "http"]
 private let acceptedSchemes: Set<String> = downloadSchemes.union(httpSchemes).union(["about", "data"])
 
-private extension URL {
-    var isSchemeSupported: Bool {
+extension URL {
+    var isWebNavigableScheme: Bool {
         guard let scheme = scheme?.lowercased() else { return false }
         return acceptedSchemes.contains(scheme)
+    }
+
+    /// External schemes such as `mailto:` and `tel:` that should be handed off to the system.
+    var shouldDelegateToSystem: Bool {
+        scheme != nil && !isWebNavigableScheme
+    }
+}
+
+private extension URL {
+    var isSchemeSupported: Bool {
+        isWebNavigableScheme
     }
 
     var hasDownloadScheme: Bool {
