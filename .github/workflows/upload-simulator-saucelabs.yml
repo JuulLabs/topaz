@@ -30,7 +30,7 @@ jobs:
       SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
       SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
       SAUCELABS_REGION: us-west-1
-      SAUCE_STORAGE_FILENAME: topaz-simulator-2.2.1.zip
+      SAUCE_STORAGE_FILENAME: topaz-simulator-2.2.1-release.zip
     steps:
       - uses: actions/checkout@v7
 
@@ -38,11 +38,17 @@ jobs:
       - run: xcodebuild -version
 
       - run: make clean
-      - run: make build
+      # Release config for the simulator (Info-Release.plist, optimized, assertions
+      # stripped). Signing is disabled since a simulator build needs no signing;
+      # release.xcconfig's Apple Distribution identity is overridden on the CLI.
+      - run: >
+          make build
+          XCODE_CONFIG=Release
+          XCODE_EXTRA_PARAMS="CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="
 
       - name: Zip Simulator .app
         run: |
-          product_dir=".derivedData/Debug/Build/Products/Debug-iphonesimulator"
+          product_dir=".derivedData/Release/Build/Products/Release-iphonesimulator"
           app_path="$(find "$product_dir" -maxdepth 1 -name '*.app' -print -quit)"
           if [[ -z "$app_path" ]]; then
             echo "No .app bundle found in $product_dir after make build"
