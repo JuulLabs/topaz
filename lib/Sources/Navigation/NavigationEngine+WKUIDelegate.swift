@@ -10,21 +10,20 @@ extension NavigationEngine: WKUIDelegate {
             log.warning("NavigationAction request url is nil")
             return nil
         }
-        
+
         guard let request = NavigationRequest(action: navigationAction) else {
             delegateURLToSystem(url)
             return nil
         }
-        
+
         guard request.kind == .newWindow else {
             log.warning("Request for new window ignored action=\(navigationAction)")
             return nil
         }
-        
+
         log.debug("Request opens in new window action=\(navigationAction)")
         latestRequest = nil
         navigator.stopLoadingAndOpenNewWindow(url: request.url)
         return nil
     }
 }
-    
