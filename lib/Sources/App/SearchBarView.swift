@@ -54,7 +54,7 @@ struct SearchBarView: View {
             }
         }
         .padding(12)
-        .background(.white)
+        .background(.clear)
         .cornerRadius(24)
         .frame(maxWidth: .infinity, minHeight: 48)
         .animation(.interactiveSpring, value: model.stopOrReloadMode)
