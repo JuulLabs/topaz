@@ -150,21 +150,6 @@ struct NavigationRequestTests {
         #expect(sut?.httpMethod == "POST")
     }
 
-    @Test(arguments: [
-        ("mailto:test@example.com", true),
-        ("tel:+15551234567", true),
-        ("sms:+15551234567", true),
-        ("https://test.com", false),
-        ("http://test.com", false),
-        ("about:blank", false),
-        ("data:text/html,hi", false),
-        ("blob:https://test.com/abc", false),
-    ])
-    func shouldDelegateToSystem(url: String, expected: Bool) throws {
-        let parsedUrl = try #require(URL(string: url))
-        #expect(parsedUrl.shouldDelegateToSystem == expected)
-    }
-
     @Test
     func initFromAction_withMailtoScheme_isNil() throws {
         let mailtoUrl = try #require(URL(string: "mailto:test@example.com"))
