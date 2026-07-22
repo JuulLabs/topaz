@@ -1,5 +1,6 @@
 import Foundation
 import WebKit
+import UIKit
 
 @MainActor
 public final class NavigationEngine: NSObject {
@@ -63,5 +64,13 @@ public final class NavigationEngine: NSObject {
 
     func isRecentDownload(_ url: URL) -> Bool {
         recentDownloads.contains(url)
+    }
+
+    func delegateURLToSystem(_ url: URL, onDenied: @escaping () -> Void = {}) {
+        UIApplication.shared.open(url, options: [:]) { success in
+            if !success {
+                onDenied()
+            }
+        }
     }
 }
