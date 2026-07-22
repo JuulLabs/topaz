@@ -1,9 +1,9 @@
 import Design
-import Downloader
 import Permissions
 import SwiftUI
 
 public struct SettingsView: View {
+
     @Bindable var model: SettingsModel
 
     public init(model: SettingsModel) {
@@ -15,124 +15,51 @@ public struct SettingsView: View {
     }
 
     public var body: some View {
-        List {
-            Section {
-                ShareLink(item: model.shareItem.url, subject: shareSubject) {
-                    LabeledContent("Share page") {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                }
-                .listRowBackground(Color.topaz800)
-                .disabled(model.shareItem.isDisabled)
-
-                /* TODO: Implement
-                LabeledContent("Set as default homepage") {
-                    Image(systemName: "star")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.setDefaultHomeButtonTapped()
-                }
-                 */
-
-                SearchEngineSelectorView(model: model.searchEngineSelectorModel)
-
-                /* TODO: Implement
-                VStack(alignment: .leading, spacing: 8) {
-                    // Use HStack with a spacer to force a full-width hitbox
-                    HStack {
-                        Text("Clear browsing history")
-                        Spacer()
-                    }
-                    Text("Clear all browsing history and data")
-                        .font(.dogpatch(.footnote))
-                        .foregroundStyle(.secondary)
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.clearHistoryButtonTapped()
-                }
-                 */
-
-                VStack(alignment: .leading, spacing: 8) {
-                    // Use HStack with a spacer to force a full-width hitbox
-                    HStack {
-                        Text("Clear website data")
-                        Spacer()
-                    }
-                    Text("Remove all data including caches and cookies")
-                        .font(.dogpatch(.footnote))
-                        .foregroundStyle(.secondary)
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.clearCacheButtonTapped()
-                }
-                .confirmationDialog("Clear website data", isPresented: $model.presentClearCacheDialogue, titleVisibility: .visible, actions: {
-                    Button(role: .destructive) {
-                        model.removeAllDataButtonTapped()
-                    } label: {
-                        Text("Remove all data")
-                    }
-                }, message: {
-                    Text("Remove all website data including cache, cookies, etc.")
-                })
-
-                if !model.isDownloadsDisabled {
-                    LabeledContent("Recent Downloads") {
-                        Image(systemName: "chevron.right")
-                    }
-                    .listRowTintedButton(color: Color.topaz800) {
-                        model.downloadsButtonTapped()
-                    }
-                }
-
-                LabeledContent("Bluetooth Permissions") {
-                    Image(systemName: "chevron.right")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.permissionsButtonTapped()
-                }
-
-                /*
-                LabeledContent("Privacy Policy") {
-                    Image(systemName: "chevron.right")
-                }
-                .listRowTintedButton(color: Color.topaz800) {
-                    model.privacyPolicyButtonTapped()
-                }
-                 */
+        VStack(spacing: 24) {
+            settingsButton(systemImageName: "square.on.square", title: "Tabs") {
+                model.tabManagementButtonTapped()
             }
-            .listRowSeparatorTint(Color.borderActive)
-        }
-        .font(.dogpatch(.headline))
-        .imageScale(.large)
-        .foregroundStyle(Color.brightTextPrimary)
-        .scrollContentBackground(.hidden)
-        .background(Color.topaz700)
-        .toolbar {
-            Button("Done") {
-                model.doneButtonTapped()
+            ShareLink(item: model.shareItem.url, subject: shareSubject) {
+                settingsButtonView(title: "Share page", image: Image(systemName: "square.and.arrow.up"))
             }
-            .font(.dogpatch(.title3))
-            .foregroundStyle(Color.brightTextPrimary)
+            .disabled(model.shareItem.isDisabled)
+            settingsButton(systemImageName: "trash", title: "Clear website data") {
+                model.clearCacheButtonTapped()
+            }
+            .confirmationDialog("Clear website data", isPresented: $model.presentClearCacheDialogue, titleVisibility: .visible, actions: {
+                Button(role: .destructive) {
+                    model.removeAllDataButtonTapped()
+                } label: {
+                    Text("Remove all data")
+                }
+            }, message: {
+                Text("Remove all website data including cache, cookies, etc.")
+            })
+            settingsButton(image: .bluetooth, title: "Bluetooth® permissions") {
+                model.permissionsButtonTapped()
+            }
+            #if DEBUG
+            Divider()
+            DebugSettings(model: model)
+            #endif
         }
-        .navigationDestination(isPresented: $model.presentDownloadsView) {
-            DownloadListView(model: .shared)
-                .navigationTitle("Recent Downloads")
-                .navigationBarTitleDisplayMode(.inline)
+        .padding(24)
+        .frame(maxWidth: 322)
+        .embedInRoundedRectangle(cornerRadius: 48, backgroundColor: Color.cellFillPrimary, opacity: 0.97, borderStroke: 1.0)
+        .embedInDismissableModal(trailingPadding: 16, yOffset: -50) {
+            model.onTapOutside()
         }
-        .navigationDestination(isPresented: $model.permissionsModel.presentPermissionsView) {
-            PermissionsView(model: .shared)
-                .navigationTitle("Bluetooth Permissions")
-                .navigationBarTitleDisplayMode(.inline)
-        }
+        .sheet(isPresented: $model.permissionsModel.presentPermissionsView, onDismiss: {
+            model.permissionsModel.onDismiss()
+        }, content: {
+            PermissionsView(model: model.permissionsModel)
+                .presentationDetents([.fraction(0.98)])
+        })
     }
 }
 
 #Preview {
-    NavigationStack {
-        SettingsView(model: SettingsModel())
-            .navigationTitle("Settings")
-    }
-    .accentColor(.white)
+    SettingsView(model: SettingsModel())
 #if targetEnvironment(simulator)
         .forceLoadFontsInPreview()
 #endif

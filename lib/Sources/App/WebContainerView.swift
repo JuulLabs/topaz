@@ -35,7 +35,7 @@ struct WebContainerView: View {
                         )
                     }
                     if webContainerModel.shouldShowNavBar {
-                        NavBarViewV2(model: webContainerModel.navBarModel)
+                        NavBarView(model: webContainerModel.navBarModel)
                             .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
@@ -44,7 +44,7 @@ struct WebContainerView: View {
                 }
             }
             if webContainerModel.navBarModel.isSettingsPresented {
-                SettingsViewV2(model: webContainerModel.navBarModel.settingsModel)
+                SettingsView(model: webContainerModel.navBarModel.settingsModel)
             }
             if webContainerModel.navBarModel.isFullscreen {
                 ExitFullscreenButton {

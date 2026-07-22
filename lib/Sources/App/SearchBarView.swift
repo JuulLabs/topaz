@@ -1,34 +1,27 @@
-import Design
-import DevicePicker
-import Navigation
-import Observation
 import SwiftUI
+import Navigation
 import UIHelpers
-import WebView
 
 struct SearchBarView: View {
+
     @Bindable var model: SearchBarModel
     @FocusState private var focusedField: SearchBarModel.FocusedField?
 
     var body: some View {
-        HStack(spacing: 8) {
-            if let mode = model.infoIconMode {
-                Button {
-                    model.infoButtonTapped()
-                } label: {
-                    switch mode {
-                    case .showSecure:
-                        styledIcon(systemName: "lock.fill")
-                    case .showInsecure:
-                        styledIcon(systemName: "exclamationmark.triangle.fill", color: .redNotification)
-                    }
-                }
-            } else {
-                styledIcon(systemName: "magnifyingglass")
-            }
-            TextField("Paste or enter website address", text: $model.searchString)
-                .font(.dogpatch(.subheadline))
-                .foregroundStyle(Color.steel600)
+        HStack {
+            Image(systemName: "magnifyingglass")
+                .foregroundStyle(Color.textPrimary)
+                .font(.system(size: 24).weight(.light))
+            TextField(
+                "Search",
+                text: $model.searchString,
+                prompt: Text("Search")
+                    .foregroundStyle(Color.textPrimary)
+                    .font(.dogpatch(.headline))
+            )
+                .frame(maxHeight: .infinity)
+                .font(.dogpatch(.headline))
+                .foregroundStyle(Color.textPrimary)
                 .focused($focusedField, equals: .searchBar)
                 .keyboardType(.webSearch)
                 .autocorrectionDisabled()
@@ -36,75 +29,52 @@ struct SearchBarView: View {
                 .onSubmit {
                     model.didSubmitSearchString()
                 }
-            if let stopOrReloadMode = model.stopOrReloadMode {
-                switch stopOrReloadMode {
-                case .showStopLoading:
+            if let clearOrReloadMode = model.clearOrReloadMode {
+                switch clearOrReloadMode {
+                case .showClear:
                     Button {
-                        model.stopButtonTapped()
+                        model.clearSearchFieldTapped()
                     } label: {
-                        styledIcon(systemName: "xmark")
+                        Image(systemName: "xmark.circle")
+                            .foregroundStyle(Color.textPrimary)
+                            .font(.system(size: 20).weight(.light))
                     }
                 case .showReload:
                     Button {
                         model.reloadButtonTapped()
                     } label: {
-                        styledIcon(systemName: "arrow.clockwise")
+                        Image(systemName: "arrow.clockwise")
+                            .foregroundStyle(Color.textPrimary)
+                            .font(.system(size: 20).weight(.light))
                     }
                 }
             }
         }
-        .padding(12)
-        .background(.white)
-        .cornerRadius(24)
-        .frame(maxWidth: .infinity, minHeight: 48)
-        .animation(.interactiveSpring, value: model.stopOrReloadMode)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, maxHeight: 48)
+        .animation(.interactiveSpring, value: model.clearOrReloadMode)
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color.cellFillPrimary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(Color.white, lineWidth: 0.25)
+        )
         .synchronize($model.focusedField, $focusedField)
-        .sheet(item: $model.presentingInfoSheet) { mode in
-            SecurityInfoView(mode: mode)
-                .presentationDetents([.medium, .large])
-        }
-    }
-
-    @ViewBuilder private func styledIcon(
-        systemName: String,
-        color: Color = Color.steel600
-    ) -> some View {
-        Image(systemName: systemName)
-            .font(.subheadline.weight(.light))
-            .foregroundStyle(color)
     }
 }
 
-#Preview("Initial") {
+#Preview {
     let navigator = WebNavigator(loadingState: .initializing)
     let model = SearchBarModel(navigator: navigator)
     SearchBarView(model: model)
-        .padding(40)
-        .background(Color.topaz600)
 }
 
 #Preview("Loading") {
-    let navigator = WebNavigator(loadingState: .inProgress(0.5))
-    let model = SearchBarModel(navigator: navigator)
-    SearchBarView(model: model)
-        .padding(40)
-        .background(Color.topaz600)
-}
-
-#Preview("Complete") {
     let url = URL(string: "https://example.com")!
     let navigator = WebNavigator(loadingState: .complete(url))
     let model = SearchBarModel(navigator: navigator)
     SearchBarView(model: model)
-        .padding(40)
-        .background(Color.topaz600)
-}
-
-#Preview("CompleteHTTP") {
-    let url = URL(string: "http://neverssl.com")!
-    let navigator = WebNavigator(loadingState: .complete(url))
-    let model = SearchBarModel(navigator: navigator)
-    SearchBarView(model: model)
-        .padding(40)
-        .background(Color.topaz600)
 }

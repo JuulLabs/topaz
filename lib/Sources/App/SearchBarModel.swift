@@ -40,11 +40,6 @@ public final class SearchBarModel {
         }
     }
 
-    // TODO: Remove when the v1 UI is removed
-    enum StopOrReloadMode {
-        case showStopLoading, showReload
-    }
-
     enum ClearOrReloadMode {
         case showClear, showReload
     }
@@ -102,21 +97,8 @@ public final class SearchBarModel {
         }
     }
 
-    // TODO: Remove when v1 UI is removed
-    var stopOrReloadMode: StopOrReloadMode? {
-        switch navigator.loadingState {
-        case .inProgress: .showStopLoading
-        case .complete: .showReload
-        default: nil
-        }
-    }
-
     var clearOrReloadMode: ClearOrReloadMode? {
         isEditingWebUrl ? .showClear : .showReload
-    }
-
-    func stopButtonTapped() {
-        navigator.stopLoading()
     }
 
     func reloadButtonTapped() {
