@@ -1,7 +1,8 @@
-import Design
 import SwiftUI
+import UIHelpers
 
 public struct PermissionsView: View {
+
     @Bindable var model: PermissionsModel
 
     public init(model: PermissionsModel) {
@@ -9,30 +10,47 @@ public struct PermissionsView: View {
     }
 
     public var body: some View {
-        List {
-            Section(header: Text("Allowed Websites")) {
-                if model.models.isEmpty {
-                    Text("Websites that have been granted permission to use Bluetooth will be listed here")
-                } else {
-                    ForEach(model.models) { row in
-                        Text("\(row.displayString)")
-                    }
-                    .onDelete(perform: model.removeRows)
-                    .animation(.interactiveSpring, value: model.models)
+        VStack {
+            HStack {
+                CircleButton(systemImageName: "arrow.left") {
+                    model.backButtonTapped()
+                }
+                Spacer()
+                Text("Bluetooth® Permissions")
+                    .font(.dogpatch(21))
+                    .bold()
+                    .foregroundStyle(Color.textPrimary)
+                Spacer()
+                CircleButton(systemImageName: model.editMode == .active ? "checkmark" : "pencil") {
+                    model.editButtonTapped()
                 }
             }
-            .listRowBackground(Color.topaz800)
-            .listRowSeparatorTint(Color.borderActive)
+            List {
+                Section {
+                    Text("Allowed Websites").bold()
+                    if model.models.isEmpty {
+                        Text("Websites that have been granted permission to use Bluetooth will be listed here")
+                    } else {
+                        ForEach(model.models) { row in
+                            Text("\(row.displayString)")
+                                .padding(.leading, 20)
+                        }
+                        .onDelete(perform: model.removeRows)
+                        .animation(.interactiveSpring, value: model.models)
+                    }
+                }
+                .listRowBackground(Color.cellFillSecondary)
+                .listRowSeparatorTint(Color.clear)
+            }
+            .environment(\.editMode, $model.editMode)
+            .font(.dogpatch(.headline))
+            .imageScale(.large)
+            .foregroundStyle(Color.textPrimary)
+            .scrollContentBackground(.hidden)
+            Spacer()
         }
-        .font(.dogpatch(.headline))
-        .imageScale(.large)
-        .foregroundStyle(Color.brightTextPrimary)
-        .scrollContentBackground(.hidden)
-        .background(Color.topaz700)
-        .toolbar {
-            EditButton()
-                .font(.dogpatch(.title3))
-        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
     }
 }
 
@@ -46,7 +64,6 @@ public struct PermissionsView: View {
     ]
     NavigationStack {
         PermissionsView(model: PermissionsModel(origins: origins))
-            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)
@@ -57,7 +74,6 @@ public struct PermissionsView: View {
 #Preview("Empty") {
     NavigationStack {
         PermissionsView(model: PermissionsModel(origins: []))
-            .navigationTitle("Bluetooth Permissions")
     }
     .accentColor(.white)
 #if targetEnvironment(simulator)
