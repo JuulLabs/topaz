@@ -1,0 +1,79 @@
+name: Upload simulator to Sauce Labs
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upload-simulator-saucelabs-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  upload_simulator_build:
+    if: github.event.pull_request.merged == true
+    name: Build Simulator App and upload to Sauce Labs
+    runs-on: [macOS-26]
+    timeout-minutes: 45
+    env:
+      SAUCELABS_USERNAME: ${{ secrets.SAUCELABS_USERNAME }}
+      SAUCELABS_ACCESS_KEY: ${{ secrets.SAUCELABS_ACCESS_KEY }}
+      SAUCELABS_ORG_ID: ${{ secrets.SAUCELABS_ORG_ID }}
+      SAUCELABS_REGION: us-west-1
+      SAUCE_STORAGE_FILENAME: topaz-simulator.zip
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - run: xcodes select
+
+      - run: xcodebuild -version
+
+      - name: Resolve app version
+        id: version
+        run: |
+          APP_VERSION="$(git describe --tags --match 'release/*' --abbrev=0 2>/dev/null | sed 's#^release/##')"
+          echo "marketing=${APP_VERSION:-1.0.0}" >> "$GITHUB_OUTPUT"
+          echo "build=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+
+      - run: make clean
+
+      - name: Build ad-hoc signed simulator app
+        run: >
+          make build
+          PLATFORM=GENERIC_SIMULATOR
+          XCODE_EXTRA_PARAMS='CODE_SIGNING_ALLOWED=YES MARKETING_VERSION=${{ steps.version.outputs.marketing }} CURRENT_PROJECT_VERSION=${{ steps.version.outputs.build }}'
+
+      - name: Zip Simulator .app
+        run: |
+          PRODUCT_DIR=".derivedData/Debug/Build/Products/Debug-iphonesimulator"
+          APP_PATH="$(find "$PRODUCT_DIR" -maxdepth 1 -name '*.app' -print -quit)"
+          if [[ -z "$APP_PATH" ]]; then
+            echo "No .app bundle found in $PRODUCT_DIR after build"
+            exit 1
+          fi
+          mkdir -p artifacts
+          (cd "$(dirname "$APP_PATH")" && zip -qr "$GITHUB_WORKSPACE/artifacts/${SAUCE_STORAGE_FILENAME}" "$(basename "$APP_PATH")")
+
+      - name: Upload to Sauce Labs storage
+        run: >
+          curl --fail-with-body
+          -u "$SAUCELABS_USERNAME:$SAUCELABS_ACCESS_KEY"
+          -X POST
+          -F "payload=@artifacts/${SAUCE_STORAGE_FILENAME}"
+          -F "name=${SAUCE_STORAGE_FILENAME}" 
+          "https://api.${SAUCELABS_REGION}.saucelabs.com/v1/storage/upload?teamId=${SAUCELABS_ORG_ID}"
+
+      - if: always()
+        run: |
+          {
+            echo "#### Sauce Labs simulator build"
+            echo "Storage filename: ${SAUCE_STORAGE_FILENAME}"
+            echo "Commit: ${{ github.sha }}"
+            echo "Run: ${{ github.run_number }}"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -16,10 +16,8 @@ extension NavigationEngine: WKNavigationDelegate {
             return .cancel
         }
         guard let newRequest = NavigationRequest(action: navigationAction) else {
-            UIApplication.shared.open(url, options: [:]) { success in
-                if !success {
-                    log.warning("System URL open denied for \(url.absoluteString)")
-                }
+            delegateURLToSystem(url) {
+                log.warning("System URL open denied for \(url.absoluteString)")
             }
             log.debug("Request delegated to system action=\(navigationAction)")
             return .cancel
