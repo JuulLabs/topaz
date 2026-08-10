@@ -1,4 +1,5 @@
 import Design
+import Downloader
 import Permissions
 import SwiftUI
 
@@ -55,6 +56,13 @@ public struct SettingsView: View {
             PermissionsView(model: model.permissionsModel)
                 .presentationDetents([.fraction(0.98)])
         })
+        #if DEBUG
+        .navigationDestination(isPresented: $model.presentDownloadsView) {
+            DownloadListView(model: .shared)
+                .navigationTitle("Recent Downloads")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        #endif
     }
 }
 
