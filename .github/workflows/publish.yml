@@ -42,7 +42,7 @@ on:
 
 jobs:
   publish:
-    runs-on: [macOS-15]
+    runs-on: [macOS-26]
     # Set a timeout to kill if it hangs which can happen if permissions need fixing and it hangs on a GUI prompt
     timeout-minutes: 30
     env:
