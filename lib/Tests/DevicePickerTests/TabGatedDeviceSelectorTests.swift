@@ -76,8 +76,8 @@ struct TabGatedDeviceSelectorTests {
         async let pendingResult = await activeTab.awaitSelection()
         await Task.bigYield()
         #expect(inner.isSelecting == true)
-        // A background tab's transient scan (before its own awaitSelection is
-        // rejected) must not inject its advertisements into the active picker
+        // A background tab scans briefly before its own awaitSelection is rejected.
+        // Those advertisements must not reach the picker of the active tab.
         let intruder = FakePeripheral(id: zeroUuid, name: "intruder")
         await backgroundTab.showAdvertisement(peripheral: intruder, advertisement: intruder.fakeAdvertisement(rssi: 0))
         await Task.bigYield()
@@ -87,7 +87,6 @@ struct TabGatedDeviceSelectorTests {
         case let .success(success):
             Issue.record("Unexpected result: \(success)")
         case let .failure(error):
-            // presentedItems is empty: the intruder's advertisement was dropped
             #expect(error == .cancelled(presentedItems: []))
         }
     }
@@ -109,7 +108,6 @@ struct TabGatedDeviceSelectorTests {
         case let .failure(error):
             #expect(error == .pageNotVisible)
         }
-        // The active tab's selection is still pending and resolvable
         #expect(inner.isSelecting == true)
         let fake = FakePeripheral(id: zeroUuid, name: "bob")
         await activeTab.showAdvertisement(peripheral: fake, advertisement: fake.fakeAdvertisement(rssi: 0))

@@ -2,9 +2,9 @@ import Foundation
 
 /// Shared source of truth for which tab is currently displayed.
 ///
-/// Written by the app layer whenever the displayed tab changes and consulted by
-/// per-tab collaborators (e.g. the device selector gate) that must behave differently
-/// for background tabs. Nil means no tab is displayed (e.g. the tab grid is showing).
+/// The app layer writes it whenever the displayed tab changes. Per-tab collaborators
+/// read it, such as the device selector gate, which must behave differently for a
+/// background tab. Nil means no tab is displayed, such as while the tab grid shows.
 @MainActor
 public final class ActiveTabState {
     public private(set) var activeTabIndex: Int?

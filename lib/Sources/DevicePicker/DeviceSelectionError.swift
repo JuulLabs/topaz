@@ -14,8 +14,8 @@ extension DeviceSelectionError: LocalizedError {
         case .busy:
             return "Another device selection is already in progress"
         case .cancelled:
-            // This description reaches page script as a DOMException message, so it must
-            // not name the devices the chooser presented but the user never granted
+            // This description reaches page script as a DOMException message. It must
+            // not name the devices the chooser presented but the user never granted.
             return "Cancelled by user"
         case .invalidSelection:
             return "Selected device is no longer available"

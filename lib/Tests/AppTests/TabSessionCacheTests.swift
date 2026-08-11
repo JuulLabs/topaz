@@ -58,7 +58,7 @@ struct TabSessionCacheTests {
         let (cache, _) = cacheWithSessions(cap: 3, tabs: [1, 2, 3])
         cache.markActive(1)
         cache.markActive(2)
-        // LRU order is now 3, 1, 2 and pin is on 2 → inserting evicts 3
+        // LRU order is now 3, 1, 2 with the pin on 2, so inserting evicts 3
         cache.insert(MockSession(tabIndex: 4))
         #expect(cache.session(for: 3) == nil)
         #expect(cache.session(for: 1) != nil)
@@ -70,7 +70,6 @@ struct TabSessionCacheTests {
         cache.markActive(3)
         _ = cache.session(for: 1)
         cache.insert(MockSession(tabIndex: 4))
-        // Tab 1 is still the LRU despite the lookup
         #expect(cache.session(for: 1) == nil)
         #expect(cache.session(for: 2) != nil)
     }
@@ -161,11 +160,11 @@ struct TabSessionCacheTests {
         cache.markActive(1)
         let incoming = MockSession(tabIndex: 2)
         cache.insert(incoming)
-        // Cap is 1 and both tabs are protected (1 pinned, 2 just inserted):
-        // the cache tolerates a temporary overshoot rather than evicting either
+        // Cap is 1 and both tabs are protected: 1 is pinned, 2 was just inserted.
+        // The cache tolerates a temporary overshoot rather than evict either.
         #expect(cache.session(for: 2) === incoming)
         #expect(incoming.teardownCount == 0)
-        // Activating the newcomer unpins tab 1; the next insert evicts it
+        // Activating the newcomer unpins tab 1, so the next insert evicts it
         cache.markActive(2)
         cache.insert(MockSession(tabIndex: 3))
         #expect(cache.session(for: 1) == nil)

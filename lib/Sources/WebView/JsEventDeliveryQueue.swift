@@ -5,10 +5,10 @@ import UIKit
 
 private let log = Logger(subsystem: "Topaz", category: "JsEventDeliveryQueue")
 
-/// Counts transitions to the background. The app declares no background modes, so it is
-/// suspended while backgrounded: timers do not run, but their deadlines keep expiring
-/// against the continuous clock and land in a batch on resume. A deadline that spans a
-/// suspension therefore says nothing about whether the page is still responsive.
+/// Counts transitions to the background. The app declares no background modes, so the
+/// system suspends it while backgrounded. Timers do not run, but their deadlines keep
+/// expiring against the continuous clock and land in a batch on resume. A deadline that
+/// spans a suspension therefore says nothing about page responsiveness.
 @MainActor
 final class AppBackgroundEpoch {
     static let shared = AppBackgroundEpoch()
@@ -41,18 +41,15 @@ enum JsEventDeliveryError: Error, LocalizedError, Equatable {
     }
 }
 
-/// Decouples Js event delivery from the producer so a slow or suspended web page can
-/// never stall the tab's Bluetooth engine event loop.
+/// Decouples Js event delivery from the producer, so a slow or suspended page cannot
+/// stall the Bluetooth engine event loop.
 ///
-/// Events are accepted immediately into a bounded FIFO buffer and delivered serially,
-/// preserving order; `awaitPendingDeliveries()` exposes that order to a reply that must
-/// not overtake its own event. Individual delivery failures are logged and skipped (matching the
-/// previous log-and-continue semantics). If the buffer overflows - the page has been
-/// unresponsive under sustained event traffic for a long time - the queue cancels
-/// itself and reports it via `onOverflow`, whose owner is expected to tear down the
-/// session (converge-to-empty) rather than lose data silently. A single delivery that
-/// never completes (WebKit's callback is not cancellable) is bounded by
-/// `deliveryTimeout` and converges the same way.
+/// Events are accepted into a bounded FIFO buffer and delivered serially, in order. A
+/// single delivery that fails is logged and skipped. Overflow means the page has been
+/// unresponsive under sustained traffic for a long time. The queue then cancels itself
+/// and reports through `onOverflow`, whose owner tears the session down rather than
+/// lose data silently. A delivery that never completes is bounded by `deliveryTimeout`
+/// and converges the same way. The WebKit callback behind it is not cancellable.
 @MainActor
 final class JsEventDeliveryQueue {
     static let defaultCapacity = 256
@@ -67,8 +64,6 @@ final class JsEventDeliveryQueue {
     private var drainTask: Task<Void, Never>?
     private(set) var isCancelled = false
 
-    /// Counts events accepted and events whose delivery has finished (successfully or
-    /// not), so a barrier can name a point in the stream and wait for it to pass.
     private var enqueuedCount = 0
     private var deliveredCount = 0
     private var barriers: [(threshold: Int, continuation: CheckedContinuation<Void, Never>)] = []
@@ -107,9 +102,9 @@ final class JsEventDeliveryQueue {
     }
 
     /// Waits until every event accepted before this call has reached the page. Callers
-    /// that must not let a reply overtake its own event - a characteristic read, whose
-    /// value the page reads from the event - await this before replying. The wait is
-    /// borne by the requesting page, never by the producer feeding the queue.
+    /// that must not let a reply overtake its own event await this before they reply. A
+    /// characteristic read is one: the page takes the value from the event. The wait is
+    /// borne by the requesting page, never by the producer that feeds the queue.
     func awaitPendingDeliveries() async {
         guard !isCancelled, deliveredCount < enqueuedCount else { return }
         let threshold = enqueuedCount
@@ -164,14 +159,14 @@ final class JsEventDeliveryQueue {
         }
     }
 
-    /// Runs a delivery racing a timeout. The underlying `callAsyncJavaScript`
-    /// continuation is not cancellable, so a wedged page would otherwise strand the
-    /// drain task (and everything it keeps alive) forever; the loser of the race is
-    /// left to resolve - or leak inside WebKit - on its own.
+    /// Runs a delivery racing a timeout. The `callAsyncJavaScript` continuation behind
+    /// it is not cancellable. A wedged page would otherwise strand the drain task, and
+    /// all it keeps alive, forever. The loser of the race is left to resolve, or to
+    /// leak inside WebKit, on its own.
     ///
-    /// The timeout only indicts the page for time the app actually spent running: a
-    /// deadline that elapsed across a background suspension is re-armed instead, so
-    /// switching away from a healthy tab mid-delivery cannot cost it its session.
+    /// The timeout only indicts the page for time the app actually spent running. A
+    /// deadline that elapsed across a background suspension is re-armed instead.
+    /// Switching away from a healthy tab mid-delivery cannot cost it its session.
     private func deliverRacingTimeout(_ event: JsEvent) async -> Result<Void, any Error> {
         let deliver = self.deliver
         let timeout = self.deliveryTimeout
@@ -204,7 +199,6 @@ final class JsEventDeliveryQueue {
     }
 }
 
-/// Resolves a continuation at most once when racing multiple completion paths.
 @MainActor
 private final class OneShotResume {
     private var continuation: CheckedContinuation<Result<Void, any Error>, Never>?

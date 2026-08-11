@@ -28,16 +28,11 @@ public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
-    /// Session-scoped machinery (navigation delegates, script handler lifecycle) owned by
-    /// the model so the web view's lifetime is not bound to SwiftUI view mount/unmount.
     let sessionController = WebPageSessionController()
 
-    /// The web view is owned (strongly) by the model and survives until `teardown()`.
     @ObservationIgnored
     private var ownedWebView: WKWebView?
 
-    /// True once `teardown()` has run. Teardown is terminal: the session's owner has
-    /// stopped accounting for it, so `webView()` refuses to create a replacement.
     @ObservationIgnored
     private(set) var isTornDown = false
 
@@ -53,15 +48,15 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
-    /// Invoked when the system kills this page's web content process. The page's Js
-    /// heap (and polyfill object graph) is gone while native state survives; the owner
-    /// is expected to tear this session down and rebuild it (converge-to-empty).
+    /// Called when the system kills the web content process for this page. The Js heap,
+    /// and the polyfill object graph with it, is gone while native state survives. The
+    /// owner must tear this session down and rebuild it (converge-to-empty).
     @ObservationIgnored
     public var onWebContentProcessTerminated: (() -> Void)?
 
-    /// Invoked when the page stopped consuming events for long enough that its bounded
-    /// delivery buffer overflowed. The page is effectively wedged and has already missed
-    /// data; the owner is expected to tear this session down (converge-to-empty).
+    /// Called when the page stopped consuming events for long enough that its bounded
+    /// delivery buffer overflowed. The page is wedged and has already missed data. The
+    /// owner must tear this session down (converge-to-empty).
     @ObservationIgnored
     public var onEventDeliveryOverflow: (() -> Void)?
 
@@ -140,9 +135,9 @@ public class WebPageModel: Identifiable {
     }
 
     /// Returns the model-owned web view, creating and initializing it on first access.
-    /// Returns nil once the session has been torn down: a torn-down model must never be
-    /// resurrected by a stray view update, because the replacement web view would live
-    /// outside the session cache's accounting and so would never be torn down again.
+    /// Returns nil once the session has been torn down. A stray view update must never
+    /// resurrect a torn-down model. The replacement would live outside the accounting
+    /// of the session cache, and would never be torn down again.
     func webView() -> WKWebView? {
         if isTornDown {
             log.error("webView() requested after teardown for tab \(self.tab); refusing to resurrect the session")
@@ -162,15 +157,15 @@ public class WebPageModel: Identifiable {
         return webView
     }
 
-    /// Explicitly tears down the web session: denies any pending permissions request
-    /// (so its continuation - and the script message reply awaiting it - cannot leak),
-    /// detaches the script handler (shutting down its message processors and any BLE
-    /// connections they hold), clears delegates, and releases the web view. Idempotent
+    /// Tears down the web session. Denies any pending permissions request, so neither
+    /// its continuation nor the script message reply that awaits it can leak. Detaches
+    /// the script handler, which shuts down its message processors and any BLE
+    /// connections they hold. Clears delegates and releases the web view. Idempotent
     /// and terminal: `webView()` returns nil afterwards.
     public func teardown() {
         isTornDown = true
-        // Resolve before the web-view guard: a request can be parked while the
-        // permissions alert chrome is unmounted (e.g. raised by a background tab)
+        // Resolve before the web-view guard. A request can be parked while the
+        // permissions alert chrome is unmounted, e.g. raised by a background tab.
         closePermissionsRequest(allowed: false)
         presentPermissionsDialog = false
         guard let webView = ownedWebView else { return }
@@ -190,9 +185,9 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
-    /// Relinquishes keyboard focus held by the web view's content. A web view moving
-    /// to the keep-alive underlay may otherwise remain first responder, leaving a
-    /// stale keyboard floating over whatever replaced it on screen.
+    /// Relinquishes keyboard focus held by the web view content. A web view that moves
+    /// to the keep-alive underlay may otherwise remain first responder. Its stale
+    /// keyboard then floats over whatever replaced it on screen.
     public func resignFocus() {
         ownedWebView?.endEditing(true)
     }
@@ -207,7 +202,8 @@ public class WebPageModel: Identifiable {
 
     func requestAuthorization() async -> Bool {
         // A script message already in flight when the session was torn down must not
-        // authorize, nor park a continuation the (now unmounted) alert can never resolve
+        // authorize. Nor may it park a continuation that the unmounted alert can
+        // never resolve.
         guard !isTornDown else {
             return false
         }

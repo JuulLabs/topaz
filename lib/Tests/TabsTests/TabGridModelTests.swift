@@ -66,8 +66,8 @@ struct TabGridModelTests {
         let model = modelWithUrls(["https://one.example", "https://two.example"])
         model.deleteButtonTapped(tab: model.tabCells[1])
         let tab = model.findOrCreateTab(for: URL(string: "https://three.example")!)
-        // Index reuse is why deletion must tear down the old session immediately:
-        // a new tab at a recycled index must never inherit a stale live session
+        // Index reuse is why the old session must be torn down at once. A new tab at a
+        // recycled index must never inherit a stale live session.
         #expect(tab.index == 2)
         #expect(model.findTab(for: 2)?.url.absoluteString == "https://three.example")
     }

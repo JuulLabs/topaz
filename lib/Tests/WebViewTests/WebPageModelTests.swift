@@ -22,15 +22,15 @@ struct WebPageModelTests {
     @Test
     func teardown_deniesAPendingPermissionsRequest() async throws {
         let model = makeModel()
-        // Establish the page's origin so authorization gets requested rather than refused outright
+        // Establish the page origin so authorization is requested rather than refused outright
         model.didBeginLoading(url: URL(string: "https://pending-permissions.example")!)
         async let pendingAuthorization = model.requestAuthorization()
         while model.presentPermissionsDialog == false {
             await Task.yield()
         }
-        // Tearing down with the request still parked (e.g. the tab was evicted while
-        // backgrounded, before its permissions alert could ever mount) must deny it
-        // rather than leak the continuation and hang the page's promise forever
+        // Tearing down with the request still parked must deny it. Otherwise the
+        // continuation leaks and hangs the page promise forever. The tab may have been
+        // evicted while backgrounded, before its permissions alert could ever mount.
         model.teardown()
         let authorized = await pendingAuthorization
         #expect(authorized == false)
@@ -61,8 +61,8 @@ struct WebPageModelTests {
         #expect(original != nil)
         model.teardown()
         #expect(model.isTornDown)
-        // A stray view update after eviction must not conjure a replacement web view:
-        // it would live outside the session cache's accounting and never be torn down
+        // A stray view update after eviction must not conjure a replacement web view.
+        // It would live outside the accounting of the session cache.
         #expect(model.webView() == nil)
     }
 

@@ -46,7 +46,6 @@ private func event(_ name: String) -> JsEvent {
     JsEvent(.bluetooth, targetId: "test", eventName: name)
 }
 
-/// Reports a fresh background transition on every sample.
 @MainActor
 private final class EpochCounter {
     private var value = 0
@@ -77,7 +76,6 @@ struct JsEventDeliveryQueueTests {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         spy.blockDeliveries = true
-        // Both enqueues return synchronously even though no delivery can complete
         let first = queue.enqueue(event("one"))
         let second = queue.enqueue(event("two"))
         guard case .success = first, case .success = second else {
@@ -97,8 +95,8 @@ struct JsEventDeliveryQueueTests {
         let spy = DeliverySpy()
         let queue = spy.makeQueue(capacity: 2)
         spy.blockDeliveries = true
-        // First event is pulled out of the buffer by the (blocked) drain task, so the
-        // buffer overflows once two more are pending and a fourth arrives
+        // The blocked drain task pulls the first event out of the buffer. The buffer
+        // therefore overflows only when two more events wait in it and a fourth arrives.
         queue.enqueue(event("one"))
         while spy.gate == nil {
             await Task.yield()
@@ -151,14 +149,13 @@ struct JsEventDeliveryQueueTests {
         let queue = spy.makeQueue(deliveryTimeout: .milliseconds(50))
         spy.blockDeliveries = true
         queue.enqueue(event("one"))
-        // WebKit's delivery callback is not cancellable; the queue must not park its
-        // drain task forever behind it - the timeout converges like an overflow
+        // The WebKit delivery callback is not cancellable. The queue must not park its
+        // drain task forever behind it, so the timeout converges like an overflow.
         while spy.overflowCount == 0 {
             await Task.yield()
         }
         #expect(queue.isCancelled)
         #expect(spy.delivered.isEmpty)
-        // Releasing the parked delivery afterwards is harmless
         spy.blockDeliveries = false
         spy.openGate()
         await Task.bigYield()
@@ -181,8 +178,8 @@ struct JsEventDeliveryQueueTests {
     @Test func delivery_timeoutIsRearmedWhenTheAppWasBackgrounded() async throws {
         let spy = DeliverySpy()
         let epoch = EpochCounter()
-        // Every sample reports a further background transition, so no deadline ever
-        // elapses entirely in the foreground and the page is never indicted
+        // Every sample reports a further background transition. No deadline ever elapses
+        // entirely in the foreground, so the page is never indicted.
         let queue = spy.makeQueue(deliveryTimeout: .milliseconds(10), backgroundEpoch: { epoch.advance() })
         spy.blockDeliveries = true
         queue.enqueue(event("one"))
@@ -244,7 +241,6 @@ struct JsEventDeliveryQueueTests {
         while spy.delivered.count < 1 {
             await Task.yield()
         }
-        // Queue is idle again: a later burst is delivered in order
         queue.enqueue(event("two"))
         queue.enqueue(event("three"))
         while spy.delivered.count < 3 {

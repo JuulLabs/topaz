@@ -37,24 +37,24 @@ public class AppModel {
     /// distinguish the displayed tab from background tabs.
     let activeTabState: ActiveTabState
 
-    /// The session currently displayed. Fresh tabs (no page load yet) live only here;
-    /// they enter the session cache once their first page load begins. Nil shows the
-    /// tab grid - cached sessions stay alive underneath it.
+    /// The session currently displayed. A fresh tab (no page load yet) lives only here.
+    /// It enters the session cache when its first page load starts. Nil shows the tab
+    /// grid, where cached sessions stay alive underneath.
     var activeSession: TabSession? {
         didSet {
             if oldValue !== activeSession {
-                // The outgoing page must not keep the keyboard: its web view is moving
-                // to the invisible underlay (or away entirely) where a lingering first
-                // responder would float a stale keyboard over the incoming view
+                // The outgoing web view moves to the invisible underlay, or away
+                // entirely. A first responder left behind there floats a stale
+                // keyboard over the incoming view.
                 oldValue?.resignFocus()
             }
             activeTabState.setActiveTab(activeSession?.tabIndex)
         }
     }
 
-    /// Sessions kept alive but not currently displayed. Their web views stay parented
-    /// in the view hierarchy (invisible) so WebKit keeps their content processes - and
-    /// therefore their Js contexts and BLE data processing - running.
+    /// Sessions kept alive but not displayed. Their web views stay parented in the
+    /// view hierarchy, invisible, so WebKit keeps their content processes running.
+    /// Their Js contexts and BLE data processing therefore keep running too.
     var backgroundSessions: [TabSession] {
         sessions.allSessions.filter { $0.tabIndex != activeSession?.tabIndex && $0.hasStartedPageLoad }
     }
@@ -102,9 +102,8 @@ public class AppModel {
 
         tabsModel.onTabDeleted = { [weak self] tabIndex in
             guard let self else { return }
-            // Deleting a tab is an explicit "I'm done with this page": tear down its
-            // live session immediately (disconnecting BLE) rather than leaving a
-            // zombie session for an unreachable tab
+            // Evict the live session now, disconnecting BLE. A deleted tab is
+            // unreachable, so its session would otherwise linger as a zombie.
             sessions.evict(tabIndex)
             if lastOpenedTabIndex == tabIndex {
                 lastOpenedTabIndex = nil
@@ -128,15 +127,13 @@ public class AppModel {
         }
     }
 
-    /// Makes the given tab the displayed one, reusing its live session when cached
-    /// (no reload - the point of multi-tab support) and building one otherwise.
     private func activate(tabIndex: Int, url: URL?) {
         lastOpenedTabIndex = tabIndex
         if let existing = sessions.session(for: tabIndex) {
-            // Opener-back is scoped to the window.open flow that installs it (right
-            // after this activation returns); any other route into a live session -
-            // the grid, restore-on-launch, opener-back itself - must not resurrect a
-            // stale closure pointing at a long-departed opener
+            // Opener-back belongs only to the window.open flow that installs it,
+            // right after this activation returns. The grid, restore-on-launch, and
+            // opener-back itself must not resurrect a stale closure that points at a
+            // departed opener.
             existing.loadingModel.navBarModel.goBackToPriorPage = nil
             sessions.markActive(tabIndex)
             activeSession = existing
@@ -145,9 +142,6 @@ public class AppModel {
         }
     }
 
-    /// Builds a session for a tab. Sessions destined to load a page are cached (and
-    /// count against the live-session cap) immediately; fresh tabs stay uncached until
-    /// their first submit.
     private func buildSession(tabIndex: Int, initialUrl: URL? = nil) -> TabSession {
         let loadingModel = buildPageModel(tabIndex: tabIndex, initialUrl: initialUrl)
         let session = TabSession(tabIndex: tabIndex, loadingModel: loadingModel)
@@ -162,15 +156,11 @@ public class AppModel {
         sessions.markActive(session.tabIndex)
     }
 
-    /// Invoked when the displayed tab begins its first page load; a fresh tab becomes
-    /// a live session worth retaining at this point.
     private func activeSessionDidStartLoad() {
         guard let activeSession else { return }
         cache(activeSession)
     }
 
-    /// Returns to the tab that opened the current one (new-window navigation), showing
-    /// the grid if that tab has since been closed.
     private func goBack(toTabIndex tabIndex: Int) {
         if let tabModel = tabsModel.findTab(for: tabIndex) {
             activate(tabIndex: tabModel.index, url: tabModel.url)
@@ -179,20 +169,20 @@ public class AppModel {
         }
     }
 
-    /// System memory pressure: shed every background session (they revert to
-    /// reload-on-revisit) while leaving the displayed session untouched, so the app
-    /// degrades gracefully instead of being jetsammed wholesale. With the tab grid
-    /// showing, nothing is displayed and every session gets shed.
+    /// Sheds every background session, which reverts each tab to reload-on-revisit,
+    /// and leaves the displayed session untouched. The app gives up memory itself
+    /// rather than let the system jetsam it wholesale. With the tab grid showing,
+    /// nothing is displayed and every session is shed.
     func didReceiveMemoryWarning() {
         sessions.evictAll(except: activeSession?.tabIndex)
     }
 
-    /// Recovery path for a tab whose page state is unrecoverable - the web content
-    /// process was killed (Js object graph gone while native BLE state survives) or the
-    /// page wedged long enough to overflow its event delivery buffer. Resolve the split
-    /// brain by converging both sides to empty (teardown). The displayed tab rebuilds
-    /// and reloads in place instead of showing a dead web view; background tabs quietly
-    /// revert to reload-on-revisit.
+    /// Recovery for a tab whose page state is unrecoverable. The web content process
+    /// was killed, or the page wedged and overflowed its event delivery buffer. Either
+    /// way the Js object graph is gone while the native BLE state survives. Converge
+    /// both sides to empty by tearing down. The displayed tab rebuilds and reloads in
+    /// place instead of showing a dead web view. Background tabs revert to
+    /// reload-on-revisit.
     private func discardAndRebuildSession(tabIndex: Int) {
         let wasDisplayed = activeSession?.tabIndex == tabIndex
         sessions.evict(tabIndex)
@@ -204,9 +194,9 @@ public class AppModel {
         }
     }
 
-    /// "Remove all data": tear down every live session so no page keeps in-memory
-    /// state (logged-in DOM, Js heap) whose backing storage was just wiped, then
-    /// rebuild and reload the displayed tab from scratch.
+    /// "Remove all data": tears down every live session, then rebuilds and reloads the
+    /// displayed tab from scratch. No page may keep in-memory state - a logged-in DOM,
+    /// a Js heap - whose backing storage was just wiped.
     private func resetAllSessionsAfterDataRemoval() {
         let activeTabIndex = activeSession?.tabIndex
         sessions.evictAll()
@@ -214,7 +204,7 @@ public class AppModel {
         if let tabModel = tabsModel.findTab(for: activeTabIndex) {
             activeSession = buildSession(tabIndex: tabModel.index, initialUrl: tabModel.url)
         }
-        // A fresh tab (no page load yet) has no state to reset and stays as-is
+        // A fresh tab has no grid entry and, with no page load, no state to reset
     }
 
     private func buildPageModel(tabIndex: Int, initialUrl: URL? = nil) -> WebLoadingModel {
@@ -230,8 +220,6 @@ public class AppModel {
 
     private func buildNavModel(tabIndex: Int) -> NavBarModel {
         let settingsModel = SettingsModel { [weak self] in
-            // Show the tab grid; live sessions stay alive (and keep processing BLE
-            // data) underneath it. A fresh tab with no page load is simply dropped.
             self?.lastOpenedTabIndex = nil
             self?.activeSession = nil
         }
@@ -249,8 +237,8 @@ public class AppModel {
         }
         navigator.launchNewPage = { [weak self] newUrl in
             guard let self else { return }
-            // The opener is the tab that owns this nav model, which is not necessarily
-            // the displayed one: background sessions stay live and can call window.open
+            // The opener is the tab that owns this nav model, not necessarily the
+            // displayed one. A background session stays live and can call window.open.
             let openerTabIndex = tabIndex
             let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
             self.activate(tabIndex: newTab.index, url: newTab.url)
@@ -271,15 +259,14 @@ public class AppModel {
         loadingModel.navBarModel.searchBarModel.searchString = url.absoluteString
         Task {
             let webContainerModel = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel)
-            // The session may have been evicted (or replaced) while the config loaded;
-            // don't populate an orphaned session with a container graph nobody owns
+            // The session may have been evicted, or replaced, while the config
+            // loaded. Do not populate an orphaned session with a container graph
+            // nobody owns.
             guard self.isCurrentSessionModel(loadingModel, tabIndex: tabIndex) else { return }
             loadingModel.webContainerModel = webContainerModel
         }
     }
 
-    /// True while the given loading model still belongs to a session the app is
-    /// accounting for: the displayed session or a cached (live) one.
     private func isCurrentSessionModel(_ loadingModel: WebLoadingModel, tabIndex: Int) -> Bool {
         if activeSession?.loadingModel === loadingModel {
             return true
@@ -296,15 +283,12 @@ public class AppModel {
                 Task {
                     loadingModel.freshPageModel.isLoading = true
                     if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel) {
-                        // The tab may have been deleted (or its session replaced) while
-                        // the config loaded; populating it now would orphan the container
-                        // and resurrect the tab's grid entry
+                        // Populating a deleted tab would orphan the container and
+                        // resurrect the grid entry for the tab.
                         guard self.isCurrentSessionModel(loadingModel, tabIndex: tabIndex) else { return }
                         loadingModel.webContainerModel = webContainer
                         tabsModel.update(url: url, at: tabIndex)
                         if self.activeSession?.loadingModel === loadingModel {
-                            // A fresh tab just started its first page load: it now
-                            // holds a web view worth retaining, so cache the session
                             self.activeSessionDidStartLoad()
                         }
                     }

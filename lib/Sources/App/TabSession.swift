@@ -1,10 +1,10 @@
 import Foundation
 import WebView
 
-/// A live tab: retains the full model graph for one tab (nav bar, fresh page overlay,
-/// and - once a page load has begun - the web container with its model-owned web view,
-/// Js context, and message processors) so the tab survives being backgrounded without
-/// reloading or dropping BLE connections.
+/// A live tab. Retains the full model graph for one tab: nav bar, fresh page overlay,
+/// and the web container. The web container appears after the first page load and holds
+/// the model-owned web view, Js context, and message processors. The tab therefore
+/// survives backgrounding without a reload or dropped BLE connections.
 @MainActor
 final class TabSession: Identifiable, LiveTabSession {
     let tabIndex: Int
@@ -17,22 +17,23 @@ final class TabSession: Identifiable, LiveTabSession {
 
     nonisolated var id: Int { tabIndex }
 
-    /// False while the tab is still a fresh page (search bar, no content). Fresh tabs
-    /// hold no web view and are not worth caching - they only enter the session cache
-    /// once a real page load begins.
+    /// False while the tab is still a fresh page: search bar, no content. A fresh tab
+    /// holds no web view and is not worth caching. It enters the session cache only
+    /// when a real page load starts.
     var hasStartedPageLoad: Bool {
         loadingModel.webContainerModel != nil
     }
 
-    /// Relinquishes any keyboard focus held by the tab's web content; invoked when the
-    /// tab stops being the displayed one so its keyboard cannot linger over the next.
+    /// Relinquishes any keyboard focus held by the web content. Called when the tab
+    /// stops being the displayed one, so its keyboard cannot linger over the next.
     func resignFocus() {
         loadingModel.webContainerModel?.webPageModel.resignFocus()
     }
 
-    /// Ends the web session: detaches the script handler (shutting down the tab's
-    /// Bluetooth engine and disconnecting its peripherals) and releases the web view.
-    /// Idempotent. The tab's URL remains in the grid; reopening reloads from scratch.
+    /// Ends the web session. Detaches the script handler and releases the web view.
+    /// Detaching shuts down the Bluetooth engine for this tab and disconnects its
+    /// peripherals. Idempotent. The URL remains in the grid, so reopening the tab
+    /// reloads from scratch.
     func teardown() {
         loadingModel.webContainerModel?.webPageModel.teardown()
     }

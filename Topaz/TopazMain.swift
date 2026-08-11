@@ -48,8 +48,6 @@ private func appDomainProcessors(deviceSelector: DeviceSelector, activeTabState:
                 eventBus: eventBus,
                 state: BluetoothState(securityList: .shared, store: debouncedJsonFileStorage()),
                 client: liveBluetoothClient(eventBus: eventBus),
-                // Device selection is only permitted for the tab the user is looking
-                // at; background tabs fail fast with a page-visibility error
                 deviceSelector: TabGatedDeviceSelector(
                     tab: context.id.tab,
                     activeTabState: activeTabState,

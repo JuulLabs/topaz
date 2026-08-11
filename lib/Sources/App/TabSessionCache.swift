@@ -24,19 +24,17 @@ enum TabSessionLimits {
 ///
 /// Holds at most `maxLiveSessions` sessions. The most recently activated session is
 /// "pinned" and is never chosen for least-recently-used eviction. Every eviction path
-/// invokes the session's `teardown()` exactly once.
+/// calls `teardown()` on the session exactly once.
 ///
-/// Lookup via `session(for:)` does not affect recency; only `insert(_:)` and
-/// `markActive(_:)` refresh a session's LRU position.
+/// Lookup with `session(for:)` does not affect recency. Only `insert(_:)` and
+/// `markActive(_:)` refresh the LRU position of a session.
 @MainActor
 @Observable
 final class TabSessionCache<Session: LiveTabSession> {
     @ObservationIgnored
     private let maxLiveSessions: Int
     private var sessions: [Int: Session] = [:]
-    /// Tab indexes ordered least-recently-activated first.
     private var lruOrder: [Int] = []
-    /// The pinned tab: most recently activated, exempt from LRU eviction.
     private(set) var pinnedTabIndex: Int?
 
     init(maxLiveSessions: Int = TabSessionLimits.maxLiveSessions) {
@@ -72,9 +70,9 @@ final class TabSessionCache<Session: LiveTabSession> {
         evictOverCap(protecting: session.tabIndex)
     }
 
-    /// Pins the given tab (exempting it from LRU eviction) and refreshes its recency.
-    /// The pin persists until another tab is activated or the pinned tab is evicted,
-    /// so the last-viewed tab stays protected while e.g. the tab grid is showing.
+    /// Pins the given tab, which exempts it from LRU eviction, and refreshes its
+    /// recency. The pin persists until another tab is activated or the pinned tab is
+    /// evicted. The last-viewed tab therefore stays protected while the tab grid shows.
     func markActive(_ tabIndex: Int) {
         guard sessions[tabIndex] != nil else { return }
         pinnedTabIndex = tabIndex
@@ -92,8 +90,8 @@ final class TabSessionCache<Session: LiveTabSession> {
     }
 
     /// Tears down every session, optionally sparing one tab (e.g. the displayed one on
-    /// a memory warning). Callers name the tab to spare rather than relying on the pin,
-    /// which tracks the last *cached* activation and so can lag the displayed tab.
+    /// a memory warning). Callers name the tab to spare rather than rely on the pin.
+    /// The pin tracks the last *cached* activation, so it can lag the displayed tab.
     func evictAll(except sparedTabIndex: Int? = nil) {
         for tabIndex in lruOrder where tabIndex != sparedTabIndex {
             evict(tabIndex)

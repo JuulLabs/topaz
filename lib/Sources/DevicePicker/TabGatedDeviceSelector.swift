@@ -3,10 +3,10 @@ import Foundation
 
 /// Restricts interactive device selection to the currently displayed tab.
 ///
-/// The device picker UI is only mounted for the active tab, and Web Bluetooth requires
-/// a visible document (plus user activation) for `requestDevice()`. A background tab's
-/// request therefore fails fast with a page-visibility error instead of presenting UI
-/// over an unrelated tab or hanging until the tab is next displayed.
+/// The device picker UI is only mounted for the active tab. Web Bluetooth also requires
+/// a visible document, plus user activation, for `requestDevice()`. A request from a
+/// background tab therefore fails fast with a page-visibility error. It does not present
+/// UI over an unrelated tab, nor hang until the tab is next displayed.
 @MainActor
 public final class TabGatedDeviceSelector: InteractiveDeviceSelector {
     private let tab: Int
@@ -31,9 +31,9 @@ public final class TabGatedDeviceSelector: InteractiveDeviceSelector {
     }
 
     public func showAdvertisement(peripheral: Peripheral, advertisement: Advertisement) async {
-        // A background tab's requestDevice briefly scans before its awaitSelection is
-        // rejected; never let those advertisements leak into the picker that the
-        // active tab may be presenting on the shared underlying selector
+        // A background tab scans briefly in requestDevice before its awaitSelection is
+        // rejected. Those advertisements must never leak into the picker that the
+        // active tab presents on the shared underlying selector.
         guard activeTabState.isActive(tab: tab) else { return }
         await wrapped.showAdvertisement(peripheral: peripheral, advertisement: advertisement)
     }

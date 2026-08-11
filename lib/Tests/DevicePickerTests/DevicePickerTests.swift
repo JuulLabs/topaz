@@ -108,7 +108,6 @@ struct DevicePickerTests {
         case let .failure(error):
             #expect(error == .busy)
         }
-        // The original selection is unaffected: still presenting and still resolvable
         #expect(sut.isSelecting == true)
         let fake = FakePeripheral(id: zeroUuid, name: "bob")
         sut.showAdvertisement(peripheral: fake, advertisement: fake.fakeAdvertisement(rssi: 0))
@@ -131,7 +130,6 @@ struct DevicePickerTests {
         _ = await sut.awaitSelection()
         sut.cancel()
         await _ = firstResult
-        // A fresh selection after the busy rejection proceeds as usual
         async let thirdResult = await sut.awaitSelection()
         await Task.bigYield()
         #expect(sut.isSelecting == true)

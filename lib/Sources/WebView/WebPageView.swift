@@ -10,10 +10,10 @@ import WebKit
 
 /// Bare host for a model-owned web view.
 ///
-/// The web view, its delegates, and its script handlers are owned by the model layer
-/// and survive this view unmounting; mounting simply (re)parents the web view. Multiple
-/// instances may exist over a session's lifetime (e.g. moving between the visible tab
-/// and the keep-alive underlay) but never simultaneously for the same model.
+/// The model layer owns the web view, its delegates, and its script handlers, and they
+/// survive this view unmounting. Mounting re-parents the web view. Instances come and
+/// go as the web view moves between the visible tab and the keep-alive underlay. Never
+/// two at once for the same model.
 public struct WebPageView: View {
     @State private var scrollView: UIScrollView?
 
@@ -39,14 +39,14 @@ public struct WebPageView: View {
             self._scrollView = scrollView
         }
 
-        // Each representable gets its own container and the shared, model-owned web
-        // view is re-parented between containers. SwiftUI only ever owns the container,
-        // so host teardown ordering during a tab switch can never rip the web view out
-        // of its new host.
+        // Each representable gets its own container, and the shared, model-owned web
+        // view is re-parented between containers. SwiftUI only ever owns the container.
+        // Host teardown ordering during a tab switch can therefore never rip the web
+        // view out of its new host.
         func makeUIView(context: Context) -> WebPageHostUIView {
             let container = WebPageHostUIView()
-            // A torn-down model yields no web view; the empty container is a
-            // placeholder until SwiftUI removes this (already stale) host
+            // A torn-down model yields no web view. The empty container is a
+            // placeholder until SwiftUI removes this stale host.
             guard let webView = model.webView() else { return container }
             container.host(webView)
             Task { @MainActor in
@@ -64,7 +64,6 @@ public struct WebPageView: View {
     }
 }
 
-/// Plain container that hosts a (potentially shared) web view as a subview.
 @MainActor
 final class WebPageHostUIView: UIView {
     func host(_ webView: WKWebView) {

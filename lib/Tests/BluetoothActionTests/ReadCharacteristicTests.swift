@@ -18,8 +18,6 @@ private let fakeServiceUuid = UUID(n: 1)
 private let fakeCharacteristicUuid = UUID(n: 2)
 private let fakeCharacteristicInstance: UInt32 = 3
 
-/// Stands in for a delivery queue that has accepted an event but not yet handed it to
-/// the page.
 @MainActor
 private final class DeliveryBarrier {
     private var continuation: CheckedContinuation<Void, Never>?

@@ -9,9 +9,9 @@ import WebKit
  Owns the session-scoped machinery for a single web page: navigation delegates,
  script handler attach/detach, and Js context swaps.
 
- Created and retained by `WebPageModel` so that the web view's lifecycle is bound
- to the model layer rather than to SwiftUI view mount/unmount. Teardown happens
- via an explicit `deinitialize(webView:)` call and is safe to invoke repeatedly.
+ Created and retained by `WebPageModel`, so the web view lifecycle follows the model
+ layer rather than SwiftUI view mount/unmount. Teardown is an explicit
+ `deinitialize(webView:)` call and is safe to repeat.
  */
 @MainActor
 class WebPageSessionController: NSObject, NavigationEngineDelegate {
@@ -69,10 +69,6 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
-        // Deliveries into the page go through a bounded, order-preserving queue so a
-        // slow or suspended page can never stall the tab's engine event loop. Overflow
-        // means the page has been unresponsive under sustained traffic: report it so
-        // the owner can tear the session down rather than lose data silently.
         let queue = JsEventDeliveryQueue(
             deliver: { [weak webView, world] event in
                 guard let webView else {
@@ -123,10 +119,9 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
             // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            // Tear down and spin up a new Js context for this new web page.
-            // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
-            // so a stale navigation can't attach a context after a newer one has started.
-            // TODO: #310 move this to be synchronous work on decidePolicyFor:navigationAction instead
+            // Supersede any in-flight swap. A stale navigation must not attach a
+            // context after a newer one starts.
+            // TODO: move this to synchronous work on decidePolicyFor:navigationAction instead
             let newContextId = contextId.withUrl(navigation.request.url)
             let previousSwap = pendingContextSwap
             previousSwap?.cancel()
@@ -178,7 +173,6 @@ extension WKWebView {
         )
     }
 
-    /// Executes the polyfill's event dispatch inside the page.
     func sendTopazEvent(_ event: JsEvent, in world: WKContentWorld) async -> Result<Void, any Error> {
         return await withCheckedContinuation { continuation in
             callAsyncJavaScript(

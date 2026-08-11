@@ -35,9 +35,9 @@ public final class DeviceSelector: InteractiveDeviceSelector {
 
     public func awaitSelection() async -> Result<Bluetooth.Peripheral, DeviceSelectionError> {
         guard selectionContinuaton == nil else {
-            // A selection is already in flight (e.g. initiated by another tab). Reject the
-            // newcomer immediately rather than clobbering - and thereby leaking - the pending
-            // continuation, which would hang the original requester forever.
+            // A selection is already in flight, e.g. started by another tab. Reject the
+            // newcomer immediately rather than clobber the pending continuation.
+            // Clobbering leaks it and hangs the original requester forever.
             return .failure(.busy)
         }
         isSelecting = true
@@ -73,7 +73,6 @@ public final class DeviceSelector: InteractiveDeviceSelector {
         guard let continuation = selectionContinuaton else { return }
         selectionContinuaton = nil
         if case let .failure(.cancelled(items)) = result {
-            // The names stay native: page script only ever sees the generic description
             log.debug("Selection cancelled with presentedItems=[\(items.joined(separator: ","), privacy: .private)]")
         }
         continuation.resume(returning: result)

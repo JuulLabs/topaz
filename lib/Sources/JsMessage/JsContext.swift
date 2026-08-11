@@ -23,9 +23,9 @@ public struct JsContext: Sendable, Identifiable {
     }
 
     /// Waits for events already handed to `sendEvent` to reach the page. Accepting an
-    /// event does not deliver it, so a reply whose meaning depends on its event having
-    /// landed first - a characteristic read, whose value the page takes from the event -
-    /// must wait here before it is sent.
+    /// event does not deliver it. A reply whose meaning depends on its event landing
+    /// first must wait here before it is sent. A characteristic read is one: the page
+    /// takes the value from the event.
     public func awaitPendingDeliveries() async {
         await deliveryBarrier()
     }
