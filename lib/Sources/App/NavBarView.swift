@@ -1,38 +1,40 @@
-import Bluetooth
 import Settings
 import SwiftUI
-import WebView
+import UIHelpers
+import Navigation
 
 struct NavBarView: View {
+
     let model: NavBarModel
 
     var body: some View {
-        VStack(spacing: 0) {
-            if let progress = model.progress {
-                ProgressView(value: progress)
-                    .tint(.white)
-                    .frame(height: 4)
-                    .animation(.spring(), value: progress)
-            } else {
-                Rectangle()
-                    .fill(Color.topaz600)
-                    .frame(height: 4)
-            }
-            VStack(spacing: 12) {
+        HStack(spacing: 20) {
+            if model.navigator.isInSearchMode {
                 SearchBarView(model: model.searchBarModel)
-                    .padding(.bottom, 12)
+                Button(action: {
+                    model.navigator.isInSearchMode = false
+                }, label: {
+                    Image(systemName: "xmark")
+                        .foregroundStyle(Color.iconDefault)
+                        .font(.system(size: 18).weight(.light))
+                        .frame(width: 48, height: 48)
+                        .background(
+                            RoundedRectangle(cornerRadius: 24)
+                                .fill(Color.cellFillPrimary)
+                        )
+                })
+            } else {
                 NavIconStrip(model: model)
             }
-            .padding(.horizontal, 24)
-            .padding(.top, 8)
-            .padding(.bottom, 12)
         }
-        .background(Color.topaz600)
+        .animation(.spring, value: model.navigator.isInSearchMode)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity)
+        .embedInNavigationBackground(keyboardPresent: model.keyboardPresent)
     }
 }
 
 #Preview {
-    NavBarView(
-        model: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
-    )
+    NavBarView(model: NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in }))
 }

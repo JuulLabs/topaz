@@ -24,6 +24,7 @@ IOS_SIM_UUID := $(shell ./scripts/find_optimal_sim_uuid.sh)
 PLATFORM_IOS := platform=iOS Simulator,id=$(IOS_SIM_UUID)
 PLATFORM_MACOS := platform=macOS,arch=arm64,variant=Designed for iPad
 PLATFORM_GENERIC := generic/platform=iOS
+PLATFORM_GENERIC_SIMULATOR := generic/platform=iOS Simulator
 
 XCODE_DESTINATION := $(PLATFORM_$(PLATFORM))
 
@@ -61,12 +62,14 @@ test: $(TEST_MODULES)
 	$(XCODEBUILD)
 
 boot-simulator:
-	@if [ ! -z "$(IOS_SIM_UUID)" ]; then \
+	@if [ "$(PLATFORM)" != "IOS" ]; then \
+		exit 0; \
+	elif [ ! -z "$(IOS_SIM_UUID)" ]; then \
 		xcrun simctl list devices available; \
 		echo "Booting simulator for iOS with id: $(PLATFORM_ID)"; \
 		xcrun simctl list | grep $(PLATFORM_ID) | grep -q Booted || xcrun simctl boot $(PLATFORM_ID); \
 		open -a Simulator --args -CurrentDeviceUDID $(PLATFORM_ID); \
-	elif [ "$(PLATFORM)" = "IOS" ]; then \
+	else \
 		xcrun simctl list devices available; \
 		xcodebuild -showdestinations -scheme "$(XCODE_SCHEME)" -project $(XCODE_PROJECT); \
 		echo "ERROR: Compatible iOS simulator not found"; \

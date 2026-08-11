@@ -26,7 +26,7 @@ concurrency:
 jobs:
   upload_developer_ipa:
     name: Build Debug IPA and upload to S3
-    runs-on: [macOS-15]
+    runs-on: [macOS-26]
     timeout-minutes: 45
     env:
       API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}

@@ -150,6 +150,20 @@ struct NavigationRequestTests {
         #expect(sut?.httpMethod == "POST")
     }
 
+    @Test
+    func initFromAction_withMailtoScheme_isNil() throws {
+        let mailtoUrl = try #require(URL(string: "mailto:test@example.com"))
+        let sourceFrame = MockFrameInfo(
+            isMainFrame: { true }
+        ).immortalize(in: &Self.retainBucket)
+        let action = MockAction(
+            request: { URLRequest(url: mailtoUrl) },
+            sourceFrame: { sourceFrame },
+            targetFrame: { nil }
+        )
+        #expect(NavigationRequest(action: action) == nil)
+    }
+
     @Test(arguments: [
         (url: "https://test.com", method: "GET", isDownload: false, expected: true),
         (url: "http://test.com", method: "GET", isDownload: false, expected: true),
