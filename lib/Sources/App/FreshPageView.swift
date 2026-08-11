@@ -14,14 +14,14 @@ struct FreshPageView: View {
                 .ignoresSafeArea(.all)
             VStack(spacing: 0) {
                 topAlignedHeaderView
-                NavBarViewV2(model: model.navBarModel)
+                NavBarView(model: model.navBarModel)
                     .opacity(model.isLoading ? 0 : 1)
                     .disabled(model.isLoading)
                     .animation(.spring, value: model.isLoading)
                     .animation(.spring, value: model.keyboardPresent)
             }
             if model.navBarModel.isSettingsPresented {
-                SettingsViewV2(model: model.navBarModel.settingsModel)
+                SettingsView(model: model.navBarModel.settingsModel)
             }
         }
         .onTapGesture {

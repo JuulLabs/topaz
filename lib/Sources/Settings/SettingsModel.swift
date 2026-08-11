@@ -30,11 +30,6 @@ public final class SettingsModel {
         self.tabManagementAction = tabManagementAction
     }
 
-    // TODO: Remove after migrating SettingsViewV2 to SettingsView
-    func doneButtonTapped() {
-        dismiss()
-    }
-
     func onTapOutside() {
         dismiss()
     }

@@ -3,6 +3,7 @@ import Settings
 import SwiftUI
 
 struct NavIconStrip: View {
+
     let model: NavBarModel
 
     var body: some View {
@@ -22,17 +23,17 @@ struct NavIconStrip: View {
             .disabled(model.forwardButtonDisabled)
             Spacer()
             Button {
+                model.navigator.isInSearchMode = true
+            } label: {
+                systemIcon(imageName: "magnifyingglass", size: 24)
+            }
+            Spacer()
+            Button {
                 model.fullscreenButtonTapped()
             } label: {
                 customIcon(image: .fullscreenIcon, disabled: model.fullscreenButtonDisabled)
             }
             .disabled(model.fullscreenButtonDisabled)
-            Spacer()
-            Button {
-                model.settingsModel.tabManagementButtonTapped()
-            } label: {
-                systemIcon(imageName: "square.on.square", size: 28)
-            }
             Spacer()
             Button {
                 model.settingsButtonTapped()
@@ -49,7 +50,7 @@ struct NavIconStrip: View {
     ) -> some View {
         Image(systemName: imageName)
             .font(.system(size: size).weight(.light))
-            .foregroundStyle(Color(white: 1.0, opacity: disabled ? 0.5 : 1.0))
+            .foregroundStyle(Color.iconDefault.opacity(disabled ? 0.5 : 1.0))
             .padding(8) // For a larger hit box
     }
 
@@ -63,23 +64,7 @@ struct NavIconStrip: View {
     }
 }
 
-#Preview("Enabled") {
-    NavIconStrip(
-        model: previewModel(disabled: false)
-    )
-    .background(Color.topaz600)
-}
-
-#Preview("Disabled") {
-    NavIconStrip(
-        model: previewModel(disabled: true)
-    )
-    .background(Color.topaz600)
-}
-
-@MainActor
-private func previewModel(disabled: Bool) -> NavBarModel {
+#Preview {
     let model = NavBarModel(settingsModel: SettingsModel(), onFullscreenChanged: { _ in })
-    model.fullscreenButtonDisabled = disabled
-    return model
+    NavIconStrip(model: model)
 }
