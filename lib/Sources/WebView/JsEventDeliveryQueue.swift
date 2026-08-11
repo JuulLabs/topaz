@@ -1,8 +1,28 @@
 import Foundation
 import JsMessage
 import OSLog
+import UIKit
 
 private let log = Logger(subsystem: "Topaz", category: "JsEventDeliveryQueue")
+
+/// Counts transitions to the background. The app declares no background modes, so it is
+/// suspended while backgrounded: timers do not run, but their deadlines keep expiring
+/// against the continuous clock and land in a batch on resume. A deadline that spans a
+/// suspension therefore says nothing about whether the page is still responsive.
+@MainActor
+final class AppBackgroundEpoch {
+    static let shared = AppBackgroundEpoch()
+
+    private(set) var value = 0
+
+    private init() {
+        Task { [weak self] in
+            for await _ in NotificationCenter.default.notifications(named: UIApplication.didEnterBackgroundNotification) {
+                self?.value += 1
+            }
+        }
+    }
+}
 
 enum JsEventDeliveryError: Error, LocalizedError, Equatable {
     case overflow
@@ -25,7 +45,8 @@ enum JsEventDeliveryError: Error, LocalizedError, Equatable {
 /// never stall the tab's Bluetooth engine event loop.
 ///
 /// Events are accepted immediately into a bounded FIFO buffer and delivered serially,
-/// preserving order. Individual delivery failures are logged and skipped (matching the
+/// preserving order; `awaitPendingDeliveries()` exposes that order to a reply that must
+/// not overtake its own event. Individual delivery failures are logged and skipped (matching the
 /// previous log-and-continue semantics). If the buffer overflows - the page has been
 /// unresponsive under sustained event traffic for a long time - the queue cancels
 /// itself and reports it via `onOverflow`, whose owner is expected to tear down the
@@ -41,18 +62,27 @@ final class JsEventDeliveryQueue {
     private let deliveryTimeout: Duration
     private let deliver: @MainActor (JsEvent) async -> Result<Void, any Error>
     private let onOverflow: @MainActor () -> Void
+    private let backgroundEpoch: @MainActor () -> Int
     private var buffer: [JsEvent] = []
     private var drainTask: Task<Void, Never>?
     private(set) var isCancelled = false
 
+    /// Counts events accepted and events whose delivery has finished (successfully or
+    /// not), so a barrier can name a point in the stream and wait for it to pass.
+    private var enqueuedCount = 0
+    private var deliveredCount = 0
+    private var barriers: [(threshold: Int, continuation: CheckedContinuation<Void, Never>)] = []
+
     init(
         capacity: Int = JsEventDeliveryQueue.defaultCapacity,
         deliveryTimeout: Duration = JsEventDeliveryQueue.defaultDeliveryTimeout,
+        backgroundEpoch: @escaping @MainActor () -> Int = { AppBackgroundEpoch.shared.value },
         deliver: @escaping @MainActor (JsEvent) async -> Result<Void, any Error>,
         onOverflow: @escaping @MainActor () -> Void
     ) {
         self.capacity = capacity
         self.deliveryTimeout = deliveryTimeout
+        self.backgroundEpoch = backgroundEpoch
         self.deliver = deliver
         self.onOverflow = onOverflow
     }
@@ -71,8 +101,21 @@ final class JsEventDeliveryQueue {
             return .failure(JsEventDeliveryError.overflow)
         }
         buffer.append(event)
+        enqueuedCount += 1
         drainIfNeeded()
         return .success(())
+    }
+
+    /// Waits until every event accepted before this call has reached the page. Callers
+    /// that must not let a reply overtake its own event - a characteristic read, whose
+    /// value the page reads from the event - await this before replying. The wait is
+    /// borne by the requesting page, never by the producer feeding the queue.
+    func awaitPendingDeliveries() async {
+        guard !isCancelled, deliveredCount < enqueuedCount else { return }
+        let threshold = enqueuedCount
+        await withCheckedContinuation { continuation in
+            barriers.append((threshold: threshold, continuation: continuation))
+        }
     }
 
     /// Stops delivery and drops any buffered events. Idempotent.
@@ -81,6 +124,14 @@ final class JsEventDeliveryQueue {
         buffer.removeAll()
         drainTask?.cancel()
         drainTask = nil
+        // Nothing more will ever be delivered, so waiters must not be stranded
+        releaseBarriers(upTo: enqueuedCount)
+    }
+
+    private func releaseBarriers(upTo delivered: Int) {
+        let reached = barriers.filter { $0.threshold <= delivered }
+        barriers.removeAll { $0.threshold <= delivered }
+        reached.forEach { $0.continuation.resume() }
     }
 
     private func drainIfNeeded() {
@@ -94,6 +145,8 @@ final class JsEventDeliveryQueue {
                 }
                 let event = self.buffer.removeFirst()
                 let result = await self.deliverRacingTimeout(event)
+                self.deliveredCount += 1
+                self.releaseBarriers(upTo: self.deliveredCount)
                 if case let .failure(error) = result {
                     if (error as? JsEventDeliveryError) == .timedOut {
                         // WebKit never resumed the delivery callback: the page is
@@ -115,15 +168,29 @@ final class JsEventDeliveryQueue {
     /// continuation is not cancellable, so a wedged page would otherwise strand the
     /// drain task (and everything it keeps alive) forever; the loser of the race is
     /// left to resolve - or leak inside WebKit - on its own.
+    ///
+    /// The timeout only indicts the page for time the app actually spent running: a
+    /// deadline that elapsed across a background suspension is re-armed instead, so
+    /// switching away from a healthy tab mid-delivery cannot cost it its session.
     private func deliverRacingTimeout(_ event: JsEvent) async -> Result<Void, any Error> {
         let deliver = self.deliver
         let timeout = self.deliveryTimeout
+        let backgroundEpoch = self.backgroundEpoch
         return await withCheckedContinuation { continuation in
             let oneShot = OneShotResume(continuation)
             let timerTask = Task { @MainActor in
                 do {
-                    try await Task.sleep(for: timeout)
-                    oneShot.resume(.failure(JsEventDeliveryError.timedOut))
+                    var epoch = backgroundEpoch()
+                    while true {
+                        try await Task.sleep(for: timeout)
+                        let currentEpoch = backgroundEpoch()
+                        guard currentEpoch == epoch else {
+                            epoch = currentEpoch
+                            continue
+                        }
+                        oneShot.resume(.failure(JsEventDeliveryError.timedOut))
+                        return
+                    }
                 } catch {
                     // Cancelled: the delivery finished first
                 }

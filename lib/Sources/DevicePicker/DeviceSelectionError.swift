@@ -13,8 +13,10 @@ extension DeviceSelectionError: LocalizedError {
         switch self {
         case .busy:
             return "Another device selection is already in progress"
-        case let .cancelled(items):
-            return "Cancelled by user presentedItems=[\(items.joined(separator: ","))]"
+        case .cancelled:
+            // This description reaches page script as a DOMException message, so it must
+            // not name the devices the chooser presented but the user never granted
+            return "Cancelled by user"
         case .invalidSelection:
             return "Selected device is no longer available"
         case .pageNotVisible:

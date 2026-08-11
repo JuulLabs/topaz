@@ -91,16 +91,11 @@ final class TabSessionCache<Session: LiveTabSession> {
         session.teardown()
     }
 
-    /// Tears down every session except the pinned one (e.g. on memory warning).
-    func evictAllExceptActive() {
-        for tabIndex in lruOrder where tabIndex != pinnedTabIndex {
-            evict(tabIndex)
-        }
-    }
-
-    /// Tears down every session including the pinned one.
-    func evictAll() {
-        for tabIndex in lruOrder {
+    /// Tears down every session, optionally sparing one tab (e.g. the displayed one on
+    /// a memory warning). Callers name the tab to spare rather than relying on the pin,
+    /// which tracks the last *cached* activation and so can lag the displayed tab.
+    func evictAll(except sparedTabIndex: Int? = nil) {
+        for tabIndex in lruOrder where tabIndex != sparedTabIndex {
             evict(tabIndex)
         }
     }

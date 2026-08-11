@@ -206,6 +206,11 @@ public class WebPageModel: Identifiable {
     }
 
     func requestAuthorization() async -> Bool {
+        // A script message already in flight when the session was torn down must not
+        // authorize, nor park a continuation the (now unmounted) alert can never resolve
+        guard !isTornDown else {
+            return false
+        }
         guard let webOrigin else {
             return false
         }

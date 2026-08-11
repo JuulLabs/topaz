@@ -1,5 +1,8 @@
 import Bluetooth
 import Foundation
+import OSLog
+
+private let log = Logger(subsystem: "Topaz", category: "DeviceSelector")
 
 // TODO: move to own module with BluetoothEngine
 
@@ -69,6 +72,10 @@ public final class DeviceSelector: InteractiveDeviceSelector {
     private func fulfill(returning result: Result<Bluetooth.Peripheral, DeviceSelectionError>) {
         guard let continuation = selectionContinuaton else { return }
         selectionContinuaton = nil
+        if case let .failure(.cancelled(items)) = result {
+            // The names stay native: page script only ever sees the generic description
+            log.debug("Selection cancelled with presentedItems=[\(items.joined(separator: ","), privacy: .private)]")
+        }
         continuation.resume(returning: result)
     }
 

@@ -126,7 +126,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
             // Tear down and spin up a new Js context for this new web page.
             // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
             // so a stale navigation can't attach a context after a newer one has started.
-            // TODO: move this to be synchronous work on decidePolicyFor:navigationAction instead
+            // TODO: #310 move this to be synchronous work on decidePolicyFor:navigationAction instead
             let newContextId = contextId.withUrl(navigation.request.url)
             let previousSwap = pendingContextSwap
             previousSwap?.cancel()
@@ -167,9 +167,15 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
 
 extension WKWebView {
     func createContext(contextId: JsContextIdentifier, deliveryQueue: JsEventDeliveryQueue) -> JsContext {
-        return JsContext(id: contextId) { event in
-            deliveryQueue.enqueue(event)
-        }
+        return JsContext(
+            id: contextId,
+            eventSink: { event in
+                deliveryQueue.enqueue(event)
+            },
+            awaitPendingDeliveries: {
+                await deliveryQueue.awaitPendingDeliveries()
+            }
+        )
     }
 
     /// Executes the polyfill's event dispatch inside the page.

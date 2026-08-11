@@ -102,19 +102,28 @@ struct TabSessionCacheTests {
         #expect(cache.pinnedTabIndex == nil)
     }
 
-    @Test func evictAllExceptActiveKeepsOnlyPinnedSession() {
+    @Test func evictAllKeepsOnlyTheSparedSession() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2, 3, 4])
         cache.markActive(2)
-        cache.evictAllExceptActive()
+        cache.evictAll(except: 2)
         #expect(cache.count == 1)
         #expect(cache.session(for: 2) != nil)
         #expect(sessions[2]?.teardownCount == 0)
         #expect([1, 3, 4].allSatisfy { sessions[$0]?.teardownCount == 1 })
     }
 
-    @Test func evictAllExceptActiveWithNoPinEvictsEverything() {
+    @Test func evictAllSparesTheNamedTabRatherThanThePin() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2])
-        cache.evictAllExceptActive()
+        cache.markActive(1)
+        cache.evictAll(except: 2)
+        #expect(cache.session(for: 2) != nil)
+        #expect(sessions[1]?.teardownCount == 1)
+        #expect(sessions[2]?.teardownCount == 0)
+    }
+
+    @Test func evictAllWithNothingSparedEvictsEverything() {
+        let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2])
+        cache.evictAll(except: nil)
         #expect(cache.count == 0)
         #expect(sessions.values.allSatisfy { $0.teardownCount == 1 })
     }

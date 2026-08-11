@@ -28,6 +28,10 @@ struct ReadCharacteristic: BluetoothAction {
         ) {
             client.readCharacteristic(peripheral: peripheral, characteristic: characteristic)
         }
+        // Per the spec the event fires before `readValue()` resolves, and the Js side
+        // relies on that: it reads the value the event wrote. Event delivery is decoupled
+        // from the engine loop, so hold the reply here until that event has landed.
+        await eventBus.awaitPendingJsDeliveries()
         return CharacteristicResponse()
     }
 

@@ -182,14 +182,9 @@ public class AppModel {
     /// System memory pressure: shed every background session (they revert to
     /// reload-on-revisit) while leaving the displayed session untouched, so the app
     /// degrades gracefully instead of being jetsammed wholesale. With the tab grid
-    /// showing, nothing is displayed - every session (including the still-pinned
-    /// last-viewed tab) is background and gets shed.
+    /// showing, nothing is displayed and every session gets shed.
     func didReceiveMemoryWarning() {
-        if activeSession == nil {
-            sessions.evictAll()
-        } else {
-            sessions.evictAllExceptActive()
-        }
+        sessions.evictAll(except: activeSession?.tabIndex)
     }
 
     /// Recovery path for a tab whose page state is unrecoverable - the web content
@@ -254,10 +249,12 @@ public class AppModel {
         }
         navigator.launchNewPage = { [weak self] newUrl in
             guard let self else { return }
-            let openerTabIndex = self.activeSession?.tabIndex
+            // The opener is the tab that owns this nav model, which is not necessarily
+            // the displayed one: background sessions stay live and can call window.open
+            let openerTabIndex = tabIndex
             let newTab = self.tabsModel.findOrCreateTab(for: newUrl)
             self.activate(tabIndex: newTab.index, url: newTab.url)
-            if let openerTabIndex, openerTabIndex != newTab.index {
+            if openerTabIndex != newTab.index {
                 self.activeSession?.loadingModel.navBarModel.goBackToPriorPage = { [weak self] in
                     self?.goBack(toTabIndex: openerTabIndex)
                 }
@@ -299,6 +296,10 @@ public class AppModel {
                 Task {
                     loadingModel.freshPageModel.isLoading = true
                     if let webContainer = await self.loadWebContainerModel(tab: tabIndex, url: url, navBarModel: loadingModel.navBarModel) {
+                        // The tab may have been deleted (or its session replaced) while
+                        // the config loaded; populating it now would orphan the container
+                        // and resurrect the tab's grid entry
+                        guard self.isCurrentSessionModel(loadingModel, tabIndex: tabIndex) else { return }
                         loadingModel.webContainerModel = webContainer
                         tabsModel.update(url: url, at: tabIndex)
                         if self.activeSession?.loadingModel === loadingModel {
