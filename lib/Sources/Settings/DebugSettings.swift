@@ -1,3 +1,4 @@
+import Downloader
 import SwiftUI
 
 struct DebugSettings: View {
@@ -16,6 +17,11 @@ struct DebugSettings: View {
             }
 
             SearchEngineSelectorView(model: model.searchEngineSelectorModel)
+        }
+        .navigationDestination(isPresented: $model.presentDownloadsView) {
+            DownloadListView(model: .shared)
+                .navigationTitle("Recent Downloads")
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
