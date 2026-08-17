@@ -87,6 +87,18 @@ To clean up and delete all build artifacts:
 $ make clean
 ```
 
+To lint the Swift sources (matching the CI lint job):
+
+```sh
+$ make lint
+```
+
+To apply the lint fixes that can be applied automatically:
+
+```sh
+$ make lint-fix
+```
+
 ### Publishing To App Store
 
 Please see the [detailed instructions here](documentation/releases.md).
