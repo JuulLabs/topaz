@@ -87,7 +87,7 @@ To clean up and delete all build artifacts:
 $ make clean
 ```
 
-To lint the Swift sources (matching the CI lint job):
+To lint the Swift sources:
 
 ```sh
 $ make lint
