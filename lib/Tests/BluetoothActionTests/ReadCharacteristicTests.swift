@@ -38,7 +38,7 @@ private final class DeliveryBarrier {
 @Suite(.tags(.readCharacteristic), .timeLimit(.minutes(1)))
 struct ReadCharacteristicTests {
     @Test
-    func execute_holdsTheReplyUntilTheValueChangedEventReachesThePage() async throws {
+    func execute_withTheValueChangedEventStillUndelivered_holdsTheReplyUntilItReachesThePage() async throws {
         let eventBus = await selfResolvingEventBus()
         let barrier = await DeliveryBarrier()
         await eventBus.setJsContext(

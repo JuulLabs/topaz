@@ -123,7 +123,7 @@ struct DevicePickerTests {
     }
 
     @Test
-    func awaitSelection_afterRejectedConcurrentRequest_worksNormally() async throws {
+    func awaitSelection_afterAConcurrentRequestWasRejected_acceptsTheNextRequest() async throws {
         let sut = DeviceSelector()
         async let firstResult = await sut.awaitSelection()
         await Task.bigYield()

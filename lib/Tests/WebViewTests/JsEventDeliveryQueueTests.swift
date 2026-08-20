@@ -60,7 +60,8 @@ private final class EpochCounter {
 @Suite(.timeLimit(.minutes(1)))
 struct JsEventDeliveryQueueTests {
 
-    @Test func enqueue_deliversEventsInOrder() async throws {
+    @Test
+    func enqueue_withSeveralEvents_deliversThemInOrder() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         queue.enqueue(event("one"))
@@ -72,7 +73,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.delivered == ["one", "two", "three"])
     }
 
-    @Test func enqueue_returnsPromptlyWhileDeliveryIsBlocked() async throws {
+    @Test
+    func enqueue_whileADeliveryIsBlocked_returnsPromptly() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         spy.blockDeliveries = true
@@ -91,7 +93,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.delivered == ["one", "two"])
     }
 
-    @Test func enqueue_beyondCapacityTriggersOverflowAndCancels() async throws {
+    @Test
+    func enqueue_whenTheBufferIsFull_reportsOverflowAndCancelsTheQueue() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue(capacity: 2)
         spy.blockDeliveries = true
@@ -114,7 +117,8 @@ struct JsEventDeliveryQueueTests {
         spy.openGate()
     }
 
-    @Test func enqueue_afterCancelIsRejectedWithoutOverflow() async throws {
+    @Test
+    func enqueue_afterTheQueueIsCancelled_isRejectedWithoutReportingOverflow() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         queue.cancel()
@@ -128,7 +132,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.delivered.isEmpty)
     }
 
-    @Test func cancel_dropsBufferedEvents() async throws {
+    @Test
+    func cancel_whileEventsAreBuffered_dropsThem() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         spy.blockDeliveries = true
@@ -144,7 +149,8 @@ struct JsEventDeliveryQueueTests {
         #expect(!spy.delivered.contains("two"))
     }
 
-    @Test func delivery_thatNeverCompletesTimesOutAndAbandonsThePage() async throws {
+    @Test
+    func enqueue_whenADeliveryNeverCompletes_timesOutAndAbandonsThePage() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue(deliveryTimeout: .milliseconds(50))
         spy.blockDeliveries = true
@@ -162,7 +168,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.overflowCount == 1)
     }
 
-    @Test func delivery_thatCompletesInTimeDoesNotTrip() async throws {
+    @Test
+    func enqueue_whenDeliveriesCompleteWithinTheTimeout_deliversWithoutAbandoningThePage() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue(deliveryTimeout: .seconds(30))
         queue.enqueue(event("one"))
@@ -175,7 +182,8 @@ struct JsEventDeliveryQueueTests {
         #expect(!queue.isCancelled)
     }
 
-    @Test func delivery_timeoutIsRearmedWhenTheAppWasBackgrounded() async throws {
+    @Test
+    func enqueue_whenTheDeadlineElapsesAcrossABackgroundSuspension_rearmsTheTimeout() async throws {
         let spy = DeliverySpy()
         let epoch = EpochCounter()
         // Every sample reports a further background transition. No deadline ever elapses
@@ -190,7 +198,8 @@ struct JsEventDeliveryQueueTests {
         spy.openGate()
     }
 
-    @Test func awaitPendingDeliveries_waitsForEnqueuedEventsToLand() async throws {
+    @Test
+    func awaitPendingDeliveries_whileEventsArePending_waitsForThemToLand() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         spy.blockDeliveries = true
@@ -208,7 +217,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.delivered == ["one", "two"])
     }
 
-    @Test func awaitPendingDeliveries_returnsImmediatelyWhenNothingIsPending() async throws {
+    @Test
+    func awaitPendingDeliveries_whenNothingIsPending_returnsImmediately() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         queue.enqueue(event("one"))
@@ -219,7 +229,8 @@ struct JsEventDeliveryQueueTests {
         #expect(spy.delivered == ["one"])
     }
 
-    @Test func awaitPendingDeliveries_isReleasedByCancel() async throws {
+    @Test
+    func awaitPendingDeliveries_whenTheQueueIsCancelled_isReleased() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue()
         spy.blockDeliveries = true
@@ -234,7 +245,8 @@ struct JsEventDeliveryQueueTests {
         spy.openGate()
     }
 
-    @Test func drainResumesAfterBacklogClears() async throws {
+    @Test
+    func enqueue_afterAnEarlierDeliveryLands_resumesDrainingTheBacklog() async throws {
         let spy = DeliverySpy()
         let queue = spy.makeQueue(capacity: 2)
         queue.enqueue(event("one"))

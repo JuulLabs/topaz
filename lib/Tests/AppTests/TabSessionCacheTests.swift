@@ -29,13 +29,15 @@ struct TabSessionCacheTests {
         return (cache, sessions)
     }
 
-    @Test func insertUnderCapRetainsAllSessions() {
+    @Test
+    func insert_whenUnderTheCap_retainsEverySession() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2, 3, 4])
         #expect(cache.count == 4)
         #expect(sessions.values.allSatisfy { $0.teardownCount == 0 })
     }
 
-    @Test func insertBeyondCapEvictsLeastRecentlyUsed() {
+    @Test
+    func insert_whenOverTheCap_evictsTheLeastRecentlyUsedSession() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2, 3, 4, 5])
         #expect(cache.count == 4)
         #expect(cache.session(for: 1) == nil)
@@ -43,7 +45,8 @@ struct TabSessionCacheTests {
         #expect([2, 3, 4, 5].allSatisfy { cache.session(for: $0) != nil })
     }
 
-    @Test func activeTabIsNeverEvictedByCap() {
+    @Test
+    func insert_whenTheLeastRecentlyUsedTabIsActive_evictsTheOldestUnpinnedSessionInstead() {
         let (cache, sessions) = cacheWithSessions(cap: 2, tabs: [1, 2])
         cache.markActive(1)
         cache.insert(MockSession(tabIndex: 3))
@@ -54,7 +57,8 @@ struct TabSessionCacheTests {
         #expect(cache.session(for: 3) != nil)
     }
 
-    @Test func markActiveRefreshesRecency() {
+    @Test
+    func markActive_whenTheTabIsLive_refreshesItsRecency() {
         let (cache, _) = cacheWithSessions(cap: 3, tabs: [1, 2, 3])
         cache.markActive(1)
         cache.markActive(2)
@@ -65,7 +69,8 @@ struct TabSessionCacheTests {
         #expect(cache.session(for: 2) != nil)
     }
 
-    @Test func lookupDoesNotRefreshRecency() {
+    @Test
+    func session_whenLookingUpALiveTab_doesNotRefreshItsRecency() {
         let (cache, _) = cacheWithSessions(cap: 3, tabs: [1, 2, 3])
         cache.markActive(3)
         _ = cache.session(for: 1)
@@ -74,13 +79,15 @@ struct TabSessionCacheTests {
         #expect(cache.session(for: 2) != nil)
     }
 
-    @Test func markActiveForUnknownTabIsIgnored() {
+    @Test
+    func markActive_whenTheTabHasNoLiveSession_leavesThePinUnset() {
         let (cache, _) = cacheWithSessions(cap: 3, tabs: [1])
         cache.markActive(99)
         #expect(cache.pinnedTabIndex == nil)
     }
 
-    @Test func evictTearsDownExactlyOnce() {
+    @Test
+    func evict_whenCalledTwiceForTheSameTab_tearsDownTheSessionOnce() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2])
         cache.evict(1)
         cache.evict(1)
@@ -88,20 +95,23 @@ struct TabSessionCacheTests {
         #expect(cache.count == 1)
     }
 
-    @Test func evictUnknownTabIsNoOp() {
+    @Test
+    func evict_whenTheTabHasNoLiveSession_leavesTheCacheUnchanged() {
         let (cache, _) = cacheWithSessions(cap: 4, tabs: [1])
         cache.evict(42)
         #expect(cache.count == 1)
     }
 
-    @Test func evictActiveTabClearsPin() {
+    @Test
+    func evict_whenTheTabIsActive_clearsThePin() {
         let (cache, _) = cacheWithSessions(cap: 4, tabs: [1, 2])
         cache.markActive(1)
         cache.evict(1)
         #expect(cache.pinnedTabIndex == nil)
     }
 
-    @Test func evictAllKeepsOnlyTheSparedSession() {
+    @Test
+    func evictAll_withASparedTab_keepsOnlyThatSession() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2, 3, 4])
         cache.markActive(2)
         cache.evictAll(except: 2)
@@ -111,7 +121,8 @@ struct TabSessionCacheTests {
         #expect([1, 3, 4].allSatisfy { sessions[$0]?.teardownCount == 1 })
     }
 
-    @Test func evictAllSparesTheNamedTabRatherThanThePin() {
+    @Test
+    func evictAll_whenTheSparedTabIsNotThePinnedOne_sparesTheNamedTabAndEvictsThePinnedOne() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2])
         cache.markActive(1)
         cache.evictAll(except: 2)
@@ -120,14 +131,16 @@ struct TabSessionCacheTests {
         #expect(sessions[2]?.teardownCount == 0)
     }
 
-    @Test func evictAllWithNothingSparedEvictsEverything() {
+    @Test
+    func evictAll_withNothingSpared_evictsEverySession() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2])
         cache.evictAll(except: nil)
         #expect(cache.count == 0)
         #expect(sessions.values.allSatisfy { $0.teardownCount == 1 })
     }
 
-    @Test func evictAllTearsDownEverythingIncludingActive() {
+    @Test
+    func evictAll_whenATabIsActive_tearsDownEverySessionAndClearsThePin() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1, 2, 3])
         cache.markActive(2)
         cache.evictAll()
@@ -136,7 +149,8 @@ struct TabSessionCacheTests {
         #expect(sessions.values.allSatisfy { $0.teardownCount == 1 })
     }
 
-    @Test func reinsertingSameTabReplacesAndTearsDownOldSession() {
+    @Test
+    func insert_whenAnotherSessionIsCachedForTheTab_replacesItAndTearsDownTheOldOne() {
         let (cache, sessions) = cacheWithSessions(cap: 4, tabs: [1])
         let replacement = MockSession(tabIndex: 1)
         cache.insert(replacement)
@@ -146,7 +160,8 @@ struct TabSessionCacheTests {
         #expect(cache.session(for: 1) === replacement)
     }
 
-    @Test func reinsertingIdenticalSessionDoesNotTearItDown() {
+    @Test
+    func insert_whenTheSameSessionIsAlreadyCached_doesNotTearItDown() {
         let cache = TabSessionCache<MockSession>(maxLiveSessions: 4)
         let session = MockSession(tabIndex: 1)
         cache.insert(session)
@@ -155,7 +170,8 @@ struct TabSessionCacheTests {
         #expect(cache.count == 1)
     }
 
-    @Test func newlyInsertedSessionIsProtectedFromItsOwnEviction() {
+    @Test
+    func insert_whenTheCapIsFullOfProtectedTabs_keepsTheNewSessionAlive() {
         let (cache, sessions) = cacheWithSessions(cap: 1, tabs: [1])
         cache.markActive(1)
         let incoming = MockSession(tabIndex: 2)
@@ -171,7 +187,8 @@ struct TabSessionCacheTests {
         #expect(sessions[1]?.teardownCount == 1)
     }
 
-    @Test func liveTabIndexesReportsLruOrder() {
+    @Test
+    func liveTabIndexes_whenATabIsActive_ordersTabsLeastRecentlyUsedFirst() {
         let (cache, _) = cacheWithSessions(cap: 4, tabs: [1, 2, 3])
         cache.markActive(1)
         #expect(cache.liveTabIndexes == [2, 3, 1])

@@ -31,7 +31,7 @@ private final class WipeSpy {
 struct SettingsModelTests {
 
     @Test
-    func removeAllData_resetsSessionsOnlyAfterTheWipeCompletes() async throws {
+    func removeAllDataButtonTapped_whileTheWipeIsStillInFlight_resetsSessionsOnlyAfterItCompletes() async throws {
         let model = SettingsModel()
         let spy = WipeSpy()
         model.removeAllWebData = { await spy.beginWipe() }

@@ -20,7 +20,7 @@ struct WebPageModelTests {
     }
 
     @Test
-    func teardown_deniesAPendingPermissionsRequest() async throws {
+    func teardown_withAPermissionsRequestStillPending_deniesIt() async throws {
         let model = makeModel()
         // Establish the page origin so authorization is requested rather than refused outright
         model.didBeginLoading(url: URL(string: "https://pending-permissions.example")!)
@@ -38,7 +38,7 @@ struct WebPageModelTests {
     }
 
     @Test
-    func teardown_withoutAPendingRequestIsHarmless() async throws {
+    func teardown_withoutAPendingRequest_isHarmlessWhenRepeated() async throws {
         let model = makeModel()
         model.teardown()
         model.teardown()
@@ -46,7 +46,7 @@ struct WebPageModelTests {
     }
 
     @Test
-    func webView_beforeTeardownReturnsAStableInstance() async throws {
+    func webView_whenCalledRepeatedlyBeforeTeardown_returnsTheSameInstance() async throws {
         let model = makeModel()
         let first = model.webView()
         let second = model.webView()
@@ -55,7 +55,7 @@ struct WebPageModelTests {
     }
 
     @Test
-    func webView_afterTeardownRefusesToResurrectTheSession() async throws {
+    func webView_afterTeardown_refusesToResurrectTheSession() async throws {
         let model = makeModel()
         let original = model.webView()
         #expect(original != nil)
@@ -67,7 +67,7 @@ struct WebPageModelTests {
     }
 
     @Test
-    func teardown_beforeAnyWebViewExistsIsStillTerminal() async throws {
+    func teardown_beforeAnyWebViewExists_isStillTerminal() async throws {
         let model = makeModel()
         model.teardown()
         #expect(model.isTornDown)
