@@ -76,8 +76,6 @@ struct TabGatedDeviceSelectorTests {
         async let pendingResult = await activeTab.awaitSelection()
         await Task.bigYield()
         #expect(inner.isSelecting == true)
-        // A background tab scans briefly before its own awaitSelection is rejected.
-        // Those advertisements must not reach the picker of the active tab.
         let intruder = FakePeripheral(id: zeroUuid, name: "intruder")
         await backgroundTab.showAdvertisement(peripheral: intruder, advertisement: intruder.fakeAdvertisement(rssi: 0))
         await Task.bigYield()

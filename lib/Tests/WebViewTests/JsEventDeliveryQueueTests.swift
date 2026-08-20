@@ -155,8 +155,6 @@ struct JsEventDeliveryQueueTests {
         let queue = spy.makeQueue(deliveryTimeout: .milliseconds(50))
         spy.blockDeliveries = true
         queue.enqueue(event("one"))
-        // The WebKit delivery callback is not cancellable. The queue must not park its
-        // drain task forever behind it, so the timeout converges like an overflow.
         while spy.overflowCount == 0 {
             await Task.yield()
         }

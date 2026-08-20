@@ -8,8 +8,8 @@ import Observation
 @MainActor
 protocol LiveTabSession: AnyObject {
     var tabIndex: Int { get }
-    /// Ends the session: expected to disconnect any BLE peripherals, detach the
-    /// script handler, and release the web view. Must be safe to call repeatedly.
+    /// Ends the session, releasing its web view and BLE connections. Must be safe to
+    /// call repeatedly.
     func teardown()
 }
 
@@ -79,7 +79,6 @@ final class TabSessionCache<Session: LiveTabSession> {
         refreshRecency(of: tabIndex)
     }
 
-    /// Tears down and removes the session for the given tab. No-op for unknown tabs.
     func evict(_ tabIndex: Int) {
         guard let session = sessions.removeValue(forKey: tabIndex) else { return }
         lruOrder.removeAll { $0 == tabIndex }

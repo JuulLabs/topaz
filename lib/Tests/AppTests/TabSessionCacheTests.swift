@@ -50,7 +50,6 @@ struct TabSessionCacheTests {
         let (cache, sessions) = cacheWithSessions(cap: 2, tabs: [1, 2])
         cache.markActive(1)
         cache.insert(MockSession(tabIndex: 3))
-        // Tab 2 is the LRU candidate because tab 1 is pinned despite being older
         #expect(cache.session(for: 1) != nil)
         #expect(cache.session(for: 2) == nil)
         #expect(sessions[2]?.teardownCount == 1)

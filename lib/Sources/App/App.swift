@@ -23,10 +23,9 @@ public struct AppContentView: View {
 
     public var body: some View {
         ZStack {
-            // Keep-alive underlay. Web views for background sessions stay parented in
-            // the window, invisible and non-interactive, so WebKit keeps their content
-            // processes running. Their pages therefore keep receiving BLE events.
-            // Chrome (nav bar, sheets, alerts) is never mounted for a background session.
+            // Keep-alive underlay. Background web views stay parented in the window,
+            // invisible and non-interactive, so WebKit keeps their content processes
+            // running and their pages keep receiving BLE events.
             ForEach(model.backgroundSessions) { session in
                 if let webContainerModel = session.loadingModel.webContainerModel {
                     WebPageView(model: webContainerModel.webPageModel)

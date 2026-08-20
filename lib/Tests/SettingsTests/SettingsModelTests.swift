@@ -42,8 +42,7 @@ struct SettingsModelTests {
         while spy.wipeStarted == false {
             await Task.yield()
         }
-        // The wipe is still in flight, so sessions must not have been reset yet.
-        // A reloading page could read, and re-persist, the data being removed.
+        // A page reloaded now could read, and re-persist, the data being removed
         #expect(spy.events.isEmpty)
 
         spy.finishWipe()

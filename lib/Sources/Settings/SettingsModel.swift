@@ -16,12 +16,10 @@ public final class SettingsModel {
 
     public var dismiss: () -> Void  = {}
     public var shareItem: SharingUrl = .init()
-    /// Called after the user removes all browsing data, so live web sessions can be torn
-    /// down. No page may keep in-memory state whose backing storage was wiped.
+    /// Called after the user removes all browsing data, so live sessions can be torn down.
     public var onRemoveAllData: () -> Void = {}
 
-    /// Wipes the web data. Injectable for tests. Must return only once the removal has
-    /// finished, so callers can sequence dependent work after it.
+    /// Wipes the web data, returning only once the removal has finished. Injectable for tests.
     var removeAllWebData: @MainActor () async -> Void = { await cleanWebCache() }
 
     public var presentClearCacheDialogue: Bool = false

@@ -33,28 +33,21 @@ public class AppModel {
     /// Live (page-loaded) sessions retained across tab switches, bounded by an LRU cap.
     let sessions = TabSessionCache<TabSession>()
 
-    /// Shared with per-tab collaborators (e.g. the device selector gate) so they can
-    /// distinguish the displayed tab from background tabs.
     let activeTabState: ActiveTabState
 
-    /// The session currently displayed. A fresh tab (no page load yet) lives only here.
-    /// It enters the session cache when its first page load starts. Nil shows the tab
-    /// grid, where cached sessions stay alive underneath.
+    /// The session currently displayed. A fresh tab lives only here until its first page
+    /// load caches it. Nil shows the tab grid, with cached sessions alive underneath.
     var activeSession: TabSession? {
         didSet {
             if oldValue !== activeSession {
-                // The outgoing web view moves to the invisible underlay, or away
-                // entirely. A first responder left behind there floats a stale
-                // keyboard over the incoming view.
                 oldValue?.resignFocus()
             }
             activeTabState.setActiveTab(activeSession?.tabIndex)
         }
     }
 
-    /// Sessions kept alive but not displayed. Their web views stay parented in the
-    /// view hierarchy, invisible, so WebKit keeps their content processes running.
-    /// Their Js contexts and BLE data processing therefore keep running too.
+    /// Sessions kept alive but not displayed. Their web views stay parented, invisible,
+    /// so their Js contexts and BLE data processing keep running.
     var backgroundSessions: [TabSession] {
         sessions.allSessions.filter { $0.tabIndex != activeSession?.tabIndex && $0.hasStartedPageLoad }
     }
@@ -102,8 +95,7 @@ public class AppModel {
 
         tabsModel.onTabDeleted = { [weak self] tabIndex in
             guard let self else { return }
-            // Evict the live session now, disconnecting BLE. A deleted tab is
-            // unreachable, so its session would otherwise linger as a zombie.
+            // A deleted tab is unreachable: evict now so its BLE connections do not linger
             sessions.evict(tabIndex)
             if lastOpenedTabIndex == tabIndex {
                 lastOpenedTabIndex = nil
@@ -169,20 +161,17 @@ public class AppModel {
         }
     }
 
-    /// Sheds every background session, which reverts each tab to reload-on-revisit,
-    /// and leaves the displayed session untouched. The app gives up memory itself
-    /// rather than let the system jetsam it wholesale. With the tab grid showing,
-    /// nothing is displayed and every session is shed.
+    /// Sheds every background session, which reverts each tab to reload-on-revisit, and
+    /// leaves the displayed session untouched. The app gives up memory itself rather than
+    /// let the system jetsam it wholesale.
     func didReceiveMemoryWarning() {
         sessions.evictAll(except: activeSession?.tabIndex)
     }
 
-    /// Recovery for a tab whose page state is unrecoverable. The web content process
-    /// was killed, or the page wedged and overflowed its event delivery buffer. Either
-    /// way the Js object graph is gone while the native BLE state survives. Converge
-    /// both sides to empty by tearing down. The displayed tab rebuilds and reloads in
-    /// place instead of showing a dead web view. Background tabs revert to
-    /// reload-on-revisit.
+    /// Recovery for a tab whose page state is unrecoverable. The web content process was
+    /// killed, or the page wedged and overflowed its event delivery buffer. Either way the
+    /// Js object graph is gone while the native BLE state survives, so tearing down
+    /// converges both sides to empty.
     private func discardAndRebuildSession(tabIndex: Int) {
         let wasDisplayed = activeSession?.tabIndex == tabIndex
         sessions.evict(tabIndex)

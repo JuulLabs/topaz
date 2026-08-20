@@ -31,7 +31,6 @@ extension DeviceSelectionError: DomErrorConvertable {
         switch self {
         // Web Bluetooth: overlapping requestDevice calls are not permitted
         case .busy: .notAllowed
-        // Web Bluetooth: no chooser selection resolves to NotFoundError
         case .cancelled: .notFound
         case .invalidSelection: .notFound
         // Web Bluetooth: requestDevice requires a visible document + user activation

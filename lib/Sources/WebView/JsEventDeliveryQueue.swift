@@ -101,9 +101,7 @@ final class JsEventDeliveryQueue {
         return .success(())
     }
 
-    /// Waits until every event accepted before this call has reached the page. Callers
-    /// that must not let a reply overtake its own event await this before they reply. A
-    /// characteristic read is one: the page takes the value from the event. The wait is
+    /// Waits until every event accepted before this call has reached the page. The wait is
     /// borne by the requesting page, never by the producer that feeds the queue.
     func awaitPendingDeliveries() async {
         guard !isCancelled, deliveredCount < enqueuedCount else { return }
@@ -164,9 +162,8 @@ final class JsEventDeliveryQueue {
     /// all it keeps alive, forever. The loser of the race is left to resolve, or to
     /// leak inside WebKit, on its own.
     ///
-    /// The timeout only indicts the page for time the app actually spent running. A
-    /// deadline that elapsed across a background suspension is re-armed instead.
-    /// Switching away from a healthy tab mid-delivery cannot cost it its session.
+    /// A deadline that elapsed across a background suspension is re-armed, so only
+    /// foreground time can indict the page.
     private func deliverRacingTimeout(_ event: JsEvent) async -> Result<Void, any Error> {
         let deliver = self.deliver
         let timeout = self.deliveryTimeout

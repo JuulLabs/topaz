@@ -48,9 +48,8 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
-    /// Called when the system kills the web content process for this page. The Js heap,
-    /// and the polyfill object graph with it, is gone while native state survives. The
-    /// owner must tear this session down and rebuild it (converge-to-empty).
+    /// Called when the system kills the web content process for this page. The owner must
+    /// tear this session down and rebuild it (converge-to-empty).
     @ObservationIgnored
     public var onWebContentProcessTerminated: (() -> Void)?
 
@@ -157,11 +156,9 @@ public class WebPageModel: Identifiable {
         return webView
     }
 
-    /// Tears down the web session. Denies any pending permissions request, so neither
-    /// its continuation nor the script message reply that awaits it can leak. Detaches
-    /// the script handler, which shuts down its message processors and any BLE
-    /// connections they hold. Clears delegates and releases the web view. Idempotent
-    /// and terminal: `webView()` returns nil afterwards.
+    /// Tears down the web session. Denies any pending permissions request, so neither its
+    /// continuation nor the script message reply that awaits it can leak. Idempotent and
+    /// terminal: `webView()` returns nil afterwards.
     public func teardown() {
         isTornDown = true
         // Resolve before the web-view guard. A request can be parked while the

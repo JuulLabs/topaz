@@ -28,9 +28,8 @@ struct WebPageModelTests {
         while model.presentPermissionsDialog == false {
             await Task.yield()
         }
-        // Tearing down with the request still parked must deny it. Otherwise the
-        // continuation leaks and hangs the page promise forever. The tab may have been
-        // evicted while backgrounded, before its permissions alert could ever mount.
+        // Otherwise the continuation leaks and hangs the page promise forever. The tab may
+        // have been evicted while backgrounded, before its permissions alert could mount.
         model.teardown()
         let authorized = await pendingAuthorization
         #expect(authorized == false)
@@ -61,8 +60,7 @@ struct WebPageModelTests {
         #expect(original != nil)
         model.teardown()
         #expect(model.isTornDown)
-        // A stray view update after eviction must not conjure a replacement web view.
-        // It would live outside the accounting of the session cache.
+        // A stray view update after eviction must not conjure a replacement web view
         #expect(model.webView() == nil)
     }
 

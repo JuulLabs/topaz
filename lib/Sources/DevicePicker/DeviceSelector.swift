@@ -35,9 +35,8 @@ public final class DeviceSelector: InteractiveDeviceSelector {
 
     public func awaitSelection() async -> Result<Bluetooth.Peripheral, DeviceSelectionError> {
         guard selectionContinuaton == nil else {
-            // A selection is already in flight, e.g. started by another tab. Reject the
-            // newcomer immediately rather than clobber the pending continuation.
-            // Clobbering leaks it and hangs the original requester forever.
+            // Clobbering the pending continuation leaks it and hangs the original
+            // requester forever, so reject the newcomer instead.
             return .failure(.busy)
         }
         isSelecting = true

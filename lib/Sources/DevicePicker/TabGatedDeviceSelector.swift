@@ -3,10 +3,9 @@ import Foundation
 
 /// Restricts interactive device selection to the currently displayed tab.
 ///
-/// The device picker UI is only mounted for the active tab. Web Bluetooth also requires
-/// a visible document, plus user activation, for `requestDevice()`. A request from a
-/// background tab therefore fails fast with a page-visibility error. It does not present
-/// UI over an unrelated tab, nor hang until the tab is next displayed.
+/// Web Bluetooth requires a visible document, plus user activation, for
+/// `requestDevice()`. A request from a background tab therefore fails fast rather than
+/// present UI over an unrelated tab or hang until the tab is next displayed.
 @MainActor
 public final class TabGatedDeviceSelector: InteractiveDeviceSelector {
     private let tab: Int
