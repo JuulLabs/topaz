@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CON-4 Related Origin Requests probe</title>
+<style>
+  body { font: 16px/1.4 -apple-system, system-ui, sans-serif; margin: 0; padding: 16px; }
+  h1 { font-size: 18px; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 16px; }
+  dt { font-weight: 600; }
+  dd { margin: 0; word-break: break-all; }
+  label { display: block; margin: 12px 0 4px; font-weight: 600; }
+  input { width: 100%; padding: 8px; font-size: 16px; box-sizing: border-box; }
+  button { display: block; width: 100%; margin: 8px 0; padding: 12px; font-size: 16px; }
+  pre { background: #f2f2f2; padding: 12px; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>CON-4 Related Origin Requests probe</h1>
+
+<dl>
+  <dt>Page origin</dt><dd id="origin"></dd>
+  <dt>RP ID default</dt><dd id="rp-default"></dd>
+  <dt>Secure context</dt><dd id="secure"></dd>
+  <dt>User agent</dt><dd id="ua"></dd>
+</dl>
+
+<label for="rp-id">Relying party ID</label>
+<input id="rp-id" autocapitalize="off" autocorrect="off" spellcheck="false">
+
+<button id="capabilities">Read client capabilities</button>
+<button id="create">Register — navigator.credentials.create()</button>
+<button id="get">Authenticate — navigator.credentials.get()</button>
+<button id="get-conditional">Authenticate (conditional mediation)</button>
+<button id="clear">Clear log</button>
+
+<pre id="log"></pre>
+
+<script>
+(function () {
+  var params = new URLSearchParams(location.search);
+  var defaultRpId = params.get('rpId') || 'juul.com';
+
+  document.getElementById('origin').textContent = location.origin;
+  document.getElementById('rp-default').textContent = defaultRpId;
+  document.getElementById('secure').textContent = String(window.isSecureContext);
+  document.getElementById('ua').textContent = navigator.userAgent;
+  document.getElementById('rp-id').value = defaultRpId;
+
+  var logElement = document.getElementById('log');
+
+  function log(label, value) {
+    var stamp = new Date().toISOString().slice(11, 23);
+    var body = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+    logElement.textContent += stamp + '  ' + label + '\n' + body + '\n\n';
+  }
+
+  function describe(error) {
+    return {
+      name: error && error.name,
+      message: error && error.message,
+      string: String(error)
+    };
+  }
+
+  function randomBytes(length) {
+    return crypto.getRandomValues(new Uint8Array(length));
+  }
+
+  function rpId() {
+    return document.getElementById('rp-id').value.trim();
+  }
+
+  document.getElementById('capabilities').addEventListener('click', async function () {
+    if (typeof PublicKeyCredential === 'undefined') {
+      log('capabilities', 'PublicKeyCredential is undefined — no WebAuthn in this web view');
+      return;
+    }
+    var report = { hasGetClientCapabilities: typeof PublicKeyCredential.getClientCapabilities === 'function' };
+    try {
+      if (report.hasGetClientCapabilities) {
+        report.capabilities = await PublicKeyCredential.getClientCapabilities();
+      }
+      if (typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+        report.userVerifyingPlatformAuthenticator =
+          await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      }
+      if (typeof PublicKeyCredential.isConditionalMediationAvailable === 'function') {
+        report.conditionalMediation = await PublicKeyCredential.isConditionalMediationAvailable();
+      }
+      log('capabilities', report);
+    } catch (error) {
+      log('capabilities failed', describe(error));
+    }
+  });
+
+  document.getElementById('create').addEventListener('click', async function () {
+    var id = rpId();
+    log('create requested', { rpId: id, origin: location.origin });
+    try {
+      var credential = await navigator.credentials.create({
+        publicKey: {
+          challenge: randomBytes(32),
+          rp: { id: id, name: 'CON-4 probe' },
+          user: { id: randomBytes(16), name: 'con-4@probe.invalid', displayName: 'CON-4 probe' },
+          pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+          authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'required' },
+          timeout: 60000,
+          attestation: 'none'
+        }
+      });
+      log('create resolved', { id: credential.id, type: credential.type });
+    } catch (error) {
+      log('create rejected', describe(error));
+    }
+  });
+
+  async function authenticate(mediation) {
+    var id = rpId();
+    log('get requested', { rpId: id, origin: location.origin, mediation: mediation || 'default' });
+    var request = {
+      publicKey: {
+        challenge: randomBytes(32),
+        rpId: id,
+        allowCredentials: [],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    };
+    if (mediation) {
+      request.mediation = mediation;
+    }
+    try {
+      var assertion = await navigator.credentials.get(request);
+      log('get resolved', { id: assertion && assertion.id, type: assertion && assertion.type });
+    } catch (error) {
+      log('get rejected', describe(error));
+    }
+  }
+
+  document.getElementById('get').addEventListener('click', function () { authenticate(null); });
+  document.getElementById('get-conditional').addEventListener('click', function () { authenticate('conditional'); });
+  document.getElementById('clear').addEventListener('click', function () { logElement.textContent = ''; });
+}());
+</script>
+</body>
+</html>
