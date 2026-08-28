@@ -37,9 +37,11 @@ runs:
       shell: bash
       run: |
         DEV_CERT=$API_KEY_DIR/dev_cert.p12
-        openssl pkcs12 -in "$DEV_CERT" -out client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
-        openssl x509 -in client_cert.pem -noout -text
-        CERT_DATE=$(openssl x509 -in client_cert.pem -noout -enddate | cut -d= -f 2)
+        # Apple .p12 exports are encrypted with RC2-40-CBC, which the OpenSSL 3 on PATH refuses to
+        # read without its legacy provider. System LibreSSL supports it, so call it explicitly.
+        /usr/bin/openssl pkcs12 -in "$DEV_CERT" -out client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
+        /usr/bin/openssl x509 -in client_cert.pem -noout -text
+        CERT_DATE=$(/usr/bin/openssl x509 -in client_cert.pem -noout -enddate | cut -d= -f 2)
         rm client_cert.pem
         echo "Certificate expiration date: $CERT_DATE"
         test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
@@ -56,9 +58,10 @@ runs:
       shell: bash
       run: |
         DISTRIBUTION_CERT=$API_KEY_DIR/distribution_cert.p12
-        openssl pkcs12 -in "$DISTRIBUTION_CERT" -out distribution_client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
-        openssl x509 -in distribution_client_cert.pem -noout -text
-        CERT_DATE=$(openssl x509 -in distribution_client_cert.pem -noout -enddate | cut -d= -f 2)
+        # See the development certificate validation above for why this is not plain `openssl`.
+        /usr/bin/openssl pkcs12 -in "$DISTRIBUTION_CERT" -out distribution_client_cert.pem -nokeys -passin "pass:$APPLE_CERTIFICATE_PASSKEY"
+        /usr/bin/openssl x509 -in distribution_client_cert.pem -noout -text
+        CERT_DATE=$(/usr/bin/openssl x509 -in distribution_client_cert.pem -noout -enddate | cut -d= -f 2)
         rm distribution_client_cert.pem
         echo "Distribution certificate expiration date: $CERT_DATE"
         test $(date -j -f '%b %d %H:%M:%S %Y %Z' "$CERT_DATE" '+%s') -gt $(date '+%s')
