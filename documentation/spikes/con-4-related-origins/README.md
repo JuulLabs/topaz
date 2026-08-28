@@ -11,8 +11,8 @@ every `*.stage.juul.com` host, so the US path needs no related-origins mechanism
 `www.juul.com.kw` — those markets work only if Related Origin Requests are honoured.
 
 The deliverable is a recorded decision, not shippable code. Nothing here is built, linted or
-shipped by the app; the pages are static and are meant to be deleted once the decision is
-recorded on CON-4.
+shipped by the app; the pages are static and are meant to be deleted after human review and
+the literal `juul.com` production smoke test.
 
 ## Contents
 
