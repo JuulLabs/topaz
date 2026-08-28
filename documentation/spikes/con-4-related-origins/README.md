@@ -119,9 +119,15 @@ the exact non-US Topaz case. Prefer `getClientCapabilities().passkeyPlatformAuth
 where available, with a graceful fallback and ceremony-error handling.
 
 Topaz was associated only with the RP host, not the requesting related origin. Its successful
-listed-origin assertion therefore confirms that the Associated Domains requirement is keyed
-to the **RP ID**. Topaz needs one `webcredentials:juul.com` association, not one association per
-storefront origin.
+listed-origin assertion therefore confirms that, when using Associated Domains, the
+association is keyed to the **RP ID**: one `webcredentials:juul.com` association is sufficient,
+not one association per storefront origin.
+
+The run did **not** test an otherwise-identical Topaz build with no Associated Domains
+entitlement, so it does not empirically prove that zero associations fails. Apple's documented
+`WKWebView` requirement is a `webcredentials` association for the RP ID unless the browser has
+the separately approved `com.apple.developer.web-browser.public-key-credential` entitlement;
+Topaz has neither entitlement on `main`.
 
 The omitted-origin run also exposed two operational details:
 
@@ -131,10 +137,12 @@ The omitted-origin run also exposed two operational details:
   only after a device reboot, despite the well-known response using `Cache-Control: no-store`.
   Do not treat removing an origin from this document as an immediate revocation mechanism.
 
-**Recommendation: proceed as designed** with global RP ID `juul.com`, one Topaz Associated
-Domains entry, and the related-origins document. The iframe and per-market RP-ID fallbacks are
-not needed based on this result. Before rollout, the apex `juul.com` well-known endpoints still
-need their production configuration and a final smoke test using the literal production RP ID.
+**Recommendation: proceed as designed** with global RP ID `juul.com`, Apple's documented
+`WKWebView` authorization mechanism (one Topaz Associated Domains entry unless the browser
+entitlement is approved), and the related-origins document. The iframe and per-market RP-ID
+fallbacks are not needed based on this result. Before rollout, the apex `juul.com` well-known
+endpoints still need their production configuration and a final smoke test using the literal
+production RP ID.
 
 User agents:
 
@@ -145,9 +153,11 @@ Topaz:  Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1
 
 ## Reading the result
 
-* **Row 4 succeeds** → Related Origin Requests are honoured in `WKWebView` and the association
-  is keyed on the RP ID. Recommendation: proceed as designed — one `webcredentials:juul.com`
-  entry, one `/.well-known/webauthn` document, credentials roam across markets.
+* **Row 4 succeeds** → Related Origin Requests are honoured in `WKWebView`; with an RP-host-only
+  entitlement, this proves one `webcredentials:juul.com` entry is sufficient rather than one
+  per page origin. It does not test whether an entitlement is required. Recommendation: proceed
+  as designed — use Apple's documented authorization mechanism, one
+  `/.well-known/webauthn` document, and credentials that roam across markets.
 * **Row 4 fails while row 3 succeeds** → the web view, not the platform, is the limitation.
   Recommendation: the `juul.com` iframe fallback with
   `allow="publickey-credentials-get; publickey-credentials-create"` on non-`.com` storefronts,
