@@ -87,6 +87,62 @@ Also record for each run: iOS build number, Topaz build (commit or version), `na
 (Topaz can switch UA mode — leave it on the default `topaz` mode), and whether the credential
 created in row 2 is offered in row 4 (credentials only roam between origins that share an RP ID).
 
+## Physical-device result
+
+Tested 2026-08-27–28 on an iPhone XS Max running iOS 18.7.9. Topaz was built from commit
+`6dd0d36` with an unpushed development entitlement for the disposable RP host. Because the
+live `juul.com` AASA redirects and omits Topaz and its WebAuthn well-known endpoint returns 403,
+the test used a behaviorally equivalent pair of cross-registrable-domain Netlify sites:
+
+* RP ID and same-origin control: `magnificent-mermaid-370840.netlify.app`
+* Related origin: `https://glowing-druid-65c4ea.netlify.app`
+* Topaz entitlement: `webcredentials:magnificent-mermaid-370840.netlify.app?mode=developer`
+* RP-host AASA: `webcredentials.apps = ["5EH8QG4538.com.juullabs.topaz"]`
+
+This substitution proves the platform and entitlement behavior but does not validate the
+eventual `juul.com` CDN, AASA, certificate or redirect configuration.
+
+| Page / condition | Safari 18.7.6 | Topaz 1.0.0 |
+| --- | --- | --- |
+| RP host, create | Resolved; system passkey sheet appeared | Not repeated |
+| RP host, get, related origin listed | Resolved with the Safari-created credential | Resolved with the Safari-created credential; system sheet appeared |
+| Related site, get, origin listed | Resolved with the same credential; system sheet appeared | Resolved with the same credential; system sheet appeared |
+| RP host, get, related origin omitted | Resolved as expected; the well-known list is irrelevant on the RP host | Resolved as expected |
+| Related site, get, origin omitted | Rejected without a sheet: `SecurityError: The requested RPID did not match the origin or related origins.` | Continued to resolve until the device rebooted, even after reinstalling Topaz. After reboot it rejected without a sheet as `NotAllowedError: The request is not allowed by the user agent or the platform in the current context, possibly because the user denied permission.` |
+
+Both browsers reported `relatedOrigins: true` from `getClientCapabilities()`. On the listed
+related-origin page, Topaz also reported `passkeyPlatformAuthenticator: true` there and
+successfully authenticated, while the legacy
+`isUserVerifyingPlatformAuthenticatorAvailable()` helper returned `false`. Viewlio must not
+use that legacy helper as the sole visibility gate: it would hide a working passkey button in
+the exact non-US Topaz case. Prefer `getClientCapabilities().passkeyPlatformAuthenticator`
+where available, with a graceful fallback and ceremony-error handling.
+
+Topaz was associated only with the RP host, not the requesting related origin. Its successful
+listed-origin assertion therefore confirms that the Associated Domains requirement is keyed
+to the **RP ID**. Topaz needs one `webcredentials:juul.com` association, not one association per
+storefront origin.
+
+The omitted-origin run also exposed two operational details:
+
+* Safari reports an unauthorized related origin as `SecurityError`; Topaz reports
+  `NotAllowedError`, indistinguishable in JavaScript from denial or cancellation.
+* Topaz's successful authorization remained cached across an app reinstall and was refreshed
+  only after a device reboot, despite the well-known response using `Cache-Control: no-store`.
+  Do not treat removing an origin from this document as an immediate revocation mechanism.
+
+**Recommendation: proceed as designed** with global RP ID `juul.com`, one Topaz Associated
+Domains entry, and the related-origins document. The iframe and per-market RP-ID fallbacks are
+not needed based on this result. Before rollout, the apex `juul.com` well-known endpoints still
+need their production configuration and a final smoke test using the literal production RP ID.
+
+User agents:
+
+```text
+Safari: Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.7.6 Mobile/15E148 Safari/604.1
+Topaz:  Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Version/18.7 Topaz/1.0.0
+```
+
 ## Reading the result
 
 * **Row 4 succeeds** → Related Origin Requests are honoured in `WKWebView` and the association
@@ -132,6 +188,7 @@ but it does not answer the Associated Domains half at all, which is why the spik
 
 ## Recording the outcome
 
-Fill the matrix in, paste the probe logs and the recommendation into a comment on
-[CON-4](https://linear.app/juul/issue/CON-4), and fold the decision into the Biometric Login PRD
-(the project's only decisions document, Linear-only). Then delete this directory.
+The result and recommendation are recorded on
+[CON-4](https://linear.app/juul/issue/CON-4) and in the Linear-only Biometric Login PRD. Keep
+this directory through human review and the literal `juul.com` production smoke test, then
+delete it.
