@@ -82,6 +82,17 @@ public actor EventBus {
     }
 
     /**
+     Wait for Javascript events already sent to reach the page.
+
+     Sending is decoupled from delivery, so without this a reply can overtake the event
+     that carries its value.
+     */
+    public nonisolated func awaitPendingJsDeliveries() async {
+        guard let context = await self.jsContext else { return }
+        await context.awaitPendingDeliveries()
+    }
+
+    /**
      Cancel all pending operations that are awaiting on events and detach all listeners.
      */
     public func cancelEverything(with error: any Error) {

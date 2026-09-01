@@ -67,6 +67,22 @@ struct WebContainerView: View {
             }
             .presentationDetents([.medium])
         }
+        // Presented here (active-tab chrome) rather than on the web page host so that
+        // background sessions can never raise UI
+        .alert("This website would like to use Bluetooth®", isPresented: $webContainerModel.webPageModel.presentPermissionsDialog, actions: {
+            Button {
+                webContainerModel.webPageModel.allowPermissionsButtonTapped()
+            } label: {
+                Text("Allow")
+            }
+            Button(role: .cancel) {
+                webContainerModel.webPageModel.denyPermissionsButtonTapped()
+            } label: {
+                Text("Deny")
+            }
+        }, message: {
+            Text(webContainerModel.webPageModel.permissionsDialogMessage)
+        })
     }
 }
 

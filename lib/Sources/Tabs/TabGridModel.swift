@@ -14,6 +14,9 @@ public final class TabGridModel {
 
     public var openTab: (TabModel) -> Void = { _ in }
     public var openNewTab: (Int) -> Void = { _ in }
+    /// Called after a tab is removed from the grid, so its live session can be torn down
+    /// immediately. That session holds a web view, a Js context, and BLE connections.
+    public var onTabDeleted: (Int) -> Void = { _ in }
 
     init(urls: [URL] = []) {
         self.store = nil
@@ -57,6 +60,7 @@ public final class TabGridModel {
     func deleteButtonTapped(tab: TabModel) {
         tabs.removeValue(forKey: tab.index)
         saveAll()
+        onTabDeleted(tab.index)
     }
 
     public func performInitialLoad() async {

@@ -1,5 +1,8 @@
 import Bluetooth
 import Foundation
+import OSLog
+
+private let log = Logger(subsystem: "Topaz", category: "DeviceSelector")
 
 // TODO: move to own module with BluetoothEngine
 
@@ -31,6 +34,11 @@ public final class DeviceSelector: InteractiveDeviceSelector {
     }
 
     public func awaitSelection() async -> Result<Bluetooth.Peripheral, DeviceSelectionError> {
+        guard selectionContinuaton == nil else {
+            // Clobbering the pending continuation leaks it and hangs the original
+            // requester forever, so reject the newcomer instead.
+            return .failure(.busy)
+        }
         isSelecting = true
         advertisementsContinuation.yield([])
         defer {
@@ -63,6 +71,9 @@ public final class DeviceSelector: InteractiveDeviceSelector {
     private func fulfill(returning result: Result<Bluetooth.Peripheral, DeviceSelectionError>) {
         guard let continuation = selectionContinuaton else { return }
         selectionContinuaton = nil
+        if case let .failure(.cancelled(items)) = result {
+            log.debug("Selection cancelled with presentedItems=[\(items.joined(separator: ","), privacy: .private)]")
+        }
         continuation.resume(returning: result)
     }
 

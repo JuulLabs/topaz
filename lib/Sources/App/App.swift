@@ -22,9 +22,20 @@ public struct AppContentView: View {
     }
 
     public var body: some View {
-        Group {
-            if let webLoadingModel = model.activePageModel {
-                WebLoadingView(model: webLoadingModel)
+        ZStack {
+            // Keep-alive underlay. Background web views stay parented in the window,
+            // invisible and non-interactive, so WebKit keeps their content processes
+            // running and their pages keep receiving BLE events.
+            ForEach(model.backgroundSessions) { session in
+                if let webContainerModel = session.loadingModel.webContainerModel {
+                    WebPageView(model: webContainerModel.webPageModel)
+                        .opacity(0.001)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            if let session = model.activeSession {
+                WebLoadingView(model: session.loadingModel)
                     .background(Color.backgroundPrimary)
             } else {
                 TabGridView(model: model.tabsModel)
@@ -32,6 +43,9 @@ public struct AppContentView: View {
         }
         // TODO: This locks the app to light mode. Remove this when we want to support dark mode.
         .preferredColorScheme(.light)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
+            model.didReceiveMemoryWarning()
+        }
     }
 }
 
@@ -44,7 +58,7 @@ public struct AppContentView: View {
     AppContentView(model: model)
         .task {
             try? await Task.sleep(nanoseconds: NSEC_PER_SEC * 2)
-            let searchModel = model.activePageModel?.navBarModel.searchBarModel
+            let searchModel = model.activeSession?.loadingModel.navBarModel.searchBarModel
             searchModel?.searchString = "https://googlechrome.github.io/samples/web-bluetooth/index.html"
             searchModel?.didSubmitSearchString()
         }

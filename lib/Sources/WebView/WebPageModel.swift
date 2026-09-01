@@ -2,10 +2,13 @@ import Foundation
 import JsMessage
 import Navigation
 import Observation
+import OSLog
 import Permissions
 import SwiftUI
 import VirtualKeyboard
 import WebKit
+
+private let log = Logger(subsystem: "Topaz", category: "WebPageModel")
 
 // This is a workaround for an iOS issue that occurs with the view layout not being properly
 // redrawn when keyboard focus on a WebView TextField that has a tool bar shifts to a
@@ -25,8 +28,13 @@ public class WebPageModel: Identifiable {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
+    let sessionController = WebPageSessionController()
+
     @ObservationIgnored
-    private weak var webView: WKWebView?
+    private var ownedWebView: WKWebView?
+
+    @ObservationIgnored
+    private(set) var isTornDown = false
 
     public let config: WKWebViewConfiguration
     public let contextId: JsContextIdentifier
@@ -40,7 +48,16 @@ public class WebPageModel: Identifiable {
 
     public let navigator: WebNavigator
 
-    public var launchNewPage: ((URL) -> Void)?
+    /// Called when the system kills the web content process for this page. The owner must
+    /// tear this session down and rebuild it (converge-to-empty).
+    @ObservationIgnored
+    public var onWebContentProcessTerminated: (() -> Void)?
+
+    /// Called when the page stopped consuming events for long enough that its bounded
+    /// delivery buffer overflowed. The page is wedged and has already missed data. The
+    /// owner must tear this session down (converge-to-empty).
+    @ObservationIgnored
+    public var onEventDeliveryOverflow: (() -> Void)?
 
     public var presentPermissionsDialog: Bool = false
 
@@ -112,16 +129,45 @@ public class WebPageModel: Identifiable {
             return false
         }
         userAgentMode = mode
-        webView?.customUserAgent = customUserAgent
+        ownedWebView?.customUserAgent = customUserAgent
         return true
     }
 
-    func createWebView() -> WKWebView {
+    /// Returns the model-owned web view, creating and initializing it on first access.
+    /// Returns nil once the session has been torn down. A stray view update must never
+    /// resurrect a torn-down model. The replacement would live outside the accounting
+    /// of the session cache, and would never be torn down again.
+    func webView() -> WKWebView? {
+        if isTornDown {
+            log.error("webView() requested after teardown for tab \(self.tab); refusing to resurrect the session")
+            return nil
+        }
+        if let ownedWebView {
+            return ownedWebView
+        }
         let webView = NoKeyboardToolbarWebView(frame: .zero, configuration: config)
-        self.webView = webView
+#if DEBUG
+        webView.isInspectable = true
+#endif
+        self.ownedWebView = webView
         webView.allowsBackForwardNavigationGestures = true
         scrollObserver.observe(webView: webView)
+        sessionController.initialize(webView: webView, model: self)
         return webView
+    }
+
+    /// Tears down the web session. Denies any pending permissions request, so neither its
+    /// continuation nor the script message reply that awaits it can leak. Idempotent and
+    /// terminal: `webView()` returns nil afterwards.
+    public func teardown() {
+        isTornDown = true
+        // Resolve before the web-view guard. A request can be parked while the
+        // permissions alert chrome is unmounted, e.g. raised by a background tab.
+        closePermissionsRequest(allowed: false)
+        presentPermissionsDialog = false
+        guard let webView = ownedWebView else { return }
+        sessionController.deinitialize(webView: webView)
+        ownedWebView = nil
     }
 
     func didBeginLoading(url: URL) {
@@ -136,7 +182,28 @@ public class WebPageModel: Identifiable {
         self.url = url
     }
 
+    /// Relinquishes keyboard focus held by the web view content. A web view that moves
+    /// to the keep-alive underlay may otherwise remain first responder. Its stale
+    /// keyboard then floats over whatever replaced it on screen.
+    public func resignFocus() {
+        ownedWebView?.endEditing(true)
+    }
+
+    func webContentProcessDidTerminate() {
+        onWebContentProcessTerminated?()
+    }
+
+    func eventDeliveryDidOverflow() {
+        onEventDeliveryOverflow?()
+    }
+
     func requestAuthorization() async -> Bool {
+        // A script message already in flight when the session was torn down must not
+        // authorize. Nor may it park a continuation that the unmounted alert can
+        // never resolve.
+        guard !isTornDown else {
+            return false
+        }
         guard let webOrigin else {
             return false
         }
@@ -146,17 +213,17 @@ public class WebPageModel: Identifiable {
         return true
     }
 
-    var permissionsDialogMessage: String {
+    public var permissionsDialogMessage: String {
         "This will allow this website to find and connect to your Bluetooth® devices."
     }
 
-    func denyPermissionsButtonTapped() {
+    public func denyPermissionsButtonTapped() {
         // TODO: give the user the option to remember the decision and cache the result for some period of time
         // so that we stop prompting them on every attempted bluetooth operation
         closePermissionsRequest(allowed: false)
     }
 
-    func allowPermissionsButtonTapped() {
+    public func allowPermissionsButtonTapped() {
         closePermissionsRequest(allowed: true)
     }
 

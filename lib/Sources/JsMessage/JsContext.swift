@@ -6,16 +6,27 @@ import Foundation
 public struct JsContext: Sendable, Identifiable {
     public let id: JsContextIdentifier
     private let eventSink: @MainActor (JsEvent) async -> Result<Void, any Error>
+    private let deliveryBarrier: @MainActor () async -> Void
 
     public init(
         id: JsContextIdentifier,
-        eventSink: @escaping @MainActor (JsEvent) async -> Result<Void, any Error>
+        eventSink: @escaping @MainActor (JsEvent) async -> Result<Void, any Error>,
+        awaitPendingDeliveries: @escaping @MainActor () async -> Void = {}
     ) {
         self.id = id
         self.eventSink = eventSink
+        self.deliveryBarrier = awaitPendingDeliveries
     }
 
     public func sendEvent(_ event: JsEvent) async -> Result<Void, any Error> {
         await eventSink(event)
+    }
+
+    /// Waits for events already handed to `sendEvent` to reach the page. Accepting an
+    /// event does not deliver it. A reply whose meaning depends on its event landing
+    /// first must wait here before it is sent. A characteristic read is one: the page
+    /// takes the value from the event.
+    public func awaitPendingDeliveries() async {
+        await deliveryBarrier()
     }
 }

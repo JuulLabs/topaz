@@ -8,10 +8,16 @@ import Navigation
 import SwiftUI
 import WebKit
 
+/// Bare host for a model-owned web view.
+///
+/// The model layer owns the web view, its delegates, and its script handlers, and they
+/// survive this view unmounting. Mounting re-parents the web view. Instances come and
+/// go as the web view moves between the visible tab and the keep-alive underlay. Never
+/// two at once for the same model.
 public struct WebPageView: View {
     @State private var scrollView: UIScrollView?
 
-    @Bindable var model: WebPageModel
+    let model: WebPageModel
 
     public init(model: WebPageModel) {
         self.model = model
@@ -21,20 +27,6 @@ public struct WebPageView: View {
         _WebPageView(model: model, scrollView: $scrollView)
             .id(model.id)
             .preference(key: WebPageScrollViewKey.self, value: scrollView)
-            .alert("This website would like to use Bluetooth®", isPresented: $model.presentPermissionsDialog, actions: {
-                Button {
-                    model.allowPermissionsButtonTapped()
-                } label: {
-                    Text("Allow")
-                }
-                Button(role: .cancel) {
-                    model.denyPermissionsButtonTapped()
-                } label: {
-                    Text("Deny")
-                }
-            }, message: {
-                Text(model.permissionsDialogMessage)
-            })
     }
 
     private struct _WebPageView: UIViewRepresentable {
@@ -47,29 +39,39 @@ public struct WebPageView: View {
             self._scrollView = scrollView
         }
 
-        func makeUIView(context: Context) -> WKWebView {
-            let webView = model.createWebView()
-#if DEBUG
-            webView.isInspectable = true
-#endif
-            context.coordinator.initialize(webView: webView, model: model)
+        // Each representable gets its own container, and the shared, model-owned web
+        // view is re-parented between containers. SwiftUI only ever owns the container.
+        // Host teardown ordering during a tab switch can therefore never rip the web
+        // view out of its new host.
+        func makeUIView(context: Context) -> WebPageHostUIView {
+            let container = WebPageHostUIView()
+            // A torn-down model yields no web view. The empty container is a
+            // placeholder until SwiftUI removes this stale host.
+            guard let webView = model.webView() else { return container }
+            container.host(webView)
             Task { @MainActor in
                 scrollView = webView.scrollView
             }
-            return webView
+            return container
         }
 
-        func updateUIView(_ uiView: WKWebView, context: Context) {
-            context.coordinator.update(webView: uiView, model: model)
+        func updateUIView(_ container: WebPageHostUIView, context: Context) {
+            guard let webView = model.webView() else { return }
+            // Re-claim the web view in case another (now dismantled) host held it
+            container.host(webView)
+            model.sessionController.update(webView: webView, model: model)
         }
+    }
+}
 
-        static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
-            coordinator.deinitialize(webView: uiView)
-        }
-
-        func makeCoordinator() -> Coordinator {
-            Coordinator()
-        }
+@MainActor
+final class WebPageHostUIView: UIView {
+    func host(_ webView: WKWebView) {
+        guard webView.superview !== self else { return }
+        webView.removeFromSuperview()
+        webView.frame = bounds
+        webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(webView)
     }
 }
 

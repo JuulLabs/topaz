@@ -5,13 +5,22 @@ import JsMessage
 import Navigation
 import WebKit
 
+/**
+ Owns the session-scoped machinery for a single web page: navigation delegates,
+ script handler attach/detach, and Js context swaps.
+
+ Created and retained by `WebPageModel`, so the web view lifecycle follows the model
+ layer rather than SwiftUI view mount/unmount. Teardown is an explicit
+ `deinitialize(webView:)` call and is safe to repeat.
+ */
 @MainActor
-public class Coordinator: NSObject, NavigationEngineDelegate {
+class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
     private var contextId: JsContextIdentifier!
     private var scriptHandler: ScriptHandler?
-    private var viewModel: WebPageModel?
+    private var deliveryQueue: JsEventDeliveryQueue?
+    private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
@@ -34,8 +43,8 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         webView.customUserAgent = model.customUserAgent
         model.navigator.startObservingNavigationState(of: webView)
 
-        authorize = {
-            await model.requestAuthorization()
+        authorize = { [weak model] in
+            await model?.requestAuthorization() ?? false
         }
     }
 
@@ -60,13 +69,31 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func attachNewHandler(to webView: WKWebView) {
-        let context = webView.createContext(contextId: contextId, world: world)
+        let queue = JsEventDeliveryQueue(
+            deliver: { [weak webView, world] event in
+                guard let webView else {
+                    return .failure(JsEventDeliveryError.cancelled)
+                }
+                return await webView.sendTopazEvent(event, in: world)
+            },
+            onOverflow: { [weak self] in
+                self?.viewModel?.eventDeliveryDidOverflow()
+            }
+        )
+        self.deliveryQueue = queue
+        let context = webView.createContext(contextId: contextId, deliveryQueue: queue)
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
     }
 
+    private func cancelDeliveryQueue() {
+        deliveryQueue?.cancel()
+        deliveryQueue = nil
+    }
+
     private func detachOldHandler(from webView: WKWebView) {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         scriptHandler.detachProcessors()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -74,6 +101,7 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
     }
 
     private func detachOldHandlerAndWait(from webView: WKWebView) async {
+        cancelDeliveryQueue()
         guard let scriptHandler else { return }
         await scriptHandler.detachProcessorsAndWait()
         webView.detachScriptHandler(scriptHandler, in: world)
@@ -91,10 +119,9 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
             // Carry over the same Js context to keep BLE connections alive
             break
         case .crossOrigin:
-            // Tear down and spin up a new Js context for this new web page.
-            // Chain off any in-flight swap so detach/attach pairs stay ordered, and supersede it
-            // so a stale navigation can't attach a context after a newer one has started.
-            // TODO: move this to be synchronous work on decidePolicyFor:navigationAction instead
+            // Supersede any in-flight swap. A stale navigation must not attach a
+            // context after a newer one starts.
+            // TODO: move this to synchronous work on decidePolicyFor:navigationAction instead
             let newContextId = contextId.withUrl(navigation.request.url)
             let previousSwap = pendingContextSwap
             previousSwap?.cancel()
@@ -120,6 +147,10 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
         // TODO: detect if the webpage has `overflow: hidden;` and `height: 100%` and set viewModel?.isFullScreenNonScrollable accordingly
     }
 
+    public func didTerminateWebContentProcess(in webView: WKWebView) {
+        viewModel?.webContentProcessDidTerminate()
+    }
+
     public func startedDownload(for url: URL) {
         viewModel?.isDownloadsPresented = true
     }
@@ -130,17 +161,27 @@ public class Coordinator: NSObject, NavigationEngineDelegate {
 }
 
 extension WKWebView {
-    func createContext(contextId: JsContextIdentifier, world: WKContentWorld) -> JsContext {
-        return JsContext(id: contextId) { [weak self] event in
-            return await withCheckedContinuation { continuation in
-                self?.callAsyncJavaScript(
-                    "topaz.sendEvent(event)",
-                    arguments: [ "event": event.jsValue ],
-                    in: nil,
-                    in: world) { result in
-                        continuation.resume(returning: result.map { _ in () })
-                    }
+    func createContext(contextId: JsContextIdentifier, deliveryQueue: JsEventDeliveryQueue) -> JsContext {
+        return JsContext(
+            id: contextId,
+            eventSink: { event in
+                deliveryQueue.enqueue(event)
+            },
+            awaitPendingDeliveries: {
+                await deliveryQueue.awaitPendingDeliveries()
             }
+        )
+    }
+
+    func sendTopazEvent(_ event: JsEvent, in world: WKContentWorld) async -> Result<Void, any Error> {
+        return await withCheckedContinuation { continuation in
+            callAsyncJavaScript(
+                "topaz.sendEvent(event)",
+                arguments: [ "event": event.jsValue ],
+                in: nil,
+                in: world) { result in
+                    continuation.resume(returning: result.map { _ in () })
+                }
         }
     }
 
