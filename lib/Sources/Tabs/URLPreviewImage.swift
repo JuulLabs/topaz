@@ -19,7 +19,7 @@ struct URLPreviewImage: View {
             if let preview {
                 Image(uiImage: preview)
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .scaledToFill()
             } else {
                 Text(hostname)
                     .lineLimit(2)
