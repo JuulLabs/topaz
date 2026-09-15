@@ -24,7 +24,7 @@ private class NoKeyboardToolbarWebView: WKWebView {
 
 @MainActor
 @Observable
-public class WebPageModel: Identifiable {
+public class WebPageModel: Identifiable, PagePreviewCapturing {
     private var permissionsRequest: CheckedContinuation<Bool, Never>?
     private let scrollObserver: ScrollObserver
 
@@ -180,6 +180,14 @@ public class WebPageModel: Identifiable {
 
     func didFinishLoading(url: URL) {
         self.url = url
+    }
+
+    /// Renders the page as a thumbnail-sized JPEG, or nil when there is nothing to
+    /// render: a torn-down session, a web view that was never mounted, or a failed
+    /// snapshot. Does not create the web view, so it never resurrects a dead session.
+    public func capturePreview(format: PagePreviewFormat) async -> Data? {
+        guard !isTornDown, let ownedWebView else { return nil }
+        return await capturePagePreview(from: ownedWebView, format: format)
     }
 
     /// Relinquishes keyboard focus held by the web view content. A web view that moves

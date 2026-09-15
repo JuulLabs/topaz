@@ -13,6 +13,9 @@ import WebView
 public struct AppContentView: View {
     let model: AppModel
 
+    @Environment(\.scenePhase)
+    private var scenePhase
+
     public init(
         model: AppModel
     ) {
@@ -45,6 +48,11 @@ public struct AppContentView: View {
         .preferredColorScheme(.light)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didReceiveMemoryWarningNotification)) { _ in
             model.didReceiveMemoryWarning()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase != .active {
+                model.didEnterBackground()
+            }
         }
     }
 }
