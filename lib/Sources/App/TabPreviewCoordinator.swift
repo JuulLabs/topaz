@@ -29,7 +29,7 @@ final class TabPreviewCoordinator {
             width: TabPreviewMetrics.width,
             aspectRatio: TabPreviewMetrics.aspectRatio
         ),
-        debounceInterval: Duration = Self.debounceInterval
+        debounceInterval: Duration = TabPreviewCoordinator.debounceInterval
     ) {
         self.store = store
         self.format = format
