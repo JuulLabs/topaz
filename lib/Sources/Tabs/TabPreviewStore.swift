@@ -31,11 +31,15 @@ public struct TabPreviewStore: Sendable {
         try? await storage.load(for: tabID.uuidString)
     }
 
-    public func save(_ data: Data, for tabID: UUID) async {
+    /// Returns whether the thumbnail was written.
+    @discardableResult
+    public func save(_ data: Data, for tabID: UUID) async -> Bool {
         do {
             try await storage.save(data, for: tabID.uuidString)
+            return true
         } catch {
             log.error("Unable to save tab preview: \(error.localizedDescription, privacy: .public)")
+            return false
         }
     }
 

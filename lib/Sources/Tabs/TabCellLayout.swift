@@ -19,7 +19,7 @@ struct TabCellLayout: ViewModifier {
         content
             .frame(minHeight: TabCellLayout.minSize.height)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .aspectRatio(3/4, contentMode: .fill)
+            .aspectRatio(TabPreviewMetrics.aspectRatio, contentMode: .fill)
             .clipped()
             .cornerRadius(16)
             .background {

@@ -18,6 +18,7 @@ final class TabPreviewCoordinator {
     private let format: PagePreviewFormat
     private let debounceInterval: Duration
     private var debouncers: [UUID: Debouncer] = [:]
+    private var captures: [UUID: Task<Void, Never>] = [:]
     private var capturedTabs: Set<UUID> = []
 
     /// Called on the main actor after a new thumbnail is stored for a tab.
@@ -55,24 +56,26 @@ final class TabPreviewCoordinator {
 
     /// Captures immediately, superseding any pending debounced capture for the tab.
     func captureNow(tabID: UUID, page: any PagePreviewCapturing) {
-        cancelPending(for: tabID)
+        takePending(for: tabID)
         capture(tabID: tabID, page: page)
     }
 
     func removePreview(for tabID: UUID) {
-        cancelPending(for: tabID)
+        let pending = takePending(for: tabID)
         capturedTabs.remove(tabID)
         Task {
+            await pending?.value
             await store.remove(for: tabID)
         }
     }
 
     func removeAllPreviews() {
-        for tabID in debouncers.keys {
-            cancelPending(for: tabID)
-        }
+        let pending = Set(debouncers.keys).union(captures.keys).compactMap { takePending(for: $0) }
         capturedTabs.removeAll()
         Task {
+            for capture in pending {
+                await capture.value
+            }
             await store.removeAll()
         }
     }
@@ -85,19 +88,32 @@ final class TabPreviewCoordinator {
         return data
     }
 
-    private func cancelPending(for tabID: UUID) {
-        guard let debouncer = debouncers.removeValue(forKey: tabID) else { return }
-        Task {
-            await debouncer.cancel()
+    /// Stops the tab's pending timer and cancels any snapshot already in flight,
+    /// returning that capture so a removal can be ordered after it has finished — a
+    /// snapshot awaiting WebKit must not write a thumbnail that was just removed.
+    @discardableResult
+    private func takePending(for tabID: UUID) -> Task<Void, Never>? {
+        if let debouncer = debouncers.removeValue(forKey: tabID) {
+            Task {
+                await debouncer.cancel()
+            }
         }
+        let capture = captures.removeValue(forKey: tabID)
+        capture?.cancel()
+        return capture
     }
 
-    /// A failed capture leaves the previous thumbnail in place. Another capture follows
-    /// on the next load, tab exit or backgrounding.
+    /// A failed snapshot or a failed write leaves the previous thumbnail in place, and
+    /// leaves the tab uncaptured so the next load captures it immediately rather than
+    /// waiting out the debounce. Another capture follows on the next load, tab exit or
+    /// backgrounding.
     private func capture(tabID: UUID, page: any PagePreviewCapturing) {
-        Task {
-            guard let data = await page.capturePreview(format: format) else { return }
-            await store.save(data, for: tabID)
+        captures[tabID]?.cancel()
+        captures[tabID] = Task {
+            guard let data = await page.capturePreview(format: format), !Task.isCancelled else {
+                return
+            }
+            guard await store.save(data, for: tabID), !Task.isCancelled else { return }
             capturedTabs.insert(tabID)
             onPreviewStored(tabID)
         }

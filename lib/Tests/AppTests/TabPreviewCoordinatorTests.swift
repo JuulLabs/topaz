@@ -9,6 +9,7 @@ import WebView
 private final class FakePage: PagePreviewCapturing {
     private(set) var captureCount = 0
     var data: Data?
+    var captureDelay: Duration?
 
     init(data: Data? = Data([0xAA])) {
         self.data = data
@@ -16,15 +17,35 @@ private final class FakePage: PagePreviewCapturing {
 
     func capturePreview(format: PagePreviewFormat) async -> Data? {
         captureCount += 1
+        if let captureDelay {
+            try? await Task.sleep(for: captureDelay)
+        }
         return data
     }
+}
+
+/// Stands in for a caches directory that cannot be written to.
+private actor UnwritableDataStorage: DataStorage {
+    struct Failure: Error {}
+
+    func load(for key: String) async throws -> Data {
+        throw Failure()
+    }
+
+    func save(_ data: Data, for key: String) async throws {
+        throw Failure()
+    }
+
+    func remove(for key: String) async throws {}
+
+    func removeAll() async throws {}
 }
 
 @MainActor
 struct TabPreviewCoordinatorTests {
 
     private func makeCoordinator(
-        storage: InMemoryDataStorage = InMemoryDataStorage(),
+        storage: DataStorage = InMemoryDataStorage(),
         debounceInterval: Duration = .milliseconds(50)
     ) -> (TabPreviewCoordinator, TabPreviewStore) {
         let store = TabPreviewStore(storage: storage)
@@ -108,6 +129,32 @@ struct TabPreviewCoordinatorTests {
         coordinator.captureNow(tabID: tabID, page: page)
         await settle()
         #expect(await store.load(for: tabID) == Data([0xAA]))
+    }
+
+    @Test
+    func pageDidLoad_whenTheWriteFails_leavesTheTabUncaptured() async {
+        let (coordinator, _) = makeCoordinator(storage: UnwritableDataStorage())
+        let page = FakePage()
+        let tabID = UUID()
+        coordinator.pageDidLoad(tabID: tabID, page: page)
+        await settle()
+        // Nothing was stored, so the next load captures at once instead of debouncing
+        coordinator.pageDidLoad(tabID: tabID, page: page)
+        await settle()
+        #expect(page.captureCount == 2)
+    }
+
+    @Test
+    func removePreview_whileASnapshotIsInFlight_doesNotLeaveAThumbnailBehind() async {
+        let (coordinator, store) = makeCoordinator()
+        let page = FakePage()
+        page.captureDelay = .milliseconds(100)
+        let tabID = UUID()
+        coordinator.pageDidLoad(tabID: tabID, page: page)
+        await Task.yield()
+        coordinator.removePreview(for: tabID)
+        try? await Task.sleep(for: .milliseconds(300))
+        #expect(await store.load(for: tabID) == nil)
     }
 
     @Test
