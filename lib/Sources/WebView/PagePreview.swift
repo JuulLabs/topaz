@@ -40,9 +40,25 @@ func capturePagePreview(from webView: WKWebView, format: PagePreviewFormat) asyn
     configuration.snapshotWidth = NSNumber(value: format.width)
     do {
         let image = try await webView.takeSnapshot(configuration: configuration)
-        return image.jpegData(compressionQuality: format.compressionQuality)
+        return flattened(image).jpegData(compressionQuality: format.compressionQuality)
     } catch {
         log.error("Unable to capture page preview: \(error.localizedDescription, privacy: .public)")
         return nil
+    }
+}
+
+/// Redraws a snapshot without its alpha channel. WebKit always hands back a premultiplied
+/// alpha image, which JPEG cannot store: ImageIO logs a warning and doubles the memory
+/// needed to decode the file.
+@MainActor
+private func flattened(_ image: UIImage) -> UIImage {
+    let rendererFormat = UIGraphicsImageRendererFormat.preferred()
+    rendererFormat.opaque = true
+    rendererFormat.scale = image.scale
+    let renderer = UIGraphicsImageRenderer(size: image.size, format: rendererFormat)
+    return renderer.image { context in
+        UIColor.white.setFill()
+        context.fill(CGRect(origin: .zero, size: image.size))
+        image.draw(at: .zero)
     }
 }
