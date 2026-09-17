@@ -22,7 +22,7 @@ struct TabGridModelTests {
     func deleteButtonTapped_whenAHandlerIsAttached_firesOnTabDeletedWithTheTabIndex() {
         let model = modelWithUrls(["https://one.example", "https://two.example"])
         var deletedIndexes: [Int] = []
-        model.onTabDeleted = { deletedIndexes.append($0) }
+        model.onTabDeleted = { deletedIndexes.append($0.index) }
         model.deleteButtonTapped(tab: model.tabCells[1])
         #expect(deletedIndexes == [2])
     }

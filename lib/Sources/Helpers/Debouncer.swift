@@ -16,4 +16,9 @@ public actor Debouncer {
             try await operation()
         }
     }
+
+    public func cancel() {
+        task?.cancel()
+        task = nil
+    }
 }

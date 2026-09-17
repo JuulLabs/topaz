@@ -35,12 +35,16 @@ public class AppModel {
 
     let activeTabState: ActiveTabState
 
+    /// Captures and stores the tab-grid thumbnails.
+    let previewCoordinator = TabPreviewCoordinator(store: TabPreviewStore())
+
     /// The session currently displayed. A fresh tab lives only here until its first page
     /// load caches it. Nil shows the tab grid, with cached sessions alive underneath.
     var activeSession: TabSession? {
         didSet {
             if oldValue !== activeSession {
                 oldValue?.resignFocus()
+                didLeaveSession(oldValue)
             }
             activeTabState.setActiveTab(activeSession?.tabIndex)
         }
@@ -93,14 +97,17 @@ public class AppModel {
             self.activate(tabIndex: tabModel.index, url: tabModel.url)
         }
 
-        tabsModel.onTabDeleted = { [weak self] tabIndex in
+        tabsModel.onTabDeleted = { [weak self] tabModel in
             guard let self else { return }
             // A deleted tab is unreachable: evict now so its BLE connections do not linger
-            sessions.evict(tabIndex)
-            if lastOpenedTabIndex == tabIndex {
+            sessions.evict(tabModel.index)
+            previewCoordinator.removePreview(for: tabModel.tabID)
+            if lastOpenedTabIndex == tabModel.index {
                 lastOpenedTabIndex = nil
             }
         }
+
+        configurePreviewCapture()
 
         Task {
             await PermissionsModel.shared.attachToStorage(self.storage)
@@ -187,6 +194,8 @@ public class AppModel {
     /// displayed tab from scratch. No page may keep in-memory state - a logged-in DOM,
     /// a Js heap - whose backing storage was just wiped.
     private func resetAllSessionsAfterDataRemoval() {
+        // A thumbnail is page content on disk, so it goes with the rest of it
+        previewCoordinator.removeAllPreviews()
         let activeTabIndex = activeSession?.tabIndex
         sessions.evictAll()
         guard let activeTabIndex else { return }
@@ -221,6 +230,7 @@ public class AppModel {
             guard shouldShowUrl(url) else { return }
             settingsModel.shareItem = SharingUrl(url: url, subject: title)
             self?.tabsModel.update(url: url, at: tabIndex)
+            self?.pageDidLoad(tabIndex: tabIndex)
             searchBarModel?.searchString = url.absoluteString
             navigator.isInSearchMode = false
         }

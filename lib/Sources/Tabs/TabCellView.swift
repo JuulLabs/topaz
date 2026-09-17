@@ -3,6 +3,7 @@ import SwiftUI
 
 struct TabCellView: View {
     let tab: TabModel
+    let loadPreview: (UUID) async -> Data?
     let action: () -> Void
     let delete: () -> Void
 
@@ -10,7 +11,7 @@ struct TabCellView: View {
         Button {
             action()
         } label: {
-            URLPreviewImage(url: tab.url)
+            URLPreviewImage(tab: tab, loadPreview: loadPreview)
                 .tabCellLayout()
                 .overlay(alignment: .topTrailing) {
                     Button {

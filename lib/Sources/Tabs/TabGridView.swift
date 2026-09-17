@@ -16,7 +16,7 @@ public struct TabGridView: View {
         ScrollView(.vertical) {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(model.tabCells) { tabCell in
-                    TabCellView(tab: tabCell) {
+                    TabCellView(tab: tabCell, loadPreview: model.loadPreview) {
                         model.tabButtonTapped(tab: tabCell)
                     } delete: {
                         model.deleteButtonTapped(tab: tabCell)
