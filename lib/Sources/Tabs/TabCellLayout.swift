@@ -27,6 +27,7 @@ struct TabCellLayout: ViewModifier {
                     .inset(by: 0.25)
                     .stroke(Color.borderActive, lineWidth: 0.25)
                     .fill(Color.canvasHighContrast)
+                    .shadow(radius: 4)
             }
     }
 }
