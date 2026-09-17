@@ -17,16 +17,16 @@ import WebKit
 class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private let world: WKContentWorld = .page
     private var messageProcessorFactory: JsMessageProcessorFactory!
-    private var contextId: JsContextIdentifier!
-    private var scriptHandler: ScriptHandler?
+    private(set) var contextId: JsContextIdentifier!
+    private(set) var scriptHandler: ScriptHandler?
     private var deliveryQueue: JsEventDeliveryQueue?
     private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
-    /// Serializes cross-origin context swaps. Each swap chains off the previous one so that
-    /// detach/attach pairs cannot interleave or finish out of order across rapid navigations.
+    /// Serializes cross-origin context swaps. The navigation policy decision awaits each swap,
+    /// so this task does not outlive the delegate call that initiated it.
     private var pendingContextSwap: Task<Void, Never>?
 
     override init() {}
@@ -110,30 +110,32 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
 
     // MARK: - NavigationEngineDelegate
 
-    public func didInitiateNavigation(_ navigation: NavigationItem, in webView: WKWebView) {
-        switch navigation.request.kind {
-        case .newWindow:
-            // Will trigger load of an entire new tab container so no need for any action
-            break
-        case .sameOrigin:
-            // Carry over the same Js context to keep BLE connections alive
-            break
-        case .crossOrigin:
-            // Supersede any in-flight swap. A stale navigation must not attach a
-            // context after a newer one starts.
-            // TODO: move this to synchronous work on decidePolicyFor:navigationAction instead
-            let newContextId = contextId.withUrl(navigation.request.url)
-            let previousSwap = pendingContextSwap
-            previousSwap?.cancel()
-            pendingContextSwap = Task { @MainActor [weak self] in
-                _ = await previousSwap?.value
-                guard let self, !Task.isCancelled else { return }
-                await self.detachOldHandlerAndWait(from: webView)
-                guard !Task.isCancelled, self.viewModel != nil else { return }
-                self.contextId = newContextId
-                self.attachNewHandler(to: webView)
-            }
+    public func prepareForNavigation(_ request: NavigationRequest, in webView: WKWebView) async {
+        guard shouldSwapContext(for: request) else { return }
+        await swapContext(to: request.url, in: webView)
+    }
+
+    private func shouldSwapContext(for request: NavigationRequest) -> Bool {
+        // Iframes get their own policy decisions; a cross-origin ad frame must not tear down
+        // the page's BLE context. Downloads leave the current page intact.
+        guard case .crossOrigin = request.kind, request.isMainFrame, !request.isDownload else { return false }
+        // Redirect chains re-enter the policy decision for the same logical navigation.
+        guard scriptHandler != nil else { return true }
+        return request.url.host(percentEncoded: false) != contextId.url.host(percentEncoded: false)
+    }
+
+    private func swapContext(to url: URL, in webView: WKWebView) async {
+        let previousSwap = pendingContextSwap
+        let swap = Task { @MainActor [weak self] in
+            _ = await previousSwap?.value
+            guard let self, self.viewModel != nil else { return }
+            await self.detachOldHandlerAndWait(from: webView)
+            guard self.viewModel != nil else { return }
+            self.contextId = self.contextId.withUrl(url)
+            self.attachNewHandler(to: webView)
         }
+        pendingContextSwap = swap
+        await swap.value
     }
 
     public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {

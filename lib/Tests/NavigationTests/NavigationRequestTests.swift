@@ -62,6 +62,7 @@ struct NavigationRequestTests {
         let sut = NavigationRequest(action: action)
         #expect(sut?.url == testUrl)
         #expect(sut?.actionType == .linkActivated)
+        #expect(sut?.isMainFrame == false)
     }
 
     @Test
@@ -76,6 +77,7 @@ struct NavigationRequestTests {
         )
         let sut = NavigationRequest(action: action)
         #expect(sut?.kind == .newWindow)
+        #expect(sut?.isMainFrame == false)
     }
 
     @Test
@@ -116,6 +118,24 @@ struct NavigationRequestTests {
         )
         let sut = NavigationRequest(action: action)
         #expect(sut?.kind == .crossOrigin)
+        #expect(sut?.isMainFrame == true)
+    }
+
+    @Test
+    func initFromAction_withSubframeAndOriginMismatch_isCrossOriginAndNotMainFrame() {
+        let origin = createSecurityOrigin(protocol: "http", host: "foo.com", port: 80)
+        let targetFrame = MockFrameInfo(
+            isMainFrame: { false },
+            request: { testRequest },
+            securityOrigin: { origin }
+        ).immortalize(in: &Self.retainBucket)
+        let action = MockAction(
+            request: { testRequest },
+            targetFrame: { targetFrame }
+        )
+        let sut = NavigationRequest(action: action)
+        #expect(sut?.kind == .crossOrigin)
+        #expect(sut?.isMainFrame == false)
     }
 
     @Test
