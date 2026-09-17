@@ -52,8 +52,12 @@ extension NavigationEngine: WKNavigationDelegate {
         }
         if latestRequest.isDownload {
             rememberRecentDownload(latestRequest.url)
+            if navigationResponse.isForMainFrame {
+                await delegate?.restoreContextAfterDownload(pageURL: webView.url, in: webView)
+            }
+            return .download
         }
-        return latestRequest.isDownload ? .download : .allow
+        return .allow
     }
 
     // MARK: - Navigation logic

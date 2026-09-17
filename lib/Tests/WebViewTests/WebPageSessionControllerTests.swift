@@ -90,6 +90,130 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
+    func sameOriginRequestWithDifferentHost_swapsContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let firstURL = URL(string: "https://first.example")!
+        let secondURL = URL(string: "https://second.example")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
+        let firstHandler = try #require(model.sessionController.scriptHandler)
+
+        await model.sessionController.prepareForNavigation(
+            navigationRequest(url: secondURL, kind: .sameOrigin),
+            in: webView
+        )
+
+        #expect(model.sessionController.scriptHandler !== firstHandler)
+        #expect(model.sessionController.contextId.url == secondURL)
+        model.teardown()
+    }
+
+    @Test
+    func sameOriginRequestWithSameHost_keepsCurrentContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let firstURL = URL(string: "https://first.example/one")!
+        let secondURL = URL(string: "https://first.example/two")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
+        let firstHandler = try #require(model.sessionController.scriptHandler)
+
+        await model.sessionController.prepareForNavigation(
+            navigationRequest(url: secondURL, kind: .sameOrigin),
+            in: webView
+        )
+
+        #expect(model.sessionController.scriptHandler === firstHandler)
+        #expect(model.sessionController.contextId.url == firstURL)
+        model.teardown()
+    }
+
+    @Test
+    func newWindowRequest_keepsCurrentContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let firstURL = URL(string: "https://first.example")!
+        let newWindowURL = URL(string: "https://second.example")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
+        let firstHandler = try #require(model.sessionController.scriptHandler)
+
+        await model.sessionController.prepareForNavigation(
+            navigationRequest(url: newWindowURL, kind: .newWindow),
+            in: webView
+        )
+
+        #expect(model.sessionController.scriptHandler === firstHandler)
+        #expect(model.sessionController.contextId.url == firstURL)
+        model.teardown()
+    }
+
+    @Test
+    func restoreContextAfterDownload_rebindsToVisiblePageURL() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let originalURL = URL(string: "https://original.example/page")!
+        let downloadURL = URL(string: "https://download.example/archive.zip")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
+        await model.sessionController.prepareForNavigation(navigationRequest(url: downloadURL), in: webView)
+        let downloadHandler = try #require(model.sessionController.scriptHandler)
+
+        await model.sessionController.restoreContextAfterDownload(pageURL: originalURL, in: webView)
+
+        #expect(model.sessionController.scriptHandler !== downloadHandler)
+        #expect(model.sessionController.contextId.url == originalURL)
+        model.teardown()
+    }
+
+    @Test
+    func restoreContextAfterDownload_withMatchingHostOrNoHandler_isNoOp() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let originalURL = URL(string: "https://original.example/page")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
+        let handler = try #require(model.sessionController.scriptHandler)
+
+        await model.sessionController.restoreContextAfterDownload(
+            pageURL: URL(string: "https://original.example/other")!,
+            in: webView
+        )
+
+        #expect(model.sessionController.scriptHandler === handler)
+        #expect(model.sessionController.contextId.url == originalURL)
+        model.teardown()
+
+        let unattachedModel = makeModel(recorder: recorder)
+        guard let unattachedWebView = unattachedModel.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        await unattachedModel.sessionController.restoreContextAfterDownload(
+            pageURL: originalURL,
+            in: unattachedWebView
+        )
+        #expect(unattachedModel.sessionController.scriptHandler == nil)
+        unattachedModel.teardown()
+    }
+
+    @Test
     func crossOriginSwap_waitsForProcessorDetachBeforeAttachingReplacement() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
@@ -154,10 +278,15 @@ struct WebPageSessionControllerTests {
         )
     }
 
-    private func navigationRequest(url: URL, isMainFrame: Bool = true, isDownload: Bool = false) -> NavigationRequest {
+    private func navigationRequest(
+        url: URL,
+        kind: NavigationKind = .crossOrigin,
+        isMainFrame: Bool = true,
+        isDownload: Bool = false
+    ) -> NavigationRequest {
         NavigationRequest(
             url: url,
-            kind: .crossOrigin,
+            kind: kind,
             actionType: .other,
             isDownload: isDownload,
             httpMethod: nil,

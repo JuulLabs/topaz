@@ -3,7 +3,10 @@ import BluetoothEngine
 import Foundation
 import JsMessage
 import Navigation
+import OSLog
 import WebKit
+
+private let log = Logger(subsystem: "WebView", category: "SessionController")
 
 /**
  Owns the session-scoped machinery for a single web page: navigation delegates,
@@ -85,6 +88,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
         let newHandler = ScriptHandler(context: context, factory: messageProcessorFactory, authorize: authorize)
         self.scriptHandler = newHandler
         webView.attachScriptHandler(newHandler, in: world)
+        log.debug("Handler attached context=\(self.contextId.url.absoluteString)")
     }
 
     private func cancelDeliveryQueue() {
@@ -103,25 +107,40 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private func detachOldHandlerAndWait(from webView: WKWebView) async {
         cancelDeliveryQueue()
         guard let scriptHandler else { return }
+        let detachedURL = contextId.url
         await scriptHandler.detachProcessorsAndWait()
         webView.detachScriptHandler(scriptHandler, in: world)
         self.scriptHandler = nil
+        log.debug("Handler detached context=\(detachedURL.absoluteString)")
     }
 
     // MARK: - NavigationEngineDelegate
 
     public func prepareForNavigation(_ request: NavigationRequest, in webView: WKWebView) async {
-        guard shouldSwapContext(for: request) else { return }
+        let shouldSwap = shouldSwapContext(for: request)
+        log.debug("Navigation preparation url=\(request.url.absoluteString) mainFrame=\(request.isMainFrame) download=\(request.isDownload) kind=\(String(describing: request.kind)) swapping=\(shouldSwap) context=\(self.contextId?.url.absoluteString ?? "nil")")
+        guard shouldSwap else { return }
         await swapContext(to: request.url, in: webView)
     }
 
     private func shouldSwapContext(for request: NavigationRequest) -> Bool {
         // Iframes get their own policy decisions; a cross-origin ad frame must not tear down
-        // the page's BLE context. Downloads leave the current page intact.
-        guard case .crossOrigin = request.kind, request.isMainFrame, !request.isDownload else { return false }
-        // Redirect chains re-enter the policy decision for the same logical navigation.
+        // the page's BLE context. New windows and downloads leave the current page intact.
+        guard request.kind != .newWindow, request.isMainFrame, !request.isDownload else { return false }
+        // The attached context must match the main frame's origin. A same-origin-classified
+        // request whose host differs from ours means the attached context has drifted.
         guard scriptHandler != nil else { return true }
         return request.url.host(percentEncoded: false) != contextId.url.host(percentEncoded: false)
+    }
+
+    public func restoreContextAfterDownload(pageURL: URL?, in webView: WKWebView) async {
+        let target = pageURL ?? lastLoadedURL
+        let currentHost = contextId?.url.host(percentEncoded: false) ?? "nil"
+        let targetHost = target?.host(percentEncoded: false) ?? "nil"
+        let shouldRestore = target != nil && scriptHandler != nil && targetHost != currentHost
+        log.debug("Download context restore target=\(target?.absoluteString ?? "nil") current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) restoring=\(shouldRestore)")
+        guard let target, scriptHandler != nil, targetHost != currentHost else { return }
+        await swapContext(to: target, in: webView)
     }
 
     private func swapContext(to url: URL, in webView: WKWebView) async {
