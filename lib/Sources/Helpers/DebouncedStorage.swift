@@ -20,6 +20,14 @@ public struct DebouncedDataStorage: DataStorage {
             try await delegate.save(data, for: key)
         }
     }
+
+    public func remove(for key: String) async throws {
+        try await delegate.remove(for: key)
+    }
+
+    public func removeAll() async throws {
+        try await delegate.removeAll()
+    }
 }
 
 public struct DebouncedCodableStorage: CodableStorage {
