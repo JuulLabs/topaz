@@ -159,7 +159,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func restoreContextAfterDownload_rebindsToVisiblePageURL() async throws {
+    func restoreContextAfterDownload_rebindsToLastLoadedURL() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -168,11 +168,13 @@ struct WebPageSessionControllerTests {
         }
         let originalURL = URL(string: "https://original.example/page")!
         let downloadURL = URL(string: "https://download.example/archive.zip")!
+        model.loadNewPage(url: originalURL)
+        model.sessionController.update(webView: webView, model: model)
         await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
         await model.sessionController.prepareForNavigation(navigationRequest(url: downloadURL), in: webView)
         let downloadHandler = try #require(model.sessionController.scriptHandler)
 
-        await model.sessionController.restoreContextAfterDownload(pageURL: originalURL, in: webView)
+        await model.sessionController.restoreContextAfterDownload(in: webView)
 
         #expect(model.sessionController.scriptHandler !== downloadHandler)
         #expect(model.sessionController.contextId.url == originalURL)
@@ -188,13 +190,12 @@ struct WebPageSessionControllerTests {
             return
         }
         let originalURL = URL(string: "https://original.example/page")!
+        model.loadNewPage(url: originalURL)
+        model.sessionController.update(webView: webView, model: model)
         await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
         let handler = try #require(model.sessionController.scriptHandler)
 
-        await model.sessionController.restoreContextAfterDownload(
-            pageURL: URL(string: "https://original.example/other")!,
-            in: webView
-        )
+        await model.sessionController.restoreContextAfterDownload(in: webView)
 
         #expect(model.sessionController.scriptHandler === handler)
         #expect(model.sessionController.contextId.url == originalURL)
@@ -205,10 +206,7 @@ struct WebPageSessionControllerTests {
             Issue.record("Expected model to create a web view")
             return
         }
-        await unattachedModel.sessionController.restoreContextAfterDownload(
-            pageURL: originalURL,
-            in: unattachedWebView
-        )
+        await unattachedModel.sessionController.restoreContextAfterDownload(in: unattachedWebView)
         #expect(unattachedModel.sessionController.scriptHandler == nil)
         unattachedModel.teardown()
     }

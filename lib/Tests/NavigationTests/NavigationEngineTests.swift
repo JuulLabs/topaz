@@ -160,7 +160,7 @@ private final class MockNavigationDelegate: NavigationEngineDelegate {
         preparationContinuation = nil
     }
 
-    func restoreContextAfterDownload(pageURL: URL?, in webView: WKWebView) async {
+    func restoreContextAfterDownload(in webView: WKWebView) async {
         restoreCount += 1
         didEnterRestore = true
         await withCheckedContinuation { continuation in

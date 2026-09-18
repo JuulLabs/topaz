@@ -8,7 +8,7 @@ public protocol NavigationEngineDelegate: AnyObject {
     func prepareForNavigation(_ request: NavigationRequest, in webView: WKWebView) async
     /// The response converted an allowed navigation into a download, so the page that was
     /// already on screen stays there. Re-bind the context to that page.
-    func restoreContextAfterDownload(pageURL: URL?, in webView: WKWebView) async
+    func restoreContextAfterDownload(in webView: WKWebView) async
     func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView)
     func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView)
     /// The system killed the web content process for this page, e.g. by jetsam. The Js

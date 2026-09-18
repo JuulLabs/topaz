@@ -133,8 +133,8 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
         return request.url.host(percentEncoded: false) != contextId.url.host(percentEncoded: false)
     }
 
-    private func restoreTarget(for pageURL: URL?) -> URL? {
-        guard let target = pageURL ?? lastLoadedURL,
+    private func restoreTarget() -> URL? {
+        guard let target = lastLoadedURL,
               scriptHandler != nil,
               target.host(percentEncoded: false) != contextId.url.host(percentEncoded: false) else {
             return nil
@@ -142,9 +142,9 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
         return target
     }
 
-    public func restoreContextAfterDownload(pageURL: URL?, in webView: WKWebView) async {
-        let target = restoreTarget(for: pageURL)
-        log.debug("Download context restore target=\(target?.absoluteString ?? "nil") current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) restoring=\(target != nil)")
+    public func restoreContextAfterDownload(in webView: WKWebView) async {
+        let target = restoreTarget()
+        log.debug("Download context restore lastLoadedURL=\(self.lastLoadedURL?.absoluteString ?? "nil") current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) restoring=\(target != nil)")
         guard let target else { return }
         await swapContext(to: target, in: webView)
     }
