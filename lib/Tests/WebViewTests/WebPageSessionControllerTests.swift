@@ -271,7 +271,7 @@ extension WebPageSessionControllerTests {
         await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
         await model.sessionController.prepareForNavigation(navigationRequest(url: secondURL), in: webView)
         let secondHandler = try #require(model.sessionController.scriptHandler)
-        model.sessionController.didBeginLoading(url: firstURL, in: webView)
+        model.sessionController.handleCommittedLoad(url: firstURL, in: webView)
         await model.sessionController.awaitPendingContextSwap()
         #expect(model.sessionController.scriptHandler !== secondHandler)
         #expect(model.sessionController.contextId.url == firstURL)
@@ -289,7 +289,7 @@ extension WebPageSessionControllerTests {
         let committedURL = URL(string: "https://first.example/two")!
         await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
         let handler = try #require(model.sessionController.scriptHandler)
-        model.sessionController.didBeginLoading(url: committedURL, in: webView)
+        model.sessionController.handleCommittedLoad(url: committedURL, in: webView)
         await model.sessionController.awaitPendingContextSwap()
         #expect(model.sessionController.scriptHandler === handler)
         #expect(model.sessionController.contextId.url == firstURL)
@@ -305,7 +305,7 @@ extension WebPageSessionControllerTests {
             return
         }
         let committedURL = URL(string: "https://committed.example/page")!
-        model.sessionController.didBeginLoading(url: committedURL, in: webView)
+        model.sessionController.handleCommittedLoad(url: committedURL, in: webView)
         await model.sessionController.awaitPendingContextSwap()
         #expect(model.sessionController.scriptHandler != nil)
         #expect(model.sessionController.contextId.url == committedURL)

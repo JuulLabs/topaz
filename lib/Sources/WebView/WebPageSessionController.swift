@@ -172,12 +172,11 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
-        viewModel?.didBeginLoading(url: navigation.request.url)
         let committedURL = webView.url ?? navigation.request.url
-        reconcileContext(with: committedURL, in: webView)
+        handleCommittedLoad(url: committedURL, in: webView)
     }
 
-    func didBeginLoading(url: URL, in webView: WKWebView) {
+    func handleCommittedLoad(url: URL, in webView: WKWebView) {
         viewModel?.didBeginLoading(url: url)
         reconcileContext(with: url, in: webView)
     }
