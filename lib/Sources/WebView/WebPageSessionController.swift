@@ -150,6 +150,10 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     private func swapContext(to url: URL, in webView: WKWebView) async {
+        await enqueueContextSwap(to: url, in: webView).value
+    }
+
+    private func enqueueContextSwap(to url: URL, in webView: WKWebView) -> Task<Void, Never> {
         let previousSwap = pendingContextSwap
         let swap = Task { @MainActor [weak self] in
             _ = await previousSwap?.value
@@ -160,11 +164,35 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
             self.attachNewHandler(to: webView)
         }
         pendingContextSwap = swap
-        await swap.value
+        return swap
+    }
+
+    func awaitPendingContextSwap() async {
+        await pendingContextSwap?.value
     }
 
     public func didBeginLoading(_ navigation: NavigationItem, in webView: WKWebView) {
         viewModel?.didBeginLoading(url: navigation.request.url)
+        let committedURL = webView.url ?? navigation.request.url
+        reconcileContext(with: committedURL, in: webView)
+    }
+
+    func didBeginLoading(url: URL, in webView: WKWebView) {
+        viewModel?.didBeginLoading(url: url)
+        reconcileContext(with: url, in: webView)
+    }
+
+    /// Policy decisions can describe navigations that never commit, so a rapid history sequence
+    /// can leave the context bound to a superseded destination. The committed page is authoritative.
+    /// This swap is intentionally not awaited because this callback is synchronous and the page is
+    /// already running with the wrong context; the policy-time swap remains the normal ordering gate.
+    /// A missing handler is also reconciled here as a safety net.
+    private func reconcileContext(with url: URL, in webView: WKWebView) {
+        let shouldSwap = scriptHandler == nil
+            || url.host(percentEncoded: false) != contextId.url.host(percentEncoded: false)
+        log.debug("Context reconciliation url=\(url.absoluteString) current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) swapping=\(shouldSwap)")
+        guard shouldSwap else { return }
+        _ = enqueueContextSwap(to: url, in: webView)
     }
 
     public func didEndLoading(_ navigation: NavigationItem, in webView: WKWebView) {

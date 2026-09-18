@@ -114,6 +114,7 @@ struct NavigationRequestTests {
         ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
+            sourceFrame: { targetFrame },
             targetFrame: { targetFrame }
         )
         let sut = NavigationRequest(action: action)
@@ -131,6 +132,7 @@ struct NavigationRequestTests {
         ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
+            sourceFrame: { targetFrame },
             targetFrame: { targetFrame }
         )
         let sut = NavigationRequest(action: action)
@@ -148,6 +150,7 @@ struct NavigationRequestTests {
         ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { testRequest },
+            sourceFrame: { targetFrame },
             targetFrame: { targetFrame }
         )
         let sut = NavigationRequest(action: action)
@@ -164,6 +167,7 @@ struct NavigationRequestTests {
         ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { postRequest },
+            sourceFrame: { targetFrame },
             targetFrame: { targetFrame }
         )
         let sut = NavigationRequest(action: action)

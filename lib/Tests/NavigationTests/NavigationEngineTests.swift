@@ -110,6 +110,7 @@ struct NavigationEngineTests {
         ).immortalize(in: &Self.retainBucket)
         let action = MockAction(
             request: { URLRequest(url: url) },
+            sourceFrame: { targetFrame },
             targetFrame: { targetFrame }
         ).immortalize(in: &Self.retainBucket)
         return action

@@ -225,7 +225,6 @@ struct WebPageSessionControllerTests {
         let firstHandler = try #require(model.sessionController.scriptHandler)
         #expect(await firstHandler.getProcessor(named: SpyProcessor.handlerName) != nil)
         #expect(await recorder.events() == ["attach(first.example)"])
-
         await model.sessionController.prepareForNavigation(navigationRequest(url: secondURL), in: webView)
 
         #expect(await recorder.events() == ["attach(first.example)", "detach(first.example)"])
@@ -245,18 +244,71 @@ struct WebPageSessionControllerTests {
         let firstURL = URL(string: "https://first.example")!
         let secondURL = URL(string: "https://second.example")!
         let thirdURL = URL(string: "https://third.example")!
-
         await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
         let firstHandler = try #require(model.sessionController.scriptHandler)
         await model.sessionController.prepareForNavigation(navigationRequest(url: secondURL), in: webView)
         let secondHandler = try #require(model.sessionController.scriptHandler)
         await model.sessionController.prepareForNavigation(navigationRequest(url: thirdURL), in: webView)
         let thirdHandler = try #require(model.sessionController.scriptHandler)
-
         #expect(firstHandler !== secondHandler)
         #expect(secondHandler !== thirdHandler)
         #expect(model.sessionController.scriptHandler === thirdHandler)
         #expect(model.sessionController.contextId.url == thirdURL)
+        model.teardown()
+    }
+}
+extension WebPageSessionControllerTests {
+    @Test
+    func committedPageWithDifferentHost_reconcilesContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let firstURL = URL(string: "https://first.example")!
+        let secondURL = URL(string: "https://second.example")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
+        await model.sessionController.prepareForNavigation(navigationRequest(url: secondURL), in: webView)
+        let secondHandler = try #require(model.sessionController.scriptHandler)
+        model.sessionController.didBeginLoading(url: firstURL, in: webView)
+        await model.sessionController.awaitPendingContextSwap()
+        #expect(model.sessionController.scriptHandler !== secondHandler)
+        #expect(model.sessionController.contextId.url == firstURL)
+        model.teardown()
+    }
+    @Test
+    func committedPageWithSameHost_keepsCurrentContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let firstURL = URL(string: "https://first.example/one")!
+        let committedURL = URL(string: "https://first.example/two")!
+        await model.sessionController.prepareForNavigation(navigationRequest(url: firstURL), in: webView)
+        let handler = try #require(model.sessionController.scriptHandler)
+        model.sessionController.didBeginLoading(url: committedURL, in: webView)
+        await model.sessionController.awaitPendingContextSwap()
+        #expect(model.sessionController.scriptHandler === handler)
+        #expect(model.sessionController.contextId.url == firstURL)
+        model.teardown()
+    }
+
+    @Test
+    func committedPageWithNoHandler_attachesContext() async throws {
+        let recorder = EventRecorder()
+        let model = makeModel(recorder: recorder)
+        guard let webView = model.webView() else {
+            Issue.record("Expected model to create a web view")
+            return
+        }
+        let committedURL = URL(string: "https://committed.example/page")!
+        model.sessionController.didBeginLoading(url: committedURL, in: webView)
+        await model.sessionController.awaitPendingContextSwap()
+        #expect(model.sessionController.scriptHandler != nil)
+        #expect(model.sessionController.contextId.url == committedURL)
         model.teardown()
     }
 
@@ -291,6 +343,7 @@ struct WebPageSessionControllerTests {
             isMainFrame: isMainFrame
         )
     }
+
 }
 
 private actor EventRecorder {
