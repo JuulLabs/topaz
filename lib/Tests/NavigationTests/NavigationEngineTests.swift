@@ -3,10 +3,10 @@ import Foundation
 import Testing
 import WebKit
 
-@MainActor
-@Suite(.tags(.navigation))
 /// Exercises `NavigationEngine`'s `WKNavigationDelegate` policy decisions for navigation
 /// actions and responses, verifying that WebKit waits for the delegate's context work.
+@MainActor
+@Suite(.tags(.navigation))
 struct NavigationEngineTests {
 
     // As of iOS 26.2 the WebKit ABI null-but-not-nullable crash is triggered on dealloc of the WK* test doubles.
