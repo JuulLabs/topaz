@@ -5,25 +5,31 @@ import WebKit
 
 @MainActor
 @Suite(.tags(.navigation))
+/// Exercises `NavigationEngine`'s `WKNavigationDelegate` policy decisions for navigation
+/// actions and responses, verifying that WebKit waits for the delegate's context work.
 struct NavigationEngineTests {
 
+    // As of iOS 26.2 the WebKit ABI null-but-not-nullable crash is triggered on dealloc of the WK* test doubles.
+    // The hacky workaround is to avoid invoking dealloc by retaining the instances in a static store.
+    // Caused by https://github.com/JuulLabs/topaz/issues/180 but manifests on dealloc instead of on the getter.
     private static var retainBucket: Set<NSObject> = []
 
     init() {
+        // There is some critical init code in the framework needed for WKNavigationAction subclasses to function
+        // correctly. We can force that by initializing a web view.
         _ = WKWebView()
     }
 
     @Test
-    func decidePolicyForNavigationAction_waitsForDelegatePreparation() async {
+    func decidePolicyForAction_whileTheDelegateIsPreparingTheContext_withholdsTheDecision() async {
         let delegate = MockNavigationDelegate()
-        let engine = NavigationEngine(navigator: WebNavigator())
-        engine.delegate = delegate
+        let sut = makeSut(delegate: delegate)
         let webView = WKWebView()
         let action = crossOriginAction(url: URL(string: "https://destination.example")!)
         let result = PolicyResultBox()
 
         let decision = Task { @MainActor in
-            result.value = await engine.webView(webView, decidePolicyFor: action)
+            result.value = await sut.webView(webView, decidePolicyFor: action)
         }
         while !delegate.didEnterPreparation {
             await Task.yield()
@@ -37,29 +43,27 @@ struct NavigationEngineTests {
     }
 
     @Test
-    func decidePolicyForDownload_doesNotPrepareNavigation() async {
+    func decidePolicyForAction_withADownloadAction_returnsDownloadWithoutPreparingAContext() async {
         let delegate = MockNavigationDelegate()
-        let engine = NavigationEngine(navigator: WebNavigator())
-        engine.delegate = delegate
+        let sut = makeSut(delegate: delegate)
         let webView = WKWebView()
         let action = crossOriginAction(url: URL(string: "blob:https://download.example/resource")!)
 
-        let policy = await engine.webView(webView, decidePolicyFor: action)
+        let policy = await sut.webView(webView, decidePolicyFor: action)
 
         #expect(policy == .download)
         #expect(delegate.prepareCount == 0)
     }
 
     @Test
-    func decidePolicyForResponseDownload_waitsForRestoreAndReturnsDownload() async {
+    func decidePolicyForResponse_whenTheResponseConvertsToADownload_restoresTheContextBeforeDownloading() async {
         let delegate = MockNavigationDelegate()
         delegate.gatePreparation = false
-        let engine = NavigationEngine(navigator: WebNavigator())
-        engine.delegate = delegate
+        let sut = makeSut(delegate: delegate)
         let webView = WKWebView()
         let url = URL(string: "https://download.example/archive.zip")!
         let action = crossOriginAction(url: url)
-        _ = await engine.webView(webView, decidePolicyFor: action)
+        _ = await sut.webView(webView, decidePolicyFor: action)
         let response = navigationResponse(
             url: url,
             isForMainFrame: true,
@@ -67,7 +71,7 @@ struct NavigationEngineTests {
         )
 
         let decision = Task { @MainActor in
-            await engine.webView(webView, decidePolicyFor: response)
+            await sut.webView(webView, decidePolicyFor: response)
         }
         while !delegate.didEnterRestore {
             await Task.yield()
@@ -80,25 +84,30 @@ struct NavigationEngineTests {
     }
 
     @Test
-    func decidePolicyForAllowedResponse_doesNotRestoreContext() async {
+    func decidePolicyForResponse_withAnOrdinaryPageResponse_leavesTheContextAttached() async {
         let delegate = MockNavigationDelegate()
         delegate.gatePreparation = false
-        let engine = NavigationEngine(navigator: WebNavigator())
-        engine.delegate = delegate
+        let sut = makeSut(delegate: delegate)
         let webView = WKWebView()
         let url = URL(string: "https://allowed.example/page")!
         let action = crossOriginAction(url: url)
-        _ = await engine.webView(webView, decidePolicyFor: action)
+        _ = await sut.webView(webView, decidePolicyFor: action)
         let response = navigationResponse(
             url: url,
             isForMainFrame: true,
             canShowMIMEType: true
         )
 
-        let policy = await engine.webView(webView, decidePolicyFor: response)
+        let policy = await sut.webView(webView, decidePolicyFor: response)
 
         #expect(policy == .allow)
         #expect(delegate.restoreCount == 0)
+    }
+
+    private func makeSut(delegate: MockNavigationDelegate) -> NavigationEngine {
+        let sut = NavigationEngine(navigator: WebNavigator())
+        sut.delegate = delegate
+        return sut
     }
 
     private func crossOriginAction(url: URL) -> WKNavigationAction {
