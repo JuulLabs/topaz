@@ -6,12 +6,14 @@ import VirtualKeyboard
 import WebKit
 @testable import WebView
 
+/// Tests `WebPageSessionController` through its delegate entry points:
+/// `prepareForNavigation`, `restoreContextAfterDownload`, and `handleCommittedLoad`.
 @MainActor
 @Suite(.timeLimit(.minutes(1)))
 struct WebPageSessionControllerTests {
 
     @Test
-    func firstCrossOriginMainFrameRequest_attachesNewContextBeforeReturning() async throws {
+    func prepareForNavigation_withTheFirstCrossOriginMainFrameRequest_attachesTheNewContextBeforeReturning() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -28,7 +30,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func crossOriginSubframeRequest_keepsCurrentContext() async throws {
+    func prepareForNavigation_withACrossOriginSubframeRequest_keepsTheCurrentContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -49,7 +51,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func crossOriginDownload_keepsCurrentContext() async throws {
+    func prepareForNavigation_withACrossOriginDownloadRequest_keepsTheCurrentContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -70,7 +72,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func sameHostRedirect_keepsTheAttachedScriptHandler() async throws {
+    func prepareForNavigation_withASameHostRedirect_keepsTheAttachedScriptHandler() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -90,7 +92,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func sameOriginRequestWithDifferentHost_swapsContext() async throws {
+    func prepareForNavigation_withASameOriginRequestToADifferentHost_swapsTheContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -113,7 +115,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func sameOriginRequestWithSameHost_keepsCurrentContext() async throws {
+    func prepareForNavigation_withASameOriginRequestToTheSameHost_keepsTheCurrentContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -136,7 +138,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func newWindowRequest_keepsCurrentContext() async throws {
+    func prepareForNavigation_withANewWindowRequest_keepsTheCurrentContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -159,7 +161,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func restoreContextAfterDownload_rebindsToLastLoadedURL() async throws {
+    func restoreContextAfterDownload_whenTheContextIsBoundToTheDownload_rebindsToTheLastLoadedURL() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -212,7 +214,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func crossOriginSwap_waitsForProcessorDetachBeforeAttachingReplacement() async throws {
+    func prepareForNavigation_withACrossOriginSwap_detachesProcessorsBeforeAttachingTheReplacement() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -234,7 +236,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func consecutiveCrossOriginSwaps_leaveOnlyTheLastContextAttached() async throws {
+    func prepareForNavigation_withConsecutiveCrossOriginSwaps_leavesOnlyTheLastContextAttached() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -257,9 +259,10 @@ struct WebPageSessionControllerTests {
         model.teardown()
     }
 }
+
 extension WebPageSessionControllerTests {
     @Test
-    func committedPageWithDifferentHost_reconcilesContext() async throws {
+    func handleCommittedLoad_withAPageOnADifferentHost_reconcilesTheContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -277,8 +280,9 @@ extension WebPageSessionControllerTests {
         #expect(model.sessionController.contextId.url == firstURL)
         model.teardown()
     }
+
     @Test
-    func committedPageWithSameHost_keepsCurrentContext() async throws {
+    func handleCommittedLoad_withAPageOnTheSameHost_keepsTheCurrentContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -297,7 +301,7 @@ extension WebPageSessionControllerTests {
     }
 
     @Test
-    func committedPageWithNoHandler_attachesContext() async throws {
+    func handleCommittedLoad_withNoAttachedHandler_attachesTheContext() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
