@@ -26,8 +26,10 @@ extension NavigationEngine: WKNavigationDelegate {
         log.debug("Request allowed url=\(navigationAction.request.url?.absoluteString ?? "nil") isDownload=\(newRequest.isDownload) action=\(navigationAction)")
         if newRequest.isDownload {
             rememberRecentDownload(newRequest.url)
+            return .download
         }
-        return newRequest.isDownload ? .download : .allow
+        await delegate?.prepareForNavigation(newRequest, in: webView)
+        return .allow
     }
 
     public func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
@@ -50,8 +52,12 @@ extension NavigationEngine: WKNavigationDelegate {
         }
         if latestRequest.isDownload {
             rememberRecentDownload(latestRequest.url)
+            if navigationResponse.isForMainFrame {
+                await delegate?.restoreContextAfterDownload(in: webView)
+            }
+            return .download
         }
-        return latestRequest.isDownload ? .download : .allow
+        return .allow
     }
 
     // MARK: - Navigation logic
@@ -67,7 +73,6 @@ extension NavigationEngine: WKNavigationDelegate {
             let navigationItem = NavigationItem(navigation: navigation, request: request)
             navigations[navigation] = navigationItem
             navigator.startObservingLoadingProgress(of: webView)
-            delegate?.didInitiateNavigation(navigationItem, in: webView)
         } else {
             log.warning("Unexpected provisional navigation ignored navigation=\(navigation)")
         }

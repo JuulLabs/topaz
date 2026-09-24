@@ -12,13 +12,22 @@ public struct NavigationRequest {
     public let actionType: WKNavigationType
     public let isDownload: Bool
     public let httpMethod: String?
+    public let isMainFrame: Bool
 
-    init(url: URL, kind: NavigationKind, actionType: WKNavigationType, isDownload: Bool, httpMethod: String?) {
+    public init(
+        url: URL,
+        kind: NavigationKind,
+        actionType: WKNavigationType,
+        isDownload: Bool,
+        httpMethod: String?,
+        isMainFrame: Bool = true
+    ) {
         self.url = url
         self.kind = kind
         self.actionType = actionType
         self.isDownload = isDownload
         self.httpMethod = httpMethod
+        self.isMainFrame = isMainFrame
     }
 
     public init?(action: WKNavigationAction) {
@@ -29,7 +38,9 @@ public struct NavigationRequest {
         self.actionType = action.navigationType
         self.isDownload = action.shouldPerformDownload || url.hasDownloadScheme
         self.httpMethod = action.request.httpMethod
-        guard let targetFrame = action.targetFrame else {
+        let targetFrame = action.targetFrame
+        self.isMainFrame = targetFrame?.isMainFrame == true
+        guard let targetFrame else {
             // WARNING: non-nullable navigationAction.sourceFrame property may actually be nil http://www.openradar.appspot.com/FB9877215
             let sourceFrame: WKFrameInfo? = action.sourceFrame
             guard let sourceFrame, sourceFrame.isMainFrame else {
@@ -52,7 +63,14 @@ public struct NavigationRequest {
 
     func updated(with navigationResponse: WKNavigationResponse) -> Self {
         if !isDownload && navigationResponse.shouldDownload() {
-            return Self(url: url, kind: kind, actionType: actionType, isDownload: true, httpMethod: httpMethod)
+            return Self(
+                url: url,
+                kind: kind,
+                actionType: actionType,
+                isDownload: true,
+                httpMethod: httpMethod,
+                isMainFrame: isMainFrame
+            )
         }
         return self
     }
