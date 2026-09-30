@@ -41,6 +41,7 @@
 			membershipExceptions = (
 				Info-Release.plist,
 				Info.plist,
+				topaz.entitlements,
 			);
 			target = 0BB6F08C2CB496C9003C34A1 /* topaz */;
 		};
@@ -432,6 +433,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Topaz/topaz.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_ASSET_PATHS = "\"topaz/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
@@ -464,6 +466,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Topaz/topaz.entitlements;
 				DEVELOPMENT_ASSET_PATHS = "\"topaz/Preview Content\"";
 				DEVELOPMENT_TEAM = 5EH8QG4538;
 				DONT_GENERATE_INFOPLIST_FILE = YES;
