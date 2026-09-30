@@ -10,13 +10,6 @@ XCODE_OPTIONS += -skipPackagePluginValidation -skipMacroValidation
 # Default before any parse-time conditionals that reference $(PLATFORM).
 PLATFORM ?= IOS
 
-# Simulator Debug builds skip signing for speed. Device archives (PLATFORM=GENERIC) must sign.
-ifeq ($(XCODE_CONFIG),Debug)
-ifeq ($(PLATFORM),IOS)
-	override XCODE_EXTRA_PARAMS += CODE_SIGNING_ALLOWED='NO'
-endif
-endif
-
 DERIVED_DATA_ROOT := .derivedData
 DERIVED_DATA_PATH := $(DERIVED_DATA_ROOT)/$(XCODE_CONFIG)
 
