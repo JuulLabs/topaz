@@ -3,5 +3,7 @@
 INFOPLIST_FILE = Topaz/Info.plist
 
 CODE_SIGN_IDENTITY = Apple Development
+// Ad-hoc "Sign to Run Locally": WebKit needs signed simulator builds for keychain access.
+CODE_SIGN_IDENTITY[sdk=iphonesimulator*] = -
 CODE_SIGN_STYLE = Manual
 PROVISIONING_PROFILE_SPECIFIER = Topaz Development
