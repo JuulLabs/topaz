@@ -25,6 +25,8 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     private var deliveryQueue: JsEventDeliveryQueue?
     private weak var viewModel: WebPageModel?
     private var lastLoadedURL: URL?
+    /// Main-frame URL of the most recent committed navigation: the page currently shown.
+    private var lastCommittedURL: URL?
     private var navigationEngine: NavigationEngine?
     private var authorize: () async -> Bool = { false }
 
@@ -60,6 +62,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
         webView.uiDelegate = nil
         viewModel = nil
         lastLoadedURL = nil
+        lastCommittedURL = nil
         detachOldHandler(from: webView)
         authorize = { false }
     }
@@ -134,7 +137,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
     }
 
     private func restoreTarget() -> URL? {
-        guard let target = lastLoadedURL,
+        guard let target = lastCommittedURL,
               scriptHandler != nil,
               target.host(percentEncoded: false) != contextId.url.host(percentEncoded: false) else {
             return nil
@@ -144,7 +147,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
 
     public func restoreContextAfterDownload(in webView: WKWebView) async {
         let target = restoreTarget()
-        log.debug("Download context restore lastLoadedURL=\(self.lastLoadedURL?.absoluteString ?? "nil") current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) restoring=\(target != nil)")
+        log.debug("Download context restore lastCommittedURL=\(self.lastCommittedURL?.absoluteString ?? "nil") current=\(self.contextId?.url.absoluteString ?? "nil") attached=\(self.scriptHandler != nil) restoring=\(target != nil)")
         guard let target else { return }
         await swapContext(to: target, in: webView)
     }
@@ -178,6 +181,7 @@ class WebPageSessionController: NSObject, NavigationEngineDelegate {
 
     func handleCommittedLoad(url: URL, in webView: WKWebView) {
         viewModel?.didBeginLoading(url: url)
+        lastCommittedURL = url
         reconcileContext(with: url, in: webView)
     }
 

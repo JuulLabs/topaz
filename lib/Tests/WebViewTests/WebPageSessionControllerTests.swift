@@ -161,7 +161,7 @@ struct WebPageSessionControllerTests {
     }
 
     @Test
-    func restoreContextAfterDownload_whenTheContextIsBoundToTheDownload_rebindsToTheLastLoadedURL() async throws {
+    func restoreContextAfterDownload_whenTheContextIsBoundToTheDownload_rebindsToTheLastCommittedPage() async throws {
         let recorder = EventRecorder()
         let model = makeModel(recorder: recorder)
         guard let webView = model.webView() else {
@@ -170,9 +170,8 @@ struct WebPageSessionControllerTests {
         }
         let originalURL = URL(string: "https://original.example/page")!
         let downloadURL = URL(string: "https://download.example/archive.zip")!
-        model.loadNewPage(url: originalURL)
-        model.sessionController.update(webView: webView, model: model)
-        await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
+        model.sessionController.handleCommittedLoad(url: originalURL, in: webView)
+        await model.sessionController.awaitPendingContextSwap()
         await model.sessionController.prepareForNavigation(navigationRequest(url: downloadURL), in: webView)
         let downloadHandler = try #require(model.sessionController.scriptHandler)
 
@@ -192,9 +191,8 @@ struct WebPageSessionControllerTests {
             return
         }
         let originalURL = URL(string: "https://original.example/page")!
-        model.loadNewPage(url: originalURL)
-        model.sessionController.update(webView: webView, model: model)
-        await model.sessionController.prepareForNavigation(navigationRequest(url: originalURL), in: webView)
+        model.sessionController.handleCommittedLoad(url: originalURL, in: webView)
+        await model.sessionController.awaitPendingContextSwap()
         let handler = try #require(model.sessionController.scriptHandler)
 
         await model.sessionController.restoreContextAfterDownload(in: webView)
