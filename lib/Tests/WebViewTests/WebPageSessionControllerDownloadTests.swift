@@ -48,7 +48,7 @@ struct WebPageSessionControllerDownloadTests {
         model.sessionController.handleCommittedLoad(url: committedURL, in: webView)
         await model.sessionController.awaitPendingContextSwap()
         await model.sessionController.prepareForNavigation(
-            navigationRequest(url: downloadURL, isDownload: true),
+            navigationRequest(url: downloadURL),
             in: webView
         )
 
@@ -74,7 +74,7 @@ struct WebPageSessionControllerDownloadTests {
         await model.sessionController.awaitPendingContextSwap()
         let committedHandler = try #require(model.sessionController.scriptHandler)
         await model.sessionController.prepareForNavigation(
-            navigationRequest(url: downloadURL, isDownload: true),
+            navigationRequest(url: downloadURL),
             in: webView
         )
 
@@ -96,12 +96,12 @@ struct WebPageSessionControllerDownloadTests {
         )
     }
 
-    private func navigationRequest(url: URL, isDownload: Bool = false) -> NavigationRequest {
+    private func navigationRequest(url: URL) -> NavigationRequest {
         NavigationRequest(
             url: url,
             kind: .crossOrigin,
             actionType: .other,
-            isDownload: isDownload,
+            isDownload: false,
             httpMethod: nil,
             isMainFrame: true
         )
