@@ -2,6 +2,7 @@
 import Foundation
 import Helpers
 import Tabs
+import TestHelpers
 import Testing
 import WebView
 
@@ -46,13 +47,15 @@ struct TabPreviewCoordinatorTests {
 
     private func makeCoordinator(
         storage: DataStorage = InMemoryDataStorage(),
-        debounceInterval: Duration = .milliseconds(50)
+        debounceInterval: Duration = .milliseconds(50),
+        clock: any Clock<Duration> = ContinuousClock()
     ) -> (TabPreviewCoordinator, TabPreviewStore) {
         let store = TabPreviewStore(storage: storage)
         let coordinator = TabPreviewCoordinator(
             store: store,
             format: PagePreviewFormat(width: 136, aspectRatio: 3.0 / 4.0),
-            debounceInterval: debounceInterval
+            debounceInterval: debounceInterval,
+            clock: clock
         )
         return (coordinator, store)
     }
@@ -60,6 +63,13 @@ struct TabPreviewCoordinatorTests {
     private func settle() async {
         await Task.yield()
         try? await Task.sleep(for: .milliseconds(20))
+    }
+
+    /// Yields each tab whose thumbnail the coordinator stores.
+    private func storedPreviews(of coordinator: TabPreviewCoordinator) -> AsyncStream<UUID>.Iterator {
+        let (stream, continuation) = AsyncStream<UUID>.makeStream()
+        coordinator.onPreviewStored = { continuation.yield($0) }
+        return stream.makeAsyncIterator()
     }
 
     @Test
@@ -75,32 +85,40 @@ struct TabPreviewCoordinatorTests {
 
     @Test
     func pageDidLoad_afterAThumbnailExists_waitsOutTheDebounceInterval() async {
-        let (coordinator, _) = makeCoordinator()
+        let clock = TestClock()
+        let (coordinator, _) = makeCoordinator(debounceInterval: .seconds(10), clock: clock)
+        var stored = storedPreviews(of: coordinator)
         let page = FakePage()
         let tabID = UUID()
         coordinator.pageDidLoad(tabID: tabID, page: page)
-        await settle()
+        _ = await stored.next(isolation: #isolation)
         coordinator.pageDidLoad(tabID: tabID, page: page)
         coordinator.pageDidLoad(tabID: tabID, page: page)
         coordinator.pageDidLoad(tabID: tabID, page: page)
+        await clock.waitForSleepers()
         #expect(page.captureCount == 1)
-        try? await Task.sleep(for: .milliseconds(200))
+        clock.advance(by: .seconds(10))
+        _ = await stored.next(isolation: #isolation)
         // The burst collapses onto a single trailing capture
         #expect(page.captureCount == 2)
     }
 
     @Test
     func captureNow_withADebouncedCapturePending_capturesOnceAndCancelsTheTimer() async {
-        let (coordinator, _) = makeCoordinator()
+        let clock = TestClock()
+        let (coordinator, _) = makeCoordinator(debounceInterval: .seconds(10), clock: clock)
+        var stored = storedPreviews(of: coordinator)
         let page = FakePage()
         let tabID = UUID()
         coordinator.pageDidLoad(tabID: tabID, page: page)
-        await settle()
+        _ = await stored.next(isolation: #isolation)
         coordinator.pageDidLoad(tabID: tabID, page: page)
+        await clock.waitForSleepers()
         coordinator.captureNow(tabID: tabID, page: page)
-        await settle()
+        _ = await stored.next(isolation: #isolation)
         #expect(page.captureCount == 2)
-        try? await Task.sleep(for: .milliseconds(200))
+        clock.advance(by: .seconds(10))
+        await settle()
         #expect(page.captureCount == 2)
     }
 

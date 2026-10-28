@@ -92,9 +92,8 @@ struct EventBusListenerTests {
         let event = TestEventOne(id: "test-event", lookup: .exact(key: systemStateKey))
         sut.enqueueEvent(event)
         // `enqueueEvent` is fire-and-forget (drained by a background task), so allow
-        // headroom for the cold async path to spin up on loaded CI runners. Matches the
-        // timeout used by `enqueueEvent_manyEvents_emitInOrder`.
-        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 0.5)
+        // headroom for loaded CI runners. The wait returns as soon as it is fulfilled.
+        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 10)
         #expect(outcome == .completed)
     }
 
@@ -116,7 +115,7 @@ struct EventBusListenerTests {
             let event = TestEventOne(id: "\(i)", lookup: .exact(key: systemStateKey))
             sut.enqueueEvent(event)
         }
-        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 0.5)
+        let outcome = await XCTWaiter().fulfillment(of: [eventReceivedExpectation], timeout: 10)
         #expect(outcome == .completed)
         resultQueue.finish()
         // Check that the order is as expected:
