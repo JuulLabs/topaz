@@ -12,7 +12,7 @@ struct WebPageSessionControllerDownloadTests {
     @Test
     func restoreContextAfterDownload_whenTheDownloadWasEnteredInTheSearchBar_rebindsToTheCommittedPage() async throws {
         let model = makeModel()
-        guard let webView = model.webView() else {
+        guard let webView = makeWebView(for: model) else {
             Issue.record("Expected model to create a web view")
             return
         }
@@ -36,7 +36,7 @@ struct WebPageSessionControllerDownloadTests {
     @Test
     func restoreContextAfterDownload_whenTheDownloadStartsBeforeTheCommittedPageFinishes_rebindsToTheCommittedPage() async throws {
         let model = makeModel()
-        guard let webView = model.webView() else {
+        guard let webView = makeWebView(for: model) else {
             Issue.record("Expected model to create a web view")
             return
         }
@@ -61,7 +61,7 @@ struct WebPageSessionControllerDownloadTests {
     @Test
     func restoreContextAfterDownload_withASameHostDownloadBeforeTheCommittedPageFinishes_keepsTheCurrentContext() async throws {
         let model = makeModel()
-        guard let webView = model.webView() else {
+        guard let webView = makeWebView(for: model) else {
             Issue.record("Expected model to create a web view")
             return
         }
@@ -94,6 +94,15 @@ struct WebPageSessionControllerDownloadTests {
             navigator: WebNavigator(),
             virtualKeyboardModel: VirtualKeyboardModel()
         )
+    }
+
+    /// `update(webView:model:)` starts a real WebKit load, whose delegate callbacks would
+    /// swap the context behind the test's back. Each test drives those callbacks directly.
+    private func makeWebView(for model: WebPageModel) -> WKWebView? {
+        let webView = model.webView()
+        webView?.navigationDelegate = nil
+        webView?.uiDelegate = nil
+        return webView
     }
 
     private func navigationRequest(url: URL) -> NavigationRequest {
