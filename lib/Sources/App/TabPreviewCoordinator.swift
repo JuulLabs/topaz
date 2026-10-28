@@ -17,7 +17,8 @@ final class TabPreviewCoordinator {
     private let store: TabPreviewStore
     private let format: PagePreviewFormat
     private let debounceInterval: Duration
-    private var debouncers: [UUID: Debouncer] = [:]
+    private let clock: any Clock<Duration>
+    private var timers: [UUID: Task<Void, Never>] = [:]
     private var captures: [UUID: Task<Void, Never>] = [:]
     private var capturedTabs: Set<UUID> = []
 
@@ -30,11 +31,13 @@ final class TabPreviewCoordinator {
             width: TabPreviewMetrics.width,
             aspectRatio: TabPreviewMetrics.aspectRatio
         ),
-        debounceInterval: Duration = TabPreviewCoordinator.debounceInterval
+        debounceInterval: Duration = TabPreviewCoordinator.debounceInterval,
+        clock: any Clock<Duration> = ContinuousClock()
     ) {
         self.store = store
         self.format = format
         self.debounceInterval = debounceInterval
+        self.clock = clock
     }
 
     /// The page finished loading. Captures now if this tab has no thumbnail yet,
@@ -44,13 +47,12 @@ final class TabPreviewCoordinator {
             capture(tabID: tabID, page: page)
             return
         }
-        let debouncer = debouncers[tabID] ?? Debouncer()
-        debouncers[tabID] = debouncer
-        Task {
-            await debouncer.debounce(interval: debounceInterval) { @MainActor [weak self, weak page] in
-                guard let self, let page else { return }
-                capture(tabID: tabID, page: page)
-            }
+        timers[tabID]?.cancel()
+        timers[tabID] = Task { [weak self, weak page, clock, debounceInterval] in
+            try? await clock.sleep(for: debounceInterval)
+            guard !Task.isCancelled, let self, let page else { return }
+            timers[tabID] = nil
+            capture(tabID: tabID, page: page)
         }
     }
 
@@ -70,7 +72,7 @@ final class TabPreviewCoordinator {
     }
 
     func removeAllPreviews() {
-        let pending = Set(debouncers.keys).union(captures.keys).compactMap { takePending(for: $0) }
+        let pending = Set(timers.keys).union(captures.keys).compactMap { takePending(for: $0) }
         capturedTabs.removeAll()
         Task {
             for capture in pending {
@@ -93,11 +95,7 @@ final class TabPreviewCoordinator {
     /// snapshot awaiting WebKit must not write a thumbnail that was just removed.
     @discardableResult
     private func takePending(for tabID: UUID) -> Task<Void, Never>? {
-        if let debouncer = debouncers.removeValue(forKey: tabID) {
-            Task {
-                await debouncer.cancel()
-            }
-        }
+        timers.removeValue(forKey: tabID)?.cancel()
         let capture = captures.removeValue(forKey: tabID)
         capture?.cancel()
         return capture
