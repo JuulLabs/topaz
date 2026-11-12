@@ -18,26 +18,23 @@ Optional tooling:
 ### Building Javascript
 
 Any changes to the `lib/Javascript` sources requires manually building and committing the final artifacts.
-To compile the Typescript sources:
+The app ships the non-minified build because minification mangles the public API class names. To compile the Typescript sources:
 
 ```sh
-$ make js
+$ make js-clean js-debug
 ```
 
 This will output the compiled artifacts to `lib/Sources/WebView/Resources/Generated`. Submit these changes as part of the PR.
 
-To compile the Javascript in a non-minified form for debugging:
+CI verifies the committed artifacts match a fresh build. To run the same check locally:
 
 ```sh
-$ make js-debug
+$ make js-check
 ```
 
-To switch between the debug and production artifacts, use the `js-clean` target to force a re-build e.g.:
+To compile a minified build (not shipped):
 
 ```sh
-# Force re-build for testing:
-$ make js-clean js-debug
-# Force re-build for production:
 $ make js-clean js
 ```
 

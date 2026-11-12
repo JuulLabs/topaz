@@ -1,4 +1,4 @@
-.PHONY: all help lint lint-fix clean js js-debug js-clean
+.PHONY: all help lint lint-fix clean js js-debug js-clean js-check
 
 # Default target - must be first
 all: help
@@ -17,6 +17,7 @@ help:
 	@echo "  js         Build the JavaScript polyfill artifacts"
 	@echo "  js-debug   Build the JavaScript polyfill artifacts without minification"
 	@echo "  js-clean   Clean the JavaScript build"
+	@echo "  js-check   Verify the committed JavaScript artifacts match a fresh build"
 	@echo "  lint       Lint the project"
 	@echo "  lint-fix   Fix linting issues"
 	@echo "  clean      Clean the project"
@@ -32,6 +33,18 @@ js-debug:
 
 js-clean:
 	$(MAKE) -C lib/Javascript clean
+
+JS_GENERATED_DIR := lib/Sources/WebView/Resources/Generated
+
+js-check:
+	$(MAKE) js-clean
+	$(MAKE) js-debug
+	@if [ -n "$$(git status --porcelain -- $(JS_GENERATED_DIR))" ]; then \
+		git status --short -- $(JS_GENERATED_DIR); \
+		git --no-pager diff --stat -- $(JS_GENERATED_DIR); \
+		echo "ERROR: Generated JavaScript is out of date. Run 'make js-clean js-debug' and commit the result."; \
+		exit 1; \
+	fi
 
 lint:
 	swiftlint lint --strict
